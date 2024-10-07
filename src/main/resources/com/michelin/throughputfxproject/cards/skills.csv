@@ -1,0 +1,3 @@
+copies|skill|skill_style|instructions|instructions_1|success
+14|Gain a skill!|"{color:rgba(12, 53, 18, 1)}"|Grant the color of your choosing to any human server.|"The chosen server must go into training in place of their next turn."|true
+2|Lose your most skilled team member!|"{color:rgba(236, 32, 41, 1)}"|Remove all skills from the server with the most.|"In case of a tie, remove from the server furthest to the right."|false

@@ -1,0 +1,49 @@
+package com.michelin.throughputfxproject.entities;
+
+import com.michelin.throughputfxproject.Color;
+import com.michelin.throughputfxproject.entities.servers.HumanServer;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+
+@Getter
+@Setter
+public class Workstation {
+
+    @lombok.NonNull
+    private Color color;
+    private List<Server> servers = new ArrayList<>(5);
+    private int capacity;
+    private int workItemCount;
+
+
+    public Workstation(@NonNull HumanServer server, int capacity, Color color) {
+        servers.add(server);
+        this.capacity = capacity;
+        this.color = color;
+    }
+
+    public void addToWorkItemCount(int amount) {
+        if (amount < 0) throw new AssertionError();
+        workItemCount += amount;
+    }
+
+    public void subtractFromWorkItemCount(int amount) {
+        if (amount < 0) throw new AssertionError();
+        if (amount > workItemCount) throw new AssertionError();
+        workItemCount -= amount;
+    }
+
+    @Override
+    public String toString() {
+        return  "Workstation=" + getColor().nameWithColor() + System.lineSeparator() +
+                ", Capacity=" + getCapacity() + System.lineSeparator() +
+                ", Wrk Items=" + getWorkItemCount() + System.lineSeparator() +
+                ", Servers=" + getServers();
+    }
+}

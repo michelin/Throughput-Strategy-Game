@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+
+<?import javafx.scene.text.Font?>
+
+
+<?import javafx.scene.layout.HBox?>
+<HBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.michelin.throughputfxproject.controllers.PromptController"
+      spacing="40">
+
+<VBox fx:id="backlogBox">
+        <Label fx:id="backlogCount" />
+        <Label text="BackLog" />
+</VBox>
+
+<VBox fx:id="workstation0">
+        <Label fx:id="servers0" />
+        <Label fx:id="workstationCount0" />
+        <Label fx:id="workstationLabel0" />
+</VBox>
+        <VBox fx:id="workstation1">
+                <Label fx:id="servers1" />
+                <Label fx:id="workstationCount1" />
+                <Label fx:id="workstationLabel1" />
+        </VBox>
+        <VBox fx:id="workstation2">
+                <Label fx:id="servers2" />
+                <Label fx:id="workstationCount2" />
+                <Label fx:id="workstationLabel2" />
+        </VBox>
+        <VBox fx:id="workstation3">
+                <Label fx:id="servers3" />
+                <Label fx:id="workstationCount3" />
+                <Label fx:id="workstationLabel3" />
+        </VBox>
+        <VBox fx:id="workstation4">
+                <Label fx:id="servers4" />
+                <Label fx:id="workstationCount4" />
+                <Label fx:id="workstationLabel4" />
+        </VBox>
+
+<VBox fx:id="finishedGoodsBox">
+        <Label fx:id="finishedGoodsCount" />
+        <Label text="FinishedGoods" />
+</VBox>
+</HBox>
+

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox alignment="CENTER" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.14-internal" fx:controller="com.michelin.throughputfxproject.controllers.PromptController">
+<Label fx:id="header" text="Throughput" textAlignment="CENTER"> <font><Font size="48" /></font></Label>
+<Label fx:id="header1" text="::  A Strategy Game  ::"> <font><Font size="18" /></font></Label>
+</VBox>

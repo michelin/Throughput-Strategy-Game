@@ -1,0 +1,3 @@
+copies|chance|chance_style|instructions|success
+80|Job well done! Your robot has completed its work for the day.|"{color:rgba(12, 53, 18, 1)}"|Move the number of work items that you desire, up to the workstations capacity.|true
+20|Bummer! An unexpected issue causes your robot not to complete its work for the day.|"{color:rgba(236, 32, 41, 1)}"|Do not move any work items for this workstation.|false
