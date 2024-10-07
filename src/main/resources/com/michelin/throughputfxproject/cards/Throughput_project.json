@@ -1,0 +1,2730 @@
+{
+    "lastUpdated": {
+        "seconds": 1725991740,
+        "nanoseconds": 645000000
+    },
+    "printSettings": {
+        "intersperseCardBacks": true,
+        "separateComponents": false,
+        "pageSize": "A4",
+        "bleed": 0,
+        "margins": 0.125,
+        "layout": "portrait",
+        "marginUnit": "inches",
+        "printCardBacks": false,
+        "shuffleCards": false,
+        "cropMarks": false
+    },
+    "title": "Throughput",
+    "createdAt": {
+        "seconds": 1725963844,
+        "nanoseconds": 767000000
+    },
+    "useFullSizeTTSImages": true,
+    "description": "",
+    "id": "qEEzbCDbRr5uSaofAHuS",
+    "componentReferencesArray": [
+        {
+            "print": true,
+            "tabColor": "rgba(205, 234, 230, 1)",
+            "id": "CWGUyj6eCOmo4M3feZ2B",
+            "name": "BIT"
+        },
+        {
+            "id": "yRrHhK69PkW6peOOVo1S",
+            "print": true,
+            "name": "Server",
+            "tabColor": "rgba(252, 225, 138, 1)"
+        },
+        {
+            "tabColor": "rgba(205, 234, 230, 1)",
+            "name": "Robot",
+            "id": "Xkq92siL9u88d88mirlu",
+            "print": true
+        },
+        {
+            "print": true,
+            "tabColor": "rgba(251, 250, 206, 1)",
+            "id": "ZfgvznXKxZkfjDYAxEx4",
+            "name": "Skils"
+        }
+    ],
+    "variables": [
+    ],
+    "lockComponentReferenceArray": false,
+    "userName": "LBurroughs",
+    "selectedCardTypeIndex": 0,
+    "deckPreviews": [
+    ],
+    "versionNum": 22,
+    "inlineClasses": [
+    ],
+    "userId": "4F4eVY0Mq9StKVxjENYRywn5ACg1",
+    "cardTypeArray": [
+        {
+            "highlightActiveCard": false,
+            "showPreviewCard": false,
+            "description": "",
+            "defaultImageFolders": {
+                "i6": "icons"
+            },
+            "styleDataKeys": [
+            ],
+            "columnWidth": 200,
+            "customTTSData": "",
+            "lastUpdated": {
+                "seconds": 1725991662,
+                "nanoseconds": 931000000
+            },
+            "scaleSize": 0.5,
+            "currentEditor": "",
+            "columnOrderList": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "layoutDocID": "vjO1Z9Cb9ZyE2SG4tKcs",
+            "openCardType": true,
+            "currentEditorSessionId": "",
+            "rowHeight": 50,
+            "showCardDescription": false,
+            "versionNum": 2,
+            "id": "CWGUyj6eCOmo4M3feZ2B",
+            "tableColumnWidths": {
+                "t3": 170,
+                "s4": 170,
+                "t4": 170,
+                "t2": 170,
+                "s3": 170,
+                "s2": 170,
+                "i0": 170,
+                "t7": 170,
+                "s0": 170,
+                "s6": 170,
+                "t1": 170,
+                "s5": 170,
+                "t5": 170,
+                "s7": 170,
+                "s1": 170,
+                "i6": 170
+            },
+            "hiddenColumns": [
+                "s0",
+                "s3",
+                "s4",
+                "s5",
+                "s6",
+                "s7"
+            ],
+            "ignoredCSVColumnHeaderWarnings": [
+            ],
+            "showCardBacks": true,
+            "openTableView": true,
+            "openInfo": false,
+            "cards": [
+                {
+                    "_cardNickName": "qg",
+                    "zoneData": {
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "332071ef2236ae99dd630d3e799213d5796ab959"
+                        },
+                        "t1": {
+                            "prevText": "69ba76567ec0fbd01820292102e5dc43f41d4ff4",
+                            "prevSize": 18
+                        },
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "ff4649704eeb5772f57606e50887f759b7be9f22"
+                        },
+                        "t3": {
+                            "prevSize": 12,
+                            "prevText": "19d4d902fe2e19c418528bc8958c5adbfd373c5b"
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "87a8c37097958b69923b62a25a86120a4e5bbffd"
+                        }
+                    },
+                    "_copies": 2,
+                    "cardTTSDescription": "",
+                    "data": {
+                        "t1": "",
+                        "t3": "<p>SonarQube is run during the build</p>",
+                        "t2": "",
+                        "s2": "",
+                        "s1": "",
+                        "s7": "",
+                        "i0": "",
+                        "t7": "",
+                        "s5": "",
+                        "s4": "",
+                        "t4": "",
+                        "s3": "",
+                        "t5": "",
+                        "i6": "",
+                        "s0": "",
+                        "s6": ""
+                    },
+                    "_cardIndex": 0,
+                    "rowHeight": 60
+                },
+                {
+                    "cardTTSDescription": "",
+                    "rowHeight": 60,
+                    "_cardIndex": 1,
+                    "data": {
+                        "s1": "",
+                        "t1": "",
+                        "t7": "",
+                        "i6": "",
+                        "i0": "",
+                        "s5": "",
+                        "s3": "",
+                        "s0": "",
+                        "t3": "<p>Logs, Metrics and Traces are correlated</p>",
+                        "t2": "<p>Monitoring and Observability</p>",
+                        "s4": "",
+                        "s6": "",
+                        "t4": "",
+                        "s2": "",
+                        "t5": "",
+                        "s7": ""
+                    },
+                    "_cardNickName": "mo",
+                    "_copies": 3,
+                    "zoneData": {
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "332071ef2236ae99dd630d3e799213d5796ab959"
+                        },
+                        "s6": {
+                        },
+                        "s3": {
+                        },
+                        "s5": {
+                        },
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "1baef4acf1f042a38cc5f7315d81ca9eab4f4beb"
+                        },
+                        "s4": {
+                        },
+                        "s1": {
+                        },
+                        "s7": {
+                        },
+                        "i0": {
+                        },
+                        "s2": {
+                        },
+                        "i6": {
+                        },
+                        "t3": {
+                            "prevText": "057c24365d74c5538638ea4efb0c10ffb138ef98",
+                            "prevSize": 12
+                        },
+                        "s0": {
+                        },
+                        "t1": {
+                            "prevText": "69ba76567ec0fbd01820292102e5dc43f41d4ff4",
+                            "prevSize": 18
+                        },
+                        "t7": {
+                        },
+                        "t5": {
+                            "prevText": "87a8c37097958b69923b62a25a86120a4e5bbffd",
+                            "prevSize": 14
+                        }
+                    }
+                },
+                {
+                    "_cardNickName": "fk",
+                    "rowHeight": 60,
+                    "cardTTSDescription": "",
+                    "data": {
+                        "s5": "",
+                        "t5": "",
+                        "s0": "",
+                        "s2": "",
+                        "t2": "<p>Full Kit</p>",
+                        "t7": "",
+                        "t4": "",
+                        "i0": "",
+                        "t3": "<p>Catch a necessary approval ahead of time </p>",
+                        "s7": "",
+                        "t1": "",
+                        "s6": "",
+                        "s4": "",
+                        "s3": "",
+                        "s1": "",
+                        "i6": ""
+                    },
+                    "zoneData": {
+                        "s1": {
+                        },
+                        "i0": {
+                        },
+                        "t3": {
+                            "prevText": "f875cb1eafdca3d1daf44d3df9742986620243e1",
+                            "prevSize": 12
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "87a8c37097958b69923b62a25a86120a4e5bbffd"
+                        },
+                        "s6": {
+                        },
+                        "s0": {
+                        },
+                        "s5": {
+                        },
+                        "t1": {
+                            "prevText": "69ba76567ec0fbd01820292102e5dc43f41d4ff4",
+                            "prevSize": 18
+                        },
+                        "t7": {
+                        },
+                        "i6": {
+                        },
+                        "s4": {
+                        },
+                        "s3": {
+                        },
+                        "t2": {
+                            "prevText": "20ddc4e0a1c9f3a970beeddebddd7032713d1596",
+                            "prevSize": 16
+                        },
+                        "s7": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "332071ef2236ae99dd630d3e799213d5796ab959"
+                        },
+                        "s2": {
+                        }
+                    },
+                    "_copies": 2,
+                    "_cardIndex": 2
+                },
+                {
+                    "rowHeight": 60,
+                    "data": {
+                        "t3": "<p>Unit test coverage at 80%</p>",
+                        "i6": "",
+                        "t1": "",
+                        "s0": "",
+                        "s5": "",
+                        "t7": "",
+                        "s4": "",
+                        "t5": "",
+                        "s7": "",
+                        "t2": "<p>Unit Tests</p>",
+                        "s1": "",
+                        "s3": "",
+                        "s6": "",
+                        "i0": "",
+                        "t4": "",
+                        "s2": ""
+                    },
+                    "_cardNickName": "ut",
+                    "cardTTSDescription": "",
+                    "_copies": 3,
+                    "zoneData": {
+                        "i6": {
+                        },
+                        "s2": {
+                        },
+                        "t3": {
+                            "prevText": "786e0ff746c65f7423bf2cc04f6d30199dcff79b",
+                            "prevSize": 12
+                        },
+                        "s6": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "332071ef2236ae99dd630d3e799213d5796ab959"
+                        },
+                        "i0": {
+                        },
+                        "s7": {
+                        },
+                        "s4": {
+                        },
+                        "t1": {
+                            "prevSize": 18,
+                            "prevText": "69ba76567ec0fbd01820292102e5dc43f41d4ff4"
+                        },
+                        "s3": {
+                        },
+                        "s0": {
+                        },
+                        "s1": {
+                        },
+                        "t7": {
+                        },
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "c392e830fc945124cf24d85e719162d2e1355eee"
+                        },
+                        "s5": {
+                        },
+                        "t5": {
+                            "prevText": "87a8c37097958b69923b62a25a86120a4e5bbffd",
+                            "prevSize": 14
+                        }
+                    },
+                    "_cardIndex": 3
+                },
+                {
+                    "cardTTSDescription": "",
+                    "_cardNickName": "au",
+                    "data": {
+                        "s6": "",
+                        "t3": "<p>Dependency license check automated</p>",
+                        "s3": "",
+                        "t1": "",
+                        "s1": "",
+                        "i6": "",
+                        "s2": "",
+                        "s0": "",
+                        "t4": "",
+                        "t7": "",
+                        "i0": "",
+                        "s5": "",
+                        "s4": "",
+                        "s7": "",
+                        "t5": "",
+                        "t2": "<p>Automation</p>"
+                    },
+                    "rowHeight": 60,
+                    "_copies": 2,
+                    "_cardIndex": 4,
+                    "zoneData": {
+                        "s7": {
+                        },
+                        "s2": {
+                        },
+                        "t3": {
+                            "prevSize": 12,
+                            "prevText": "39f585600bf0116d186140e55f95f2ac43fb9d77"
+                        },
+                        "s0": {
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "87a8c37097958b69923b62a25a86120a4e5bbffd"
+                        },
+                        "s3": {
+                        },
+                        "s5": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "332071ef2236ae99dd630d3e799213d5796ab959"
+                        },
+                        "t1": {
+                            "prevText": "69ba76567ec0fbd01820292102e5dc43f41d4ff4",
+                            "prevSize": 18
+                        },
+                        "i0": {
+                        },
+                        "s4": {
+                        },
+                        "s1": {
+                        },
+                        "t7": {
+                        },
+                        "t2": {
+                            "prevText": "a79665867e81d1aa7bfb1fb80593e3d18952bc9b",
+                            "prevSize": 16
+                        },
+                        "i6": {
+                        },
+                        "s6": {
+                        }
+                    }
+                },
+                {
+                    "cardTTSDescription": "",
+                    "zoneData": {
+                        "t3": {
+                            "prevText": "875014aa651e6674be39951928c5ed93990e22c5",
+                            "prevSize": 12
+                        },
+                        "s7": {
+                        },
+                        "s6": {
+                        },
+                        "s3": {
+                        },
+                        "t5": {
+                            "prevText": "87a8c37097958b69923b62a25a86120a4e5bbffd",
+                            "prevSize": 14
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "332071ef2236ae99dd630d3e799213d5796ab959"
+                        },
+                        "i0": {
+                        },
+                        "s0": {
+                        },
+                        "s1": {
+                        },
+                        "t7": {
+                        },
+                        "t2": {
+                            "prevText": "a195c72d0bb64866b728dc1a98a8a1e6dfbe21c7",
+                            "prevSize": 16
+                        },
+                        "s5": {
+                        },
+                        "s2": {
+                        },
+                        "t1": {
+                            "prevText": "69ba76567ec0fbd01820292102e5dc43f41d4ff4",
+                            "prevSize": 18
+                        },
+                        "i6": {
+                        },
+                        "s4": {
+                        }
+                    },
+                    "rowHeight": 60,
+                    "_copies": 1,
+                    "data": {
+                        "t7": "",
+                        "s0": "",
+                        "t4": "",
+                        "s4": "",
+                        "t1": "",
+                        "s1": "",
+                        "s3": "",
+                        "t5": "",
+                        "t3": "<p>Chaos Monkey implemented in production</p>",
+                        "t2": "<p>Resilience</p>",
+                        "i6": "",
+                        "s7": "",
+                        "s5": "",
+                        "s6": "",
+                        "i0": "",
+                        "s2": ""
+                    },
+                    "_cardIndex": 5,
+                    "_cardNickName": "re"
+                },
+                {
+                    "_cardNickName": "adr1",
+                    "cardTTSDescription": "",
+                    "rowHeight": 60,
+                    "data": {
+                        "t7": "<p>Documents a key design choice, explaining its reasoning and potential impacts for future reference.</p>",
+                        "t2": "<p>Improve a workstation</p>",
+                        "i6": "record_icon.jpg",
+                        "s2": "",
+                        "s1": "",
+                        "s7": "",
+                        "s4": "",
+                        "i0": "",
+                        "s6": "",
+                        "s5": "",
+                        "t4": "<p>Add one to any workstation capacity. (Max 6)</p>",
+                        "t3": "<p><b>+1</b></p>",
+                        "t1": "<p>Architectural Decision Record</p>",
+                        "s0": "",
+                        "t5": "<p><b>Architectural Decision Record</b> (ADR)</p>",
+                        "s3": ""
+                    },
+                    "_copies": 4,
+                    "zoneData": {
+                        "i0": {
+                        },
+                        "t5": {
+                            "prevText": "6b7ea9f8a341115e4afad64b5679945907320702",
+                            "prevSize": 13
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "c76ff98677321b587690b97df5fbd6feb8ab64a7"
+                        },
+                        "i6": {
+                        },
+                        "s7": {
+                        },
+                        "s2": {
+                        },
+                        "s1": {
+                        },
+                        "s6": {
+                        },
+                        "s4": {
+                        },
+                        "t1": {
+                            "prevSize": 16,
+                            "prevText": "b2d88af539115276d50ab70d659b5fc7b1c5ba6a"
+                        },
+                        "t3": {
+                            "prevText": "6af5e67d1c46f38df5a49054dfa4c972daebada3",
+                            "prevSize": 12
+                        },
+                        "t7": {
+                        },
+                        "t2": {
+                            "prevText": "42dbbdf04010b958a49c392e86d1c337b01ab3df",
+                            "prevSize": 16
+                        },
+                        "s0": {
+                        },
+                        "s3": {
+                        },
+                        "s5": {
+                        }
+                    },
+                    "_cardIndex": 6
+                },
+                {
+                    "zoneData": {
+                        "s6": {
+                        },
+                        "i0": {
+                        },
+                        "t5": {
+                            "prevText": "6b7ea9f8a341115e4afad64b5679945907320702",
+                            "prevSize": 13
+                        },
+                        "s3": {
+                        },
+                        "t4": {
+                            "prevText": "9345edfd9d94b19a0bf7e7a6f8f0390275df7e61",
+                            "prevSize": 14
+                        },
+                        "t3": {
+                            "prevSize": 12,
+                            "prevText": "e1e38cac7cb2d47060b2ce09d1c71cb4aeb3509b"
+                        },
+                        "s1": {
+                        },
+                        "s0": {
+                        },
+                        "s7": {
+                        },
+                        "t1": {
+                            "prevSize": 16,
+                            "prevText": "b2d88af539115276d50ab70d659b5fc7b1c5ba6a"
+                        },
+                        "s4": {
+                        },
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "42dbbdf04010b958a49c392e86d1c337b01ab3df"
+                        },
+                        "i6": {
+                        },
+                        "s2": {
+                        },
+                        "t7": {
+                        },
+                        "s5": {
+                        }
+                    },
+                    "_copies": 1,
+                    "_cardIndex": 7,
+                    "_cardNickName": "adr2",
+                    "cardTTSDescription": "",
+                    "rowHeight": 60,
+                    "data": {
+                        "s7": "",
+                        "s6": "",
+                        "t4": "<p>Double any workstation capacity. (Max 6)</p>",
+                        "t1": "<p>Architectural Decision Record</p>",
+                        "s3": "",
+                        "s2": "",
+                        "s4": "",
+                        "t5": "<p><b>Architectural Decision Record</b> (ADR)</p>",
+                        "t3": "<p><b>Double</b></p>",
+                        "i6": "record_icon.jpg",
+                        "s0": "",
+                        "t7": "<p>Documents a key design choice, explaining its reasoning and potential impacts for future reference.</p>",
+                        "t2": "<p>Improve a workstation</p>",
+                        "s1": "",
+                        "i0": "",
+                        "s5": ""
+                    }
+                },
+                {
+                    "zoneData": {
+                        "t2": {
+                            "prevText": "b46adffdd0fe1887cd370bfe321165722d83a0a3",
+                            "prevSize": 16
+                        },
+                        "i0": {
+                        },
+                        "s6": {
+                        },
+                        "t3": {
+                            "prevSize": 12,
+                            "prevText": "e40e8aa5f27e73ff59a469c35946bbb1474fa03a"
+                        },
+                        "t1": {
+                            "prevText": "aa82d31c058d0af290d635f3f4988ee9dc6e54a3",
+                            "prevSize": 18
+                        },
+                        "s4": {
+                        },
+                        "i6": {
+                        },
+                        "s0": {
+                        },
+                        "s7": {
+                        },
+                        "s3": {
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "ecebbd6664bad7c2c83dab75715a34b89db0ba29"
+                        },
+                        "t7": {
+                        },
+                        "s2": {
+                        },
+                        "s5": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "94264ddd26eb72cabeff7f4f1484218fb5de4a5e"
+                        },
+                        "s1": {
+                        }
+                    },
+                    "rowHeight": 60,
+                    "_cardIndex": 8,
+                    "cardTTSDescription": "",
+                    "_copies": 4,
+                    "_cardNickName": "sre",
+                    "data": {
+                        "s3": "",
+                        "s6": "",
+                        "s5": "",
+                        "t1": "<p>Site Reliability Engineering</p>",
+                        "t5": "<p>Site Reliability Engineer</p>",
+                        "t4": "<p>Add an automated server to any available workstation</p>",
+                        "t2": "<p> Team engages an SRE</p>",
+                        "s4": "",
+                        "s0": "",
+                        "t7": "<p>An IT specialist who blends coding with operations to ensure software runs smoothly and scales effectively.</p>",
+                        "i0": "",
+                        "t3": "<p> Automate a workstation</p>",
+                        "s7": "",
+                        "s2": "",
+                        "i6": "wizard_icon.jpg",
+                        "s1": ""
+                    }
+                },
+                {
+                    "data": {
+                        "t5": "<p> </p>",
+                        "s2": "",
+                        "s0": "",
+                        "s7": "",
+                        "s5": "",
+                        "i6": " ",
+                        "t3": "<p>Hold until used</p>",
+                        "s6": "",
+                        "s3": "",
+                        "i0": "",
+                        "s1": "",
+                        "t7": "<p> </p>",
+                        "t2": "<p> Security</p>",
+                        "t1": "<p>Regular Patching</p>",
+                        "t4": "<p>Mitigates a Security Vulnerability when used.</p>",
+                        "s4": ""
+                    },
+                    "_copies": 3,
+                    "zoneData": {
+                        "s1": {
+                        },
+                        "s5": {
+                        },
+                        "t3": {
+                            "prevText": "5d50652008bd1bee0863f8c5687e9176fa654dcf",
+                            "prevSize": 12
+                        },
+                        "s7": {
+                        },
+                        "t7": {
+                        },
+                        "i6": {
+                        },
+                        "i0": {
+                        },
+                        "s2": {
+                        },
+                        "s3": {
+                        },
+                        "s4": {
+                        },
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "d07ad9ade485f4780e720576b87446304716fef9"
+                        },
+                        "t1": {
+                            "prevText": "6907a37cabd60dd1d410f7c1a5974b34a09671b9",
+                            "prevSize": 18
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a"
+                        },
+                        "s6": {
+                        },
+                        "s0": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "770722ee824b3196f0ef76ad9d6c163219102dc6"
+                        }
+                    },
+                    "_cardNickName": "rp",
+                    "cardTTSDescription": "",
+                    "rowHeight": 60,
+                    "_cardIndex": 9
+                },
+                {
+                    "data": {
+                        "s3": "",
+                        "s0": "",
+                        "s4": "",
+                        "s5": "",
+                        "t4": "<p>Reduces impact of Data Breach from 1 week to one day when activated.</p>",
+                        "i6": " ",
+                        "s2": "",
+                        "t3": "<p>Hold until used</p>",
+                        "s1": "",
+                        "i0": "",
+                        "s6": "",
+                        "t2": "<p> Security</p>",
+                        "t5": "<p> </p>",
+                        "s7": "",
+                        "t7": "<p> Team must lose a day (before breach) in order for this card to be used. </p>",
+                        "t1": "<p>End to End encrypt your PII and other sensitive data</p>"
+                    },
+                    "_cardNickName": "encrpt",
+                    "cardTTSDescription": "",
+                    "_copies": 2,
+                    "_cardIndex": 10,
+                    "rowHeight": 60,
+                    "zoneData": {
+                        "t3": {
+                            "prevSize": 12,
+                            "prevText": "5d50652008bd1bee0863f8c5687e9176fa654dcf"
+                        },
+                        "s5": {
+                        },
+                        "s6": {
+                        },
+                        "t1": {
+                            "prevText": "aea5d4d57f9999d7e36c25262cfc76006d2ead65",
+                            "prevSize": 16
+                        },
+                        "t5": {
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a",
+                            "prevSize": 14
+                        },
+                        "t2": {
+                            "prevText": "d07ad9ade485f4780e720576b87446304716fef9",
+                            "prevSize": 16
+                        },
+                        "s0": {
+                        },
+                        "s1": {
+                        },
+                        "s4": {
+                        },
+                        "i6": {
+                        },
+                        "t7": {
+                        },
+                        "s2": {
+                        },
+                        "i0": {
+                        },
+                        "s3": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "cf8ce9e62e003ea5fc0eded8ad705688bc466523"
+                        },
+                        "s7": {
+                        }
+                    }
+                },
+                {
+                    "data": {
+                        "t2": "<p> Security</p>",
+                        "t7": "<p> One server must lose a day (before attack) for this card to be used.</p>",
+                        "s2": "",
+                        "s6": "",
+                        "i6": " ",
+                        "s5": "",
+                        "s1": "",
+                        "s3": "",
+                        "i0": "",
+                        "s0": "",
+                        "t3": "<p>Hold until used</p>",
+                        "s4": "",
+                        "s7": "",
+                        "t5": "<p> </p>",
+                        "t1": "<p>Implement strongly encrypted passwords</p>",
+                        "t4": "<p>Blocks ransomware attack.</p>"
+                    },
+                    "_cardIndex": 11,
+                    "zoneData": {
+                        "s3": {
+                        },
+                        "t7": {
+                        },
+                        "s6": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "9adda526e504830671097e7e7031fddfef341903"
+                        },
+                        "s7": {
+                        },
+                        "s2": {
+                        },
+                        "i0": {
+                        },
+                        "t1": {
+                            "prevSize": 16,
+                            "prevText": "b3c2ef1fcb4d995ebf39425e2c695679fc6ba83f"
+                        },
+                        "i6": {
+                        },
+                        "t2": {
+                            "prevText": "d07ad9ade485f4780e720576b87446304716fef9",
+                            "prevSize": 16
+                        },
+                        "t3": {
+                            "prevSize": 12,
+                            "prevText": "5d50652008bd1bee0863f8c5687e9176fa654dcf"
+                        },
+                        "s5": {
+                        },
+                        "s1": {
+                        },
+                        "s4": {
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a"
+                        },
+                        "s0": {
+                        }
+                    },
+                    "_cardNickName": "",
+                    "_copies": 2,
+                    "cardTTSDescription": "",
+                    "rowHeight": 60
+                },
+                {
+                    "cardTTSDescription": "",
+                    "_copies": 1,
+                    "data": {
+                        "s1": "",
+                        "i0": "",
+                        "t3": "<p> </p>",
+                        "t5": "<p> </p>",
+                        "t7": "<p> </p>",
+                        "t1": "<p>Functional Metrics are put in place and used regularly</p>",
+                        "i6": " ",
+                        "s3": "",
+                        "s0": "",
+                        "t2": "<p> Observability</p>",
+                        "s5": "",
+                        "s4": "",
+                        "s6": "",
+                        "t4": "<p>Finished goods are now worth 4.</p>",
+                        "s7": "",
+                        "s2": ""
+                    },
+                    "_cardNickName": "",
+                    "rowHeight": 60,
+                    "_cardIndex": 12,
+                    "zoneData": {
+                        "t5": {
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a",
+                            "prevSize": 14
+                        },
+                        "s3": {
+                        },
+                        "i0": {
+                        },
+                        "s6": {
+                        },
+                        "s4": {
+                        },
+                        "s2": {
+                        },
+                        "i6": {
+                        },
+                        "s0": {
+                        },
+                        "s1": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "9c68d14a8a7a8d3f1e5d80e4bc7a0f66137983b1"
+                        },
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "d99636739412331a27a4e1b98bafc5da193518c0"
+                        },
+                        "s7": {
+                        },
+                        "s5": {
+                        },
+                        "t7": {
+                        },
+                        "t3": {
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42",
+                            "prevSize": 12
+                        },
+                        "t1": {
+                            "prevText": "111c982c809b635395e07323e1a17d63c6d0d1cd",
+                            "prevSize": 16
+                        }
+                    }
+                },
+                {
+                    "_cardNickName": "",
+                    "_cardIndex": 13,
+                    "data": {
+                        "t5": "<p> </p>",
+                        "t2": "<p> Team Topology</p>",
+                        "s2": "",
+                        "s7": "",
+                        "s0": "",
+                        "i0": "",
+                        "t1": "<p>Team implements Paired Programming</p>",
+                        "s6": "",
+                        "t7": "<p> Grants the station it’s assigned to one extra chance at work each day until end of game.</p>",
+                        "i6": " ",
+                        "t4": "<p>Place Pair Partner card alongside a human server. </p>",
+                        "s3": "",
+                        "s5": "",
+                        "s1": "",
+                        "t3": "<p>After initial placement it can only be moved at the start of a week.</p>",
+                        "s4": ""
+                    },
+                    "_copies": 1,
+                    "zoneData": {
+                        "i0": {
+                        },
+                        "s6": {
+                        },
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "1566689530fb34905fde07332590f4d5055315d8"
+                        },
+                        "s2": {
+                        },
+                        "s7": {
+                        },
+                        "s0": {
+                        },
+                        "t5": {
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a",
+                            "prevSize": 14
+                        },
+                        "s1": {
+                        },
+                        "i6": {
+                        },
+                        "t4": {
+                            "prevText": "78e529b5d8a48a77d57eed8f1523efbc121d1fb4",
+                            "prevSize": 14
+                        },
+                        "s3": {
+                        },
+                        "t1": {
+                            "prevText": "73e9b05d292f70dd12e466aab79508b292f6048d",
+                            "prevSize": 16
+                        },
+                        "t7": {
+                        },
+                        "s4": {
+                        },
+                        "t3": {
+                            "prevText": "c607e471f5f24ba8ba4db04b7a2dd3881c15bac9",
+                            "prevSize": 12
+                        },
+                        "s5": {
+                        }
+                    },
+                    "cardTTSDescription": "",
+                    "rowHeight": 60
+                },
+                {
+                    "rowHeight": 60,
+                    "data": {
+                        "t7": "<p> </p>",
+                        "t2": "<p>Antipattern</p>",
+                        "t5": "<p> </p>",
+                        "s0": "",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "t4": "<p>Team loses a day.</p>",
+                        "s2": "{color:rgba(236, 32, 41, 1)}",
+                        "s7": "",
+                        "s6": "",
+                        "i0": "",
+                        "s5": "",
+                        "i6": " ",
+                        "s3": "",
+                        "s4": "",
+                        "t1": "<p>Too many status meetings</p>",
+                        "t3": "<p> </p>"
+                    },
+                    "_copies": 1,
+                    "_cardIndex": 14,
+                    "zoneData": {
+                        "t1": {
+                            "prevSize": 18,
+                            "prevText": "1769674bc5c51d2a508a0123e0715fcc05a010b0"
+                        },
+                        "t7": {
+                        },
+                        "s0": {
+                        },
+                        "s5": {
+                        },
+                        "t4": {
+                            "prevText": "e513c0ae3e24a8eb2f751a1bb44ea30dc29290d5",
+                            "prevSize": 14
+                        },
+                        "i0": {
+                        },
+                        "s7": {
+                        },
+                        "t3": {
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42",
+                            "prevSize": 12
+                        },
+                        "s1": {
+                        },
+                        "s6": {
+                        },
+                        "s4": {
+                        },
+                        "t5": {
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a",
+                            "prevSize": 14
+                        },
+                        "t2": {
+                            "prevText": "d2a9dff5b814f6d06ed21cc276e3303712f2b620",
+                            "prevSize": 16
+                        },
+                        "s2": {
+                        },
+                        "i6": {
+                        },
+                        "s3": {
+                        }
+                    },
+                    "cardTTSDescription": "",
+                    "_cardNickName": ""
+                },
+                {
+                    "_cardIndex": 16,
+                    "_cardNickName": "",
+                    "rowHeight": 60,
+                    "zoneData": {
+                        "s0": {
+                        },
+                        "s7": {
+                        },
+                        "s5": {
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a"
+                        },
+                        "t2": {
+                            "prevText": "d2a9dff5b814f6d06ed21cc276e3303712f2b620",
+                            "prevSize": 16
+                        },
+                        "s4": {
+                        },
+                        "i0": {
+                        },
+                        "t7": {
+                        },
+                        "s3": {
+                        },
+                        "s2": {
+                        },
+                        "s1": {
+                        },
+                        "t3": {
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42",
+                            "prevSize": 12
+                        },
+                        "s6": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "232afe06994d0d03180af1c34f7b8b87b21cc67d"
+                        },
+                        "t1": {
+                            "prevSize": 16,
+                            "prevText": "829e8d5e4059b880b96f3348e8f25254bb598040"
+                        },
+                        "i6": {
+                        }
+                    },
+                    "data": {
+                        "s7": "",
+                        "t7": "<p> </p>",
+                        "s3": "",
+                        "s0": "",
+                        "t1": "<p>Bad Multitasking overloads a server</p>",
+                        "s5": "",
+                        "s2": "{color:rgba(236, 32, 41, 1)}",
+                        "s4": "",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "t4": "<p>Human server on your lowest capacity workstation lose a day.</p>",
+                        "t2": "<p>Antipattern</p>",
+                        "t3": "<p> </p>",
+                        "i6": " ",
+                        "i0": "",
+                        "s6": "",
+                        "t5": "<p> </p>"
+                    },
+                    "_copies": 1,
+                    "cardTTSDescription": ""
+                },
+                {
+                    "_copies": 1,
+                    "data": {
+                        "s7": "",
+                        "t4": "<p>Team loses a day.</p>",
+                        "t1": "<p>Ransomware Attack!</p>",
+                        "s3": "",
+                        "t3": "<p> </p>",
+                        "i0": "",
+                        "s6": "",
+                        "t7": "<p> </p>",
+                        "s2": "{color:rgba(236, 32, 41, 1)}",
+                        "s4": "",
+                        "t2": "<p>Security</p>",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "s5": "",
+                        "s0": "",
+                        "t5": "<p> </p>",
+                        "i6": " "
+                    },
+                    "rowHeight": 60,
+                    "zoneData": {
+                        "t1": {
+                            "prevText": "a9b0078ea3a19f9aafdaf4657f0b4dd26ba159de",
+                            "prevSize": 18
+                        },
+                        "i0": {
+                        },
+                        "t7": {
+                        },
+                        "s6": {
+                        },
+                        "t5": {
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a",
+                            "prevSize": 14
+                        },
+                        "t2": {
+                            "prevText": "efe9e6817b3d59455b9811dcf5c20096d7a1370d",
+                            "prevSize": 16
+                        },
+                        "s3": {
+                        },
+                        "s1": {
+                        },
+                        "s4": {
+                        },
+                        "i6": {
+                        },
+                        "t3": {
+                            "prevSize": 12,
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42"
+                        },
+                        "s7": {
+                        },
+                        "s0": {
+                        },
+                        "s5": {
+                        },
+                        "s2": {
+                        },
+                        "t4": {
+                            "prevText": "e513c0ae3e24a8eb2f751a1bb44ea30dc29290d5",
+                            "prevSize": 14
+                        }
+                    },
+                    "cardTTSDescription": "",
+                    "_cardIndex": 15,
+                    "_cardNickName": ""
+                },
+                {
+                    "_copies": 1,
+                    "_cardIndex": 21,
+                    "rowHeight": 60,
+                    "data": {
+                        "t5": "<p> </p>",
+                        "t3": "<p> </p>",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "s3": "",
+                        "i0": "",
+                        "s2": "{color:rgba(236, 32, 41, 1)}",
+                        "s0": "",
+                        "s6": "",
+                        "t7": "<p> </p>",
+                        "s4": "",
+                        "t1": "<p>Lack of a quality gate lets too many defects into the system.</p>",
+                        "i6": " ",
+                        "t4": "<p>Next server loses a day.</p>",
+                        "s5": "",
+                        "s7": "",
+                        "t2": "<p>Code Quality</p>"
+                    },
+                    "_cardNickName": "",
+                    "cardTTSDescription": "",
+                    "zoneData": {
+                        "t3": {
+                            "prevSize": 12,
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42"
+                        },
+                        "s3": {
+                        },
+                        "t5": {
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a",
+                            "prevSize": 14
+                        },
+                        "t1": {
+                            "prevText": "80fd3475b311bd150ecdee0a6e4d189915268228",
+                            "prevSize": 15
+                        },
+                        "s4": {
+                        },
+                        "i0": {
+                        },
+                        "s6": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "779e5d4768dbbea403eb14bc7618c92b48d1b583"
+                        },
+                        "i6": {
+                        },
+                        "s2": {
+                        },
+                        "t7": {
+                        },
+                        "s7": {
+                        },
+                        "s0": {
+                        },
+                        "s1": {
+                        },
+                        "s5": {
+                        },
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "025396d7e7a27fb0737a6f169bf6ab2429160675"
+                        }
+                    }
+                },
+                {
+                    "zoneData": {
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "53643e6955b91cff2614bf169fe66e135b2b641b"
+                        },
+                        "i0": {
+                        },
+                        "s4": {
+                        },
+                        "s5": {
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a"
+                        },
+                        "s6": {
+                        },
+                        "i6": {
+                        },
+                        "s1": {
+                        },
+                        "t4": {
+                            "prevText": "779e5d4768dbbea403eb14bc7618c92b48d1b583",
+                            "prevSize": 14
+                        },
+                        "t1": {
+                            "prevSize": 15,
+                            "prevText": "031726cfda85de0fd44ad680f77fbcfafcea318c"
+                        },
+                        "s2": {
+                        },
+                        "s0": {
+                        },
+                        "t7": {
+                        },
+                        "s7": {
+                        },
+                        "s3": {
+                        },
+                        "t3": {
+                            "prevSize": 12,
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42"
+                        }
+                    },
+                    "data": {
+                        "t4": "<p>Next server loses a day.</p>",
+                        "s3": "",
+                        "t2": "<p>Full Kit</p>",
+                        "s7": "",
+                        "s4": "",
+                        "s5": "",
+                        "i6": " ",
+                        "t3": "<p> </p>",
+                        "s2": "{color:rgba(236, 32, 41, 1)}",
+                        "i0": "",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "t5": "<p> </p>",
+                        "t7": "<p> </p>",
+                        "t1": "<p>Missing full-kit check causes you to miss a required approval.</p>",
+                        "s0": "",
+                        "s6": ""
+                    },
+                    "_cardIndex": 22,
+                    "cardTTSDescription": "",
+                    "_copies": 1,
+                    "rowHeight": 60,
+                    "_cardNickName": ""
+                },
+                {
+                    "_copies": 1,
+                    "_cardNickName": "",
+                    "_cardIndex": 20,
+                    "zoneData": {
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "345ac3740a7b9e67fdb31ec499f80f875dd9d06d"
+                        },
+                        "s1": {
+                        },
+                        "s0": {
+                        },
+                        "t7": {
+                        },
+                        "s4": {
+                        },
+                        "t5": {
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a",
+                            "prevSize": 14
+                        },
+                        "i6": {
+                        },
+                        "t1": {
+                            "prevText": "cb9d743bda8ec79da334ad26e617475f350451f6",
+                            "prevSize": 16
+                        },
+                        "i0": {
+                        },
+                        "s7": {
+                        },
+                        "s5": {
+                        },
+                        "s6": {
+                        },
+                        "s2": {
+                        },
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "efe9e6817b3d59455b9811dcf5c20096d7a1370d"
+                        },
+                        "t3": {
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42",
+                            "prevSize": 12
+                        },
+                        "s3": {
+                        }
+                    },
+                    "cardTTSDescription": "",
+                    "data": {
+                        "t1": "<p>Defective product is found by a customer.</p>",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "t3": "<p> </p>",
+                        "s3": "",
+                        "t4": "<p>Return all finished goods to the backlog.</p>",
+                        "s0": "",
+                        "t7": "<p> </p>",
+                        "s5": "",
+                        "t5": "<p> </p>",
+                        "s6": "",
+                        "s7": "",
+                        "s4": "",
+                        "s2": "{color:rgba(236, 32, 41, 1)}",
+                        "i6": " ",
+                        "t2": "<p>Security</p>",
+                        "i0": ""
+                    },
+                    "rowHeight": 60
+                },
+                {
+                    "data": {
+                        "s3": "",
+                        "i6": "Blocks/block_rose.jpg",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "t7": "<p> </p>",
+                        "t1": "<p>Defective work items</p>",
+                        "s4": "",
+                        "s0": "",
+                        "s5": "",
+                        "s7": "",
+                        "i0": "",
+                        "s6": "",
+                        "t5": "<p> </p>",
+                        "t3": "<p> </p>",
+                        "t4": "<p>Move work items from the color printed on this card back to the previous container.</p>",
+                        "t2": "<p> </p>",
+                        "s2": "{color:rgba(236, 32, 41, 1)}"
+                    },
+                    "zoneData": {
+                        "s1": {
+                        },
+                        "t2": {
+                            "prevText": "020a48923e897d28a4dce21130efed482ebb2fdc",
+                            "prevSize": 16
+                        },
+                        "s4": {
+                        },
+                        "s7": {
+                        },
+                        "s5": {
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a"
+                        },
+                        "t1": {
+                            "prevSize": 18,
+                            "prevText": "2915a03f7a6aa66a263e8836af4b1bafa9ff84cb"
+                        },
+                        "i6": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "b59b3fc6608b215c958bb71a8d4b30108bbd7e44"
+                        },
+                        "s6": {
+                        },
+                        "i0": {
+                        },
+                        "s3": {
+                        },
+                        "t3": {
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42",
+                            "prevSize": 12
+                        },
+                        "s2": {
+                        },
+                        "s0": {
+                        },
+                        "t7": {
+                        }
+                    },
+                    "rowHeight": 60,
+                    "_copies": 2,
+                    "_cardIndex": 19,
+                    "cardTTSDescription": "",
+                    "_cardNickName": ""
+                },
+                {
+                    "rowHeight": 60,
+                    "zoneData": {
+                        "s1": {
+                        },
+                        "t1": {
+                            "prevSize": 18,
+                            "prevText": "2915a03f7a6aa66a263e8836af4b1bafa9ff84cb"
+                        },
+                        "s5": {
+                        },
+                        "s4": {
+                        },
+                        "t2": {
+                            "prevText": "020a48923e897d28a4dce21130efed482ebb2fdc",
+                            "prevSize": 16
+                        },
+                        "s6": {
+                        },
+                        "s2": {
+                        },
+                        "s3": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "b59b3fc6608b215c958bb71a8d4b30108bbd7e44"
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a"
+                        },
+                        "s7": {
+                        },
+                        "i0": {
+                        },
+                        "t3": {
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42",
+                            "prevSize": 12
+                        },
+                        "t7": {
+                        },
+                        "s0": {
+                        },
+                        "i6": {
+                        }
+                    },
+                    "_copies": 1,
+                    "_cardIndex": 27,
+                    "data": {
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "s2": "{color:rgba(236, 32, 41, 1)}",
+                        "s3": "",
+                        "i6": "Blocks/block_blue.jpg",
+                        "s0": "",
+                        "i0": "",
+                        "t5": "<p> </p>",
+                        "s7": "",
+                        "s4": "",
+                        "t1": "<p>Defective work items</p>",
+                        "t4": "<p>Move work items from the color printed on this card back to the previous container.</p>",
+                        "s5": "",
+                        "t3": "<p> </p>",
+                        "t7": "<p> </p>",
+                        "s6": "",
+                        "t2": "<p> </p>"
+                    },
+                    "_cardNickName": "",
+                    "cardTTSDescription": ""
+                },
+                {
+                    "_cardIndex": 26,
+                    "_copies": 1,
+                    "rowHeight": 60,
+                    "data": {
+                        "i6": "Blocks/block_green.jpg",
+                        "s0": "",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "s4": "",
+                        "t4": "<p>Move work items from the color printed on this card back to the previous container.</p>",
+                        "s6": "",
+                        "t1": "<p>Defective work items</p>",
+                        "t7": "<p> </p>",
+                        "s7": "",
+                        "t5": "<p> </p>",
+                        "i0": "",
+                        "s3": "",
+                        "t2": "<p> </p>",
+                        "s5": "",
+                        "t3": "<p> </p>",
+                        "s2": "{color:rgba(236, 32, 41, 1)}"
+                    },
+                    "cardTTSDescription": "",
+                    "_cardNickName": "",
+                    "zoneData": {
+                        "s3": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "b59b3fc6608b215c958bb71a8d4b30108bbd7e44"
+                        },
+                        "t3": {
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42",
+                            "prevSize": 12
+                        },
+                        "i6": {
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a"
+                        },
+                        "s5": {
+                        },
+                        "s4": {
+                        },
+                        "s6": {
+                        },
+                        "s1": {
+                        },
+                        "i0": {
+                        },
+                        "t1": {
+                            "prevSize": 18,
+                            "prevText": "2915a03f7a6aa66a263e8836af4b1bafa9ff84cb"
+                        },
+                        "s7": {
+                        },
+                        "s0": {
+                        },
+                        "t7": {
+                        },
+                        "s2": {
+                        },
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "020a48923e897d28a4dce21130efed482ebb2fdc"
+                        }
+                    }
+                },
+                {
+                    "cardTTSDescription": "",
+                    "_cardNickName": "",
+                    "zoneData": {
+                        "s6": {
+                        },
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "020a48923e897d28a4dce21130efed482ebb2fdc"
+                        },
+                        "i6": {
+                        },
+                        "i0": {
+                        },
+                        "t3": {
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42",
+                            "prevSize": 12
+                        },
+                        "s4": {
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a"
+                        },
+                        "s1": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "b59b3fc6608b215c958bb71a8d4b30108bbd7e44"
+                        },
+                        "s2": {
+                        },
+                        "t7": {
+                        },
+                        "s0": {
+                        },
+                        "s5": {
+                        },
+                        "s7": {
+                        },
+                        "t1": {
+                            "prevText": "2915a03f7a6aa66a263e8836af4b1bafa9ff84cb",
+                            "prevSize": 18
+                        },
+                        "s3": {
+                        }
+                    },
+                    "_cardIndex": 25,
+                    "_copies": 1,
+                    "data": {
+                        "t3": "<p> </p>",
+                        "s5": "",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "i0": "",
+                        "t1": "<p>Defective work items</p>",
+                        "t5": "<p> </p>",
+                        "t4": "<p>Move work items from the color printed on this card back to the previous container.</p>",
+                        "s6": "",
+                        "s2": "{color:rgba(236, 32, 41, 1)}",
+                        "s3": "",
+                        "s4": "",
+                        "t7": "<p> </p>",
+                        "s0": "",
+                        "i6": "Blocks/block_violet.jpg",
+                        "s7": "",
+                        "t2": "<p> </p>"
+                    },
+                    "rowHeight": 60
+                },
+                {
+                    "rowHeight": 60,
+                    "_copies": 1,
+                    "data": {
+                        "t1": "<p>Defective work items</p>",
+                        "s7": "",
+                        "s6": "",
+                        "t4": "<p>Move work items from the color printed on this card back to the previous container.</p>",
+                        "s0": "",
+                        "t3": "<p> </p>",
+                        "t2": "<p> </p>",
+                        "s3": "",
+                        "i6": "Blocks/block_yellow.jpg",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "i0": "",
+                        "t5": "<p> </p>",
+                        "s4": "",
+                        "s2": "{color:rgba(236, 32, 41, 1)}",
+                        "t7": "<p> </p>",
+                        "s5": ""
+                    },
+                    "_cardIndex": 24,
+                    "cardTTSDescription": "",
+                    "zoneData": {
+                        "t1": {
+                            "prevText": "2915a03f7a6aa66a263e8836af4b1bafa9ff84cb",
+                            "prevSize": 18
+                        },
+                        "s4": {
+                        },
+                        "t3": {
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42",
+                            "prevSize": 12
+                        },
+                        "s3": {
+                        },
+                        "i6": {
+                        },
+                        "s1": {
+                        },
+                        "s5": {
+                        },
+                        "t2": {
+                            "prevText": "020a48923e897d28a4dce21130efed482ebb2fdc",
+                            "prevSize": 16
+                        },
+                        "t7": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "b59b3fc6608b215c958bb71a8d4b30108bbd7e44"
+                        },
+                        "i0": {
+                        },
+                        "s6": {
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a"
+                        },
+                        "s2": {
+                        },
+                        "s0": {
+                        },
+                        "s7": {
+                        }
+                    },
+                    "_cardNickName": ""
+                },
+                {
+                    "data": {
+                        "t1": "<p>Sev 1!</p>",
+                        "s2": "{color:rgba(236, 32, 41, 1)}",
+                        "s5": "",
+                        "t4": "<p>Team human server loses a day.</p>",
+                        "t3": "<p> </p>",
+                        "t5": "<p> </p>",
+                        "i0": "",
+                        "s3": "",
+                        "s7": "",
+                        "i6": " ",
+                        "s0": "",
+                        "t2": "<p>Security</p>",
+                        "s4": "",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "t7": "<p> </p>",
+                        "s6": ""
+                    },
+                    "rowHeight": 60,
+                    "zoneData": {
+                        "t1": {
+                            "prevSize": 18,
+                            "prevText": "a95956bc734b46fe7a6362b20f70d09f103c3528"
+                        },
+                        "t2": {
+                            "prevText": "efe9e6817b3d59455b9811dcf5c20096d7a1370d",
+                            "prevSize": 16
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "5242988409e88d7599970bb12b27b45b21c5369b"
+                        },
+                        "i6": {
+                        },
+                        "t5": {
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a",
+                            "prevSize": 14
+                        },
+                        "s0": {
+                        },
+                        "s3": {
+                        },
+                        "s5": {
+                        },
+                        "s7": {
+                        },
+                        "s4": {
+                        },
+                        "s2": {
+                        },
+                        "s6": {
+                        },
+                        "t7": {
+                        },
+                        "s1": {
+                        },
+                        "i0": {
+                        },
+                        "t3": {
+                            "prevSize": 12,
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42"
+                        }
+                    },
+                    "_cardIndex": 23,
+                    "cardTTSDescription": "",
+                    "_cardNickName": "",
+                    "_copies": 1
+                },
+                {
+                    "data": {
+                        "i6": " ",
+                        "s4": "",
+                        "t5": "<p> </p>",
+                        "t1": "<p>Data Breach!</p>",
+                        "s2": "{color:rgba(236, 32, 41, 1)}",
+                        "s7": "",
+                        "i0": "",
+                        "s0": "",
+                        "s6": "",
+                        "t3": "<p> </p>",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "s5": "",
+                        "t2": "<p>Security</p>",
+                        "t4": "<p>Team loses a week.</p>",
+                        "t7": "<p> </p>",
+                        "s3": ""
+                    },
+                    "_cardNickName": "",
+                    "zoneData": {
+                        "s6": {
+                        },
+                        "i6": {
+                        },
+                        "t1": {
+                            "prevSize": 18,
+                            "prevText": "64275909b53b9b66a10d55cb93fd12fd71adc379"
+                        },
+                        "s1": {
+                        },
+                        "s0": {
+                        },
+                        "s3": {
+                        },
+                        "t7": {
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "903354096a9bdb4a106a31b61b643f45d836e8b4"
+                        },
+                        "t3": {
+                            "prevSize": 12,
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42"
+                        },
+                        "s5": {
+                        },
+                        "t2": {
+                            "prevText": "efe9e6817b3d59455b9811dcf5c20096d7a1370d",
+                            "prevSize": 16
+                        },
+                        "i0": {
+                        },
+                        "s4": {
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a"
+                        },
+                        "s2": {
+                        },
+                        "s7": {
+                        }
+                    },
+                    "_copies": 1,
+                    "cardTTSDescription": "",
+                    "rowHeight": 60,
+                    "_cardIndex": 18
+                },
+                {
+                    "zoneData": {
+                        "s4": {
+                        },
+                        "i6": {
+                        },
+                        "i0": {
+                        },
+                        "s1": {
+                        },
+                        "s7": {
+                        },
+                        "t5": {
+                            "prevSize": 14,
+                            "prevText": "d8a46c425e7480e957d5c8f5a7514aff9a9a233a"
+                        },
+                        "s2": {
+                        },
+                        "s6": {
+                        },
+                        "t2": {
+                            "prevSize": 16,
+                            "prevText": "efe9e6817b3d59455b9811dcf5c20096d7a1370d"
+                        },
+                        "t7": {
+                        },
+                        "s3": {
+                        },
+                        "s0": {
+                        },
+                        "t3": {
+                            "prevSize": 12,
+                            "prevText": "1d5c3eb20bc2db4d1342566ec04763feb7d72f42"
+                        },
+                        "s5": {
+                        },
+                        "t1": {
+                            "prevSize": 16,
+                            "prevText": "bc56dceff065a93de69a4e1a3cdcc21e4405f99c"
+                        },
+                        "t4": {
+                            "prevSize": 14,
+                            "prevText": "e513c0ae3e24a8eb2f751a1bb44ea30dc29290d5"
+                        }
+                    },
+                    "data": {
+                        "s5": "",
+                        "t5": "<p> </p>",
+                        "t1": "<p>Discover a critical security vulnerability in production</p>",
+                        "s0": "",
+                        "s7": "",
+                        "s2": "{color:rgba(236, 32, 41, 1)}",
+                        "t2": "<p>Security</p>",
+                        "t3": "<p> </p>",
+                        "t4": "<p>Team loses a day.</p>",
+                        "s3": "",
+                        "s4": "",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "i6": " ",
+                        "s6": "",
+                        "t7": "<p> </p>",
+                        "i0": ""
+                    },
+                    "_cardIndex": 17,
+                    "_cardNickName": "",
+                    "rowHeight": 60,
+                    "cardTTSDescription": "",
+                    "_copies": 1
+                }
+            ],
+            "backs": {
+                "tableColumnWidths": {
+                    "s5": 170,
+                    "s7": 170,
+                    "s2": 170,
+                    "t5": 170,
+                    "t4": 170,
+                    "s4": 170,
+                    "t7": 170,
+                    "s1": 170,
+                    "t1": 170,
+                    "t3": 170,
+                    "s3": 170,
+                    "t2": 170,
+                    "i6": 170,
+                    "s6": 170,
+                    "s0": 170,
+                    "i0": 170
+                },
+                "layoutDocID": "vjO1Z9Cb9ZyE2SG4tKcs",
+                "columnOrderList": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                ],
+                "type": "shared image",
+                "hiddenColumns": [
+                    "s0",
+                    "s1",
+                    "s2",
+                    "s3",
+                    "s4",
+                    "s5",
+                    "s6",
+                    "s7"
+                ],
+                "cards": [
+                    {
+                        "zoneData": {
+                        },
+                        "rowHeight": 60,
+                        "_index": 0,
+                        "previewFilePath": "",
+                        "previewURL": "",
+                        "data": {
+                            "t7": "",
+                            "s7": "",
+                            "t5": "",
+                            "s3": "",
+                            "t2": "",
+                            "s5": "",
+                            "s6": "",
+                            "t4": "",
+                            "t1": "",
+                            "i0": "Cards/BIT.jpg",
+                            "0imageDataKey": "TCG Card Design/!a!back_lava.webp",
+                            "t3": "",
+                            "i6": "",
+                            "s2": "",
+                            "s0": "",
+                            "s1": "",
+                            "s4": ""
+                        }
+                    }
+                ],
+                "defaultImageFolders": {
+                }
+            },
+            "cardPreviewPosition": {
+                "y": 20,
+                "x": 20
+            },
+            "previewCardScale": 1.5
+        },
+        {
+            "layoutDocID": "hSRc95DVCss1E1oxBtCO",
+            "versionNum": 2,
+            "columnWidth": 200,
+            "openInfo": false,
+            "defaultImageFolders": {
+                "i2": "Servers"
+            },
+            "ignoredCSVColumnHeaderWarnings": [
+            ],
+            "rowHeight": 50,
+            "showPreviewCard": false,
+            "hiddenColumns": [
+                "s0",
+                "s1",
+                "s2"
+            ],
+            "styleDataKeys": [
+            ],
+            "highlightActiveCard": false,
+            "showCardDescription": false,
+            "lastUpdated": {
+                "seconds": 1725986436,
+                "nanoseconds": 998000000
+            },
+            "currentEditor": "",
+            "scaleSize": 0.5,
+            "tableColumnWidths": {
+                "i0": 170,
+                "i2": 170,
+                "s2": 170,
+                "s1": 170,
+                "t1": 170,
+                "s0": 170
+            },
+            "customTTSData": "",
+            "cards": [
+                {
+                    "_copies": 1,
+                    "rowHeight": 60,
+                    "data": {
+                        "s2": "",
+                        "i2": "robot_rose.jpg",
+                        "s1": "",
+                        "t1": "<p> </p>",
+                        "s0": "",
+                        "i0": ""
+                    },
+                    "zoneData": {
+                    },
+                    "cardTTSDescription": "",
+                    "_cardNickName": "",
+                    "_cardIndex": 0
+                },
+                {
+                    "_cardNickName": "",
+                    "data": {
+                        "s1": "",
+                        "s2": "",
+                        "i2": "robot_yellow.jpg",
+                        "s0": "",
+                        "i0": "",
+                        "t1": "<p> </p>"
+                    },
+                    "zoneData": {
+                        "s0": {
+                        },
+                        "s1": {
+                        },
+                        "i2": {
+                        },
+                        "i0": {
+                        },
+                        "t1": {
+                        },
+                        "s2": {
+                        }
+                    },
+                    "_cardIndex": 1,
+                    "rowHeight": 60,
+                    "_copies": 1,
+                    "cardTTSDescription": ""
+                },
+                {
+                    "cardTTSDescription": "",
+                    "zoneData": {
+                        "t1": {
+                        },
+                        "s2": {
+                        },
+                        "s0": {
+                        },
+                        "i2": {
+                        },
+                        "s1": {
+                        },
+                        "i0": {
+                        }
+                    },
+                    "_cardNickName": "",
+                    "_copies": 1,
+                    "rowHeight": 60,
+                    "data": {
+                        "s2": "",
+                        "t1": "<p> </p>",
+                        "s1": "",
+                        "i0": "",
+                        "s0": "",
+                        "i2": "robot_green.jpg"
+                    },
+                    "_cardIndex": 2
+                }
+            ],
+            "previewCardScale": 1.5,
+            "cardPreviewPosition": {
+                "x": 20,
+                "y": 20
+            },
+            "openTableView": true,
+            "backs": {
+                "tableColumnWidths": {
+                    "t1": 170,
+                    "s1": 170,
+                    "i2": 170,
+                    "s2": 170,
+                    "s0": 170,
+                    "i0": 170
+                },
+                "layoutDocID": "hSRc95DVCss1E1oxBtCO",
+                "defaultImageFolders": {
+                },
+                "hiddenColumns": [
+                    "s0",
+                    "s1",
+                    "s2"
+                ],
+                "type": "shared image",
+                "columnOrderList": [
+                    0,
+                    1,
+                    2
+                ],
+                "cards": [
+                    {
+                        "previewFilePath": "",
+                        "previewURL": "",
+                        "zoneData": {
+                        },
+                        "data": {
+                            "s2": "",
+                            "0imageDataKey": "TCG Card Design/!a!back_lava.webp",
+                            "s1": "",
+                            "s0": "",
+                            "i0": "Cards/IndustrialRobot.jpg",
+                            "t1": "",
+                            "i2": ""
+                        },
+                        "rowHeight": 60,
+                        "_index": 0
+                    }
+                ]
+            },
+            "description": "",
+            "currentEditorSessionId": "",
+            "showCardBacks": true,
+            "openCardType": true,
+            "columnOrderList": [
+                0,
+                1,
+                2
+            ],
+            "id": "Xkq92siL9u88d88mirlu"
+        },
+        {
+            "openTableView": true,
+            "cardPreviewPosition": {
+                "y": 20,
+                "x": 20
+            },
+            "currentEditor": "",
+            "openInfo": false,
+            "openCardType": true,
+            "backs": {
+                "tableColumnWidths": {
+                    "t4": 170,
+                    "t1": 170,
+                    "i0": 170,
+                    "s0": 170,
+                    "s1": 170,
+                    "t3": 170,
+                    "t2": 170,
+                    "s4": 170,
+                    "s3": 170,
+                    "s2": 170
+                },
+                "hiddenColumns": [
+                    "s0",
+                    "s1",
+                    "s2",
+                    "s3",
+                    "s4"
+                ],
+                "type": "shared image",
+                "layoutDocID": "Zzj7uNC5iSHqChcCiw9D",
+                "cards": [
+                    {
+                        "previewURL": "",
+                        "_index": 0,
+                        "zoneData": {
+                        },
+                        "previewFilePath": "",
+                        "data": {
+                            "i0": "Cards/SkillTraining.jpg",
+                            "t3": "",
+                            "s4": "",
+                            "s3": "",
+                            "s2": "",
+                            "t2": "",
+                            "0imageDataKey": "TCG Card Design/!a!back_lava.webp",
+                            "s1": "",
+                            "s0": "",
+                            "t4": "",
+                            "t1": ""
+                        },
+                        "rowHeight": 60
+                    }
+                ],
+                "columnOrderList": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4
+                ],
+                "defaultImageFolders": {
+                }
+            },
+            "hiddenColumns": [
+                "s0",
+                "s2",
+                "s3"
+            ],
+            "defaultImageFolders": {
+            },
+            "columnWidth": 200,
+            "showCardBacks": true,
+            "layoutDocID": "Zzj7uNC5iSHqChcCiw9D",
+            "versionNum": 2,
+            "id": "ZfgvznXKxZkfjDYAxEx4",
+            "ignoredCSVColumnHeaderWarnings": [
+            ],
+            "customTTSData": "",
+            "cards": [
+                {
+                    "rowHeight": 60,
+                    "_copies": 14,
+                    "_cardIndex": 0,
+                    "zoneData": {
+                    },
+                    "_cardNickName": "",
+                    "cardTTSDescription": "",
+                    "data": {
+                        "i0": "",
+                        "s3": "",
+                        "s0": "",
+                        "s2": "",
+                        "t1": "",
+                        "t3": "",
+                        "t2": "",
+                        "s4": "",
+                        "s1": ""
+                    }
+                },
+                {
+                    "_cardNickName": "",
+                    "rowHeight": 60,
+                    "cardTTSDescription": "",
+                    "data": {
+                        "i0": "",
+                        "s1": "{color:rgba(236, 32, 41, 1)}",
+                        "s3": "",
+                        "s0": "",
+                        "t2": "<p>Remove all skills from the server with the most.</p>",
+                        "s4": "",
+                        "t1": "<p> Lose your most skilled team member!</p>",
+                        "s2": "",
+                        "t3": "<p>In case of a tie, remove from the server furthest to the right.</p>"
+                    },
+                    "zoneData": {
+                        "i0": {
+                        },
+                        "t2": {
+                        },
+                        "t3": {
+                        },
+                        "s4": {
+                        },
+                        "s0": {
+                        },
+                        "s3": {
+                        },
+                        "t1": {
+                        },
+                        "t4": {
+                        },
+                        "s2": {
+                        },
+                        "s1": {
+                        }
+                    },
+                    "_copies": 2,
+                    "_cardIndex": 1
+                }
+            ],
+            "highlightActiveCard": false,
+            "columnOrderList": [
+                0,
+                1,
+                2,
+                3,
+                4
+            ],
+            "tableColumnWidths": {
+                "s1": 170,
+                "s2": 170,
+                "s0": 170,
+                "t2": 170,
+                "s3": 170,
+                "s4": 170,
+                "t1": 170,
+                "i0": 170,
+                "t3": 170,
+                "t4": 170
+            },
+            "rowHeight": 50,
+            "showCardDescription": false,
+            "showPreviewCard": false,
+            "scaleSize": 0.5,
+            "currentEditorSessionId": "",
+            "lastUpdated": {
+                "seconds": 1725991722,
+                "nanoseconds": 201000000
+            },
+            "styleDataKeys": [
+            ],
+            "description": "",
+            "previewCardScale": 1.5
+        },
+        {
+            "scaleSize": 0.5,
+            "columnOrderList": [
+                0,
+                1,
+                2
+            ],
+            "hiddenColumns": [
+                "s0",
+                "s1",
+                "s2"
+            ],
+            "currentEditor": "",
+            "backs": {
+                "columnOrderList": [
+                    0,
+                    1,
+                    2
+                ],
+                "hiddenColumns": [
+                    "s0",
+                    "s1",
+                    "s2"
+                ],
+                "layoutDocID": "hSRc95DVCss1E1oxBtCO",
+                "cards": [
+                    {
+                        "zoneData": {
+                        },
+                        "previewFilePath": "",
+                        "rowHeight": 60,
+                        "data": {
+                            "t1": "",
+                            "i2": "",
+                            "i0": "Cards/WomanJugglingTires.jpg",
+                            "0imageDataKey": "TCG Card Design/!a!back_lava.webp",
+                            "s0": "",
+                            "s1": "",
+                            "s2": ""
+                        },
+                        "previewURL": "",
+                        "_index": 0
+                    }
+                ],
+                "defaultImageFolders": {
+                },
+                "type": "shared image",
+                "tableColumnWidths": {
+                    "i0": 170,
+                    "t1": 170,
+                    "s0": 170,
+                    "i2": 170,
+                    "s2": 170,
+                    "s1": 170
+                }
+            },
+            "highlightActiveCard": false,
+            "defaultImageFolders": {
+                "i0": "Servers",
+                "i2": "Servers"
+            },
+            "openInfo": false,
+            "ignoredCSVColumnHeaderWarnings": [
+            ],
+            "tableColumnWidths": {
+                "s0": 170,
+                "i0": 170,
+                "s1": 170,
+                "i2": 170,
+                "s2": 170,
+                "t1": 170
+            },
+            "openTableView": true,
+            "showPreviewCard": false,
+            "cards": [
+                {
+                    "_cardIndex": 0,
+                    "_cardNickName": "",
+                    "data": {
+                        "s1": "",
+                        "t1": "<p> </p>",
+                        "s2": "",
+                        "i2": "server_green.jpg",
+                        "i0": "",
+                        "s0": ""
+                    },
+                    "cardTTSDescription": "",
+                    "rowHeight": 60,
+                    "zoneData": {
+                    },
+                    "_copies": 1
+                },
+                {
+                    "_copies": 1,
+                    "rowHeight": 60,
+                    "zoneData": {
+                        "s2": {
+                        },
+                        "t1": {
+                        },
+                        "i0": {
+                        },
+                        "i2": {
+                        },
+                        "s1": {
+                        },
+                        "s0": {
+                        }
+                    },
+                    "_cardIndex": 1,
+                    "data": {
+                        "i2": "server_yellow.jpg",
+                        "s2": "",
+                        "t1": "<p> </p>",
+                        "s0": "",
+                        "i0": "",
+                        "s1": ""
+                    },
+                    "_cardNickName": "",
+                    "cardTTSDescription": ""
+                },
+                {
+                    "_cardNickName": "",
+                    "cardTTSDescription": "",
+                    "_cardIndex": 2,
+                    "_copies": 1,
+                    "data": {
+                        "t1": "<p> </p>",
+                        "s0": "",
+                        "s2": "",
+                        "s1": "",
+                        "i0": "",
+                        "i2": "server_violet.jpg"
+                    },
+                    "zoneData": {
+                        "i2": {
+                        },
+                        "s0": {
+                        },
+                        "i0": {
+                        },
+                        "t1": {
+                        },
+                        "s2": {
+                        },
+                        "s1": {
+                        }
+                    },
+                    "rowHeight": 60
+                },
+                {
+                    "cardTTSDescription": "",
+                    "zoneData": {
+                        "i2": {
+                        },
+                        "s2": {
+                        },
+                        "s1": {
+                        },
+                        "s0": {
+                        },
+                        "i0": {
+                        },
+                        "t1": {
+                        }
+                    },
+                    "_cardNickName": "",
+                    "_cardIndex": 3,
+                    "_copies": 1,
+                    "rowHeight": 60,
+                    "data": {
+                        "s0": "",
+                        "s2": "",
+                        "i0": "",
+                        "s1": "",
+                        "i2": "server_pair.jpg",
+                        "t1": "<p>Pair Partner</p>"
+                    }
+                },
+                {
+                    "data": {
+                        "s1": "",
+                        "i2": "server_blue.jpg",
+                        "s0": "",
+                        "s2": "",
+                        "t1": "<p> </p>",
+                        "i0": ""
+                    },
+                    "rowHeight": 60,
+                    "cardTTSDescription": "",
+                    "_copies": 1,
+                    "zoneData": {
+                        "s0": {
+                        },
+                        "s1": {
+                        },
+                        "i0": {
+                        },
+                        "i2": {
+                        },
+                        "s2": {
+                        },
+                        "t1": {
+                        }
+                    },
+                    "_cardIndex": 4,
+                    "_cardNickName": ""
+                },
+                {
+                    "cardTTSDescription": "",
+                    "_copies": 1,
+                    "zoneData": {
+                        "s2": {
+                        },
+                        "i2": {
+                        },
+                        "s0": {
+                        },
+                        "t1": {
+                        },
+                        "i0": {
+                        },
+                        "s1": {
+                        }
+                    },
+                    "_cardIndex": 5,
+                    "rowHeight": 60,
+                    "_cardNickName": "",
+                    "data": {
+                        "i0": "",
+                        "s1": "",
+                        "s2": "",
+                        "s0": "",
+                        "i2": "server_rose.jpg",
+                        "t1": "<p> </p>"
+                    }
+                }
+            ],
+            "showCardBacks": true,
+            "layoutDocID": "hSRc95DVCss1E1oxBtCO",
+            "columnWidth": 200,
+            "showCardDescription": false,
+            "currentEditorSessionId": "",
+            "styleDataKeys": [
+            ],
+            "description": "",
+            "previewCardScale": 1.5,
+            "lastUpdated": {
+                "seconds": 1725986293,
+                "nanoseconds": 932000000
+            },
+            "rowHeight": 50,
+            "cardPreviewPosition": {
+                "y": 20,
+                "x": 20
+            },
+            "customTTSData": "",
+            "openCardType": true,
+            "versionNum": 2,
+            "id": "yRrHhK69PkW6peOOVo1S"
+        }
+    ]
+}
