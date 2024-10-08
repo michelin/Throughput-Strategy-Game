@@ -33,7 +33,7 @@ public class ThroughputApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("board.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 700, 500);
+        Scene scene = new Scene(fxmlLoader.load(), 925, 1000);
         stage.setTitle("Throughput");
         stage.setScene(scene);
         stage.show();
@@ -41,36 +41,6 @@ public class ThroughputApplication extends Application {
        // Board.getInstance().runGame(stage);
     }
 
-    public void start1(Stage stage) throws IOException {
-
-        // FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("hello-view.fxml"));
-
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("ascii-art-2.fxml"));
-//        Label secondaryLabel = new Label("::  A Strategy Game  ::");
-//        secondaryLabel.setFont(new Font("Arial", 18));
-//        Label welcomeLabel = new Label("Throughput",secondaryLabel);
-//        welcomeLabel.setFont(new Font("Arial", 48));
-//        Scene scene = new Scene(welcomeLabel, 500, 500);
-
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
-
-        stage.setScene(scene);
-        stage.show();
-
-        new Background(
-                Collections.singletonList(new BackgroundFill(
-                        Color.WHITE,
-                        new CornerRadii(500),
-                        new Insets(10))),
-                Collections.singletonList(new BackgroundImage(
-                        new Image("Cover.jpg", 100, 100, false, true),
-                        BackgroundRepeat.NO_REPEAT,
-                        BackgroundRepeat.NO_REPEAT,
-                        BackgroundPosition.CENTER,
-                        BackgroundSize.DEFAULT)));
-
-
-    }
 
     public void start2(Stage stage) {
         //Creating a dialog

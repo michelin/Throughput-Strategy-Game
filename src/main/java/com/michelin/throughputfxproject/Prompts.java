@@ -15,9 +15,7 @@ import com.michelin.throughputfxproject.services.ServerService;
 import com.michelin.throughputfxproject.services.WorkstationService;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.text.Font;
-import javafx.stage.Stage;
+
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -51,19 +49,7 @@ public class Prompts {
 
 
 
-    public static void asciiArt2(@NonNull Stage stage) throws IOException {
 
-
-        Label secondaryLabel = new Label("::  A Strategy Game  ::");
-        secondaryLabel.setFont(new Font("Arial", 18));
-        Label welcomeLabel = new Label("Throughput",secondaryLabel);
-        welcomeLabel.setFont(new Font("Arial", 48));
-
-
-        Scene scene = new Scene(welcomeLabel,200,200);
-        stage.setScene(scene);
-        stage.show();
-    }
 
     public static void asciiArt3(@NonNull Backlog backlog,@NonNull FinishedGoods finishedGoods) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
@@ -184,7 +170,7 @@ public class Prompts {
         LOGGER.info("{} Loses {}", trap.getEffected(), trap.getMitigatedDuration());
     }
 
-    public static List<ServerMove> promptForServerMoves(@NonNull Scanner scanner, HumanServer inTraining) throws IOException {
+    public static List<ServerMove> promptForServerMoves( HumanServer inTraining) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
@@ -224,7 +210,7 @@ public class Prompts {
         return moves;
     }
 
-    public static boolean promptForServerRetry(@NonNull Scanner scanner, @NonNull Server server) throws IOException {
+    public static boolean promptForServerRetry( @NonNull Server server) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
@@ -237,7 +223,8 @@ public class Prompts {
         return retry.equalsIgnoreCase("Y");
     }
 
-    public static void promptForWorkItemEstimates(@NonNull Scanner scanner, int week, @NonNull ScoreCard scoreCard, @NonNull Backlog backlog) throws IOException{
+    public static int promptForWorkItemEstimates(int week, @NonNull ScoreCard scoreCard, @NonNull Backlog backlog) throws IOException{
+
 
         FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
@@ -246,14 +233,15 @@ public class Prompts {
         LOGGER.info("'10' will add 10 work items to the backlog");
 
         int start = scanner.nextInt();
-        scoreCard.getEstimates()[week] = start;
+
+
         backlog.addToBacklog(start);
         scanner.nextLine();
-
+        return start;
 
     }
 
-    public static int promptForWorkItemInitialMoves(@NonNull Scanner scanner, int startValue, @NonNull Backlog backlog) throws IOException{
+    public static int promptForWorkItemInitialMoves(int startValue, @NonNull Backlog backlog) throws IOException{
         FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
@@ -268,7 +256,7 @@ public class Prompts {
         return moves;
     }
 
-    public static int promptForWorkItemWorkstationMoves(@NonNull Scanner scanner, @NonNull Workstation workstation, int workstationPosition) throws IOException {
+    public static int promptForWorkItemWorkstationMoves( @NonNull Workstation workstation, int workstationPosition) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
@@ -296,7 +284,7 @@ public class Prompts {
         return -1;
     }
 
-    public static void promptToAddOneToWorkstationCapacity(@NonNull Scanner scanner, int dieSides) throws IOException {
+    public static void promptToAddOneToWorkstationCapacity( int dieSides) throws IOException {
 
         FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
@@ -316,7 +304,7 @@ public class Prompts {
 
     }
 
-    public static HumanServer promptToAddSkill(@NonNull Scanner scanner) throws IOException {
+    public static HumanServer promptToAddSkill() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
@@ -352,7 +340,7 @@ public class Prompts {
 
     }
 
-    public static void promptToAutomateWorkstation(@NonNull Scanner scanner) throws IOException {
+    public static void promptToAutomateWorkstation() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
@@ -370,7 +358,7 @@ public class Prompts {
 
     }
 
-    public static void promptToDoubleWorkstationCapacity(@NonNull Scanner scanner, int dieSides) throws IOException {
+    public static void promptToDoubleWorkstationCapacity( int dieSides) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
@@ -411,7 +399,7 @@ public class Prompts {
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         LOGGER.info("Finished week: {}", (week + 1));
-        LOGGER.info("Score: {}", scoreCard.getScores()[week]);
+        LOGGER.info("Score: {}", scoreCard.getScore());
         LOGGER.info("");
         LOGGER.info("");
     }

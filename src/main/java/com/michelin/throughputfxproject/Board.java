@@ -35,13 +35,17 @@ public class Board {
     @Getter
     private final FinishedGoods finishedGoods = new FinishedGoods();
     @Getter
-    private final ScoreCard scoreCard = new ScoreCard(RUN_WEEKS);
+    private final List<ScoreCard> scoreCards = new ArrayList<>(RUN_WEEKS);
     private final List<BitCard> weekHoldCards = new ArrayList<>(10);
     private final List<BitCard> gameHoldCards = new ArrayList<>(10);
+    private Integer dayOfTheWeek = 0;
+    private Integer gameWeek = 0;
     private static Board board;
 
     private Board() {
-        super();
+        for(int i =0;i < RUN_WEEKS;i++){
+            scoreCards.add(new ScoreCard(i+1,0,0,0,0));
+        }
     }
 
     public static Board getInstance() {
@@ -139,6 +143,14 @@ public class Board {
         finishedGoods.setValue(4);
     }
 
+    public int getDayOfTheWeek() {
+        return dayOfTheWeek;
+    }
+
+    public int getGameWeek() {
+        return gameWeek;
+    }
+
     private void handleChanceCardAndServerMovements(Scanner scanner, Server server, Workstation workstation, int i) throws InterruptedException, IOException {
         boolean success = Prompts.serverChanceCardPlay(server, workstation);
         workItemMoves(scanner, server, success, workstation, i);
@@ -186,29 +198,29 @@ public class Board {
     }
 
     @SneakyThrows
-    private void runDay(@NonNull Scanner scanner, boolean vanilla, int runDay, int runWeek, HumanServer inTraining) {
-        LOGGER.debug("Run Day {}", runDay + 1);
+    private void runDay(boolean vanilla,  HumanServer inTraining) {
+        LOGGER.debug("Run Day {}", dayOfTheWeek + 1);
 
-        Prompts.publishDayStart(runDay, runWeek);
+        Prompts.publishDayStart(dayOfTheWeek, gameWeek);
         Prompts.asciiArt3(backlog, finishedGoods);
 
         //If not Week 1 ask about moving servers
         if (!vanilla) {
             //Server Moves
-            List<ServerMove> moves = Prompts.promptForServerMoves(scanner, inTraining);
+            List<ServerMove> moves = Prompts.promptForServerMoves(inTraining);
             startDay(moves);
         }
 
         //Get Team mood and start moving work items
         final int startValue = Prompts.teamMood(SIX_SIDES, backlog);
         final Workstation workstationZero = WorkstationService.getWorkstation(0);
-        int initialMoveFromBacklog = Prompts.promptForWorkItemInitialMoves(scanner, startValue, backlog);
+        int initialMoveFromBacklog = Prompts.promptForWorkItemInitialMoves(startValue, backlog);
         workstationZero.addToWorkItemCount(initialMoveFromBacklog);
         backlog.subtractFromBacklog(initialMoveFromBacklog);
         Prompts.asciiArt3(backlog, finishedGoods);
 
         for (int i = 0; i < FIVE_STATIONS; i++) {
-            runWorkstationDay(scanner, vanilla, runDay, runWeek, i);
+            runWorkstationDay(vanilla, i);
         }
         if (inTraining != null) {
             returnServerToWorkstation(inTraining);
@@ -217,84 +229,79 @@ public class Board {
 
     public void runGame(Stage primaryStage) {
 
-        primaryStage.setTitle("Throughput");
-
-        try {
-            Prompts.asciiArt2(primaryStage);
-        } catch (IOException e) {
-            throw new ThroughputRuntimeException(e);
-        }
-        WorkstationService.createWorkstations(FIVE_STATIONS, SIX_SIDES);
+             WorkstationService.createWorkstations(FIVE_STATIONS, SIX_SIDES);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Created workstations {}", Arrays.toString(WorkstationService.getWorkstations()));
         }
 
-        try (Scanner scanner = new Scanner(System.in)) {
-            for (int i = 0; i < RUN_WEEKS; i++) {
-                runWeek(scanner, i);
+       try{
+            for (gameWeek = 0; gameWeek < RUN_WEEKS; gameWeek++) {
+                runWeek();
             }
         } catch (IOException e) {
             throw new ThroughputRuntimeException(e);
         }
     }
 
-    private void runWeek(@NonNull Scanner scanner, int week) throws IOException {
+    private void runWeek() throws IOException {
 
-        Prompts.publishStartWeek(week);
+        ScoreCard scoreCard = scoreCards.stream().filter(innerScoreCard-> innerScoreCard.getWeek() == gameWeek).findFirst().orElse(null);
+        Objects.requireNonNull(scoreCard);
+        Prompts.publishStartWeek(gameWeek);
         Prompts.asciiArt3(backlog, finishedGoods);
         //Estimate Work Items
-        Prompts.promptForWorkItemEstimates(scanner, week, scoreCard, backlog);
+        int startValue = Prompts.promptForWorkItemEstimates(gameWeek, scoreCard, backlog);
+        scoreCard.setEstimate(startValue);
 
         HumanServer inTraining = null;
-        if (week > 0) {
+        if (gameWeek > 0) {
             //Get skills
-            inTraining = Prompts.promptToAddSkill(scanner);
+            inTraining = Prompts.promptToAddSkill();
             if (inTraining != null) {
                 findAndRemoveServer(inTraining.getColor());
             }
         }
-        for (int j = 0; j < RUN_DAYS; j++) {
-            runDay(scanner, week == 0, j, week, inTraining);
+        for (dayOfTheWeek = 0; dayOfTheWeek < RUN_DAYS; dayOfTheWeek++) {
+            runDay( gameWeek == 0, inTraining);
         }
 
         weekHoldCards.clear();
         //Tally board
-        scoreCard.getBacklog()[week] = backlog.getBacklogItemCount();
-        scoreCard.getWorkInProcess()[week] = WorkstationService.tallyWorkInProcess();
-        scoreCard.getFinishedGoods()[week] = finishedGoods.getFinishedGoods();
-        scoreCard.getScores()[week] = finishedGoods.calculateScore() - (backlog.getBacklogItemCount() + scoreCard.getWorkInProcess()[week]);
+        scoreCard.setWorkInProcess(WorkstationService.tallyWorkInProcess());
+        scoreCard.setFinishedGoods(finishedGoods.getFinishedGoods());
+        scoreCard.setScore(finishedGoods.calculateScore() - (backlog.getBacklogItemCount() + scoreCard.getWorkInProcess()));
         //Remove finished Goods
         finishedGoods.setFinishedGoods(0);
 
-        Prompts.publishEndWeek(week, scoreCard);
+        Prompts.publishEndWeek(gameWeek, scoreCard);
         Prompts.asciiArt3(backlog, finishedGoods);
     }
 
 
-    private void runWorkstationDay(Scanner scanner, boolean vanilla, int runDay, int runWeek, int i) throws InterruptedException, IOException {
+    private void runWorkstationDay(boolean vanilla, int i) throws InterruptedException, IOException {
         //For each server
         Workstation workstation = WorkstationService.getWorkstation(i);
         for (Server server : workstation.getServers()) {
 
-            handleChanceCardAndServerMovements(scanner, server, workstation, i);
+            handleChanceCardAndServerMovements( server, workstation, i);
 
             if (!vanilla) {
                 BitCard bitCard = Prompts.drawBit(SIX_SIDES);
                 //Discover bit actions handles a null bit card
-                Trap trap = discoverBitActions(scanner, bitCard, runDay, runWeek);
+                Trap trap = discoverBitActions(bitCard, dayOfTheWeek, gameWeek);
                 if (bitCard != null && trap != null) {
                     boolean trapMitigated = isTrapMitigated(bitCard);
                     if (!trapMitigated) {
                         Prompts.promptForAppliedTrap(trap);
                         if (trap.getEffected().equals(TEAM) && trap.getDuration().equals(WEEK)) {
-                            runWeek++;
+                            gameWeek++;
                         } else if (trap.getEffected().equals(TEAM) && trap.getDuration().equals(DAY)) {
-                            runDay++;
+                            dayOfTheWeek++;
                         }
                     } else {
                         Prompts.promptForMitigatedTrap(trap);
                         if (trap.getEffected().equals(TEAM) && trap.getMitigatedDuration().equals(DAY)) {
-                            runDay++;
+                            dayOfTheWeek++;
                         }
                     }
                 }

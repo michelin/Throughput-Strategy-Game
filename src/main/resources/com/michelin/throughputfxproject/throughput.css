@@ -1,3 +1,54 @@
 .img-background{
-    -fx-background-image: url('Cover.jpg');
+    -fx-background-image: url('images/Flow1.jpg');
+    -fx-background-position: center;
+    -fx-background-color: white;
+    -fx-background-repeat: no-repeat;
+    -fx-padding: 10 20 10 20;
+}
+
+.score-box{
+    -fx-background-color: white;
+    -fx-border-width: 2px;
+    -fx-border-color: black;
+    -fx-text-alignment: center;
+    -fx-padding: 10px 10px 10px 10px;
+    -fx-font-family: Michelin, sans-serif;
+    -fx-font-size: 18pt;
+ }
+.score-box-label{
+    -fx-font-family: Michelin, sans-serif;
+    -fx-font-size: 12pt;
+}
+
+.header{
+    -fx-font-family: Michelin-Bold, sans-serif;
+    -fx-font-size: 48pt;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+}
+
+.sub-header{
+    -fx-font-family: Michelin-Bold, sans-serif;
+    -fx-font-size: 20pt;
+    -fx-text-alignment: center;
+}
+
+.date-group{
+    -fx-background-color: white;
+    -fx-padding: 10;
+    /*-fx-border-radius: 5;*/
+}
+
+.date-box{
+    -fx-background-color: lightgray;
+    -fx-text-alignment: center;
+    -fx-padding: 0px 5px 0px 5px;
+    -fx-font-family: Michelin, sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 16pt;
+}
+.date-box-label{
+    -fx-font-family: Michelin, sans-serif;
+    -fx-font-size: 14pt;
+    -fx-font-weight: bold;
 }
