@@ -20,8 +20,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
@@ -36,14 +35,9 @@ public class BoardController {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(BoardController.class.getName());
 
+
     @FXML
-    private TextField responseText;
-    @FXML
-    private VBox gameDialogPane;
-    @FXML
-    private TextArea gameText;
-    @FXML
-    private Button gameButton;
+    private Pane gameDialogPane;
     @FXML
     private TableView<ScoreCard> scoreTableView;
     @FXML
@@ -86,6 +80,7 @@ public class BoardController {
     private Label workstationLabel3;
     @FXML
     private Label workstationLabel4;
+
 
     @FXML
     protected void initialize() {
@@ -239,11 +234,6 @@ public class BoardController {
         //Estimate Work Items
         Prompts.promptForWorkItemEstimates(container);
 
-
-
-
-
-
         HumanServer inTraining = null;
         if (Board.getInstance().getGameWeek() > 0) {
             //Get skills
@@ -253,7 +243,7 @@ public class BoardController {
             }
         }
 
-        runDay(container, Board.getInstance().getGameWeek() == 0, inTraining);
+  //      runDay(container, Board.getInstance().getGameWeek() == 0, inTraining);
         Board.getInstance().augmentDayOfTheWeek();
         if (Board.getInstance().getDayOfTheWeek() == 4) {
             Board.getInstance().getWeekHoldCards().clear();
@@ -265,7 +255,9 @@ public class BoardController {
             ScorecardService.getInstance().getFinishedGoods().setFinishedGoods(0);
             Prompts.publishEndWeek(Board.getInstance().getGameWeek(), scoreCard);
         }
+        reinitialize();
     }
+
 
 
     private void runWorkstationDay(boolean vanilla, int i) throws InterruptedException, IOException {

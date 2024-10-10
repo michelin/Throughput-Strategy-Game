@@ -11,12 +11,15 @@ import com.michelin.throughputfxproject.entities.servers.ServerMove;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.*;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +46,7 @@ public class Prompts {
 
 
     public static BitCard drawBit(int dieSides) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
         //If not week 1 draw BIT card if they roll a 6
         int drawBitInt = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
@@ -64,7 +67,7 @@ public class Prompts {
 
 
     public static void implementPairedProgramming() throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         Scanner scanner = new Scanner(System.in);
@@ -82,7 +85,7 @@ public class Prompts {
 
 
     public static void promptForAppliedTrap(Trap trap) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         LOGGER.info("No Mitigation available for trap");
@@ -91,7 +94,7 @@ public class Prompts {
     }
 
     public static void promptForMitigatedTrap(Trap trap) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         LOGGER.info("Applying Mitigation for trap");
@@ -99,7 +102,7 @@ public class Prompts {
     }
 
     public static List<ServerMove> promptForServerMoves(HumanServer inTraining) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         List<ServerMove> moves = new ArrayList<>();
@@ -139,7 +142,7 @@ public class Prompts {
     }
 
     public static boolean promptForServerRetry(@NonNull Server server) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         if (LOGGER.isInfoEnabled()) {
@@ -151,33 +154,14 @@ public class Prompts {
         return retry.equalsIgnoreCase("Y");
     }
 
-    public static void promptForWorkItemEstimates(@NonNull Pane container) {
-
-
-        TextArea gameText =  (TextArea) container.getScene().lookup("#gameText");
-        gameText.setText("Enter how many work items you think you can finish. Unfinished work items count as WIP. This is the number you start with in (or add to) your backlog. '10' will add 10 work items to the backlog.");
-
-        Text responseText = (Text) container.getScene().lookup("#responseText");
-
-        Button button = (Button) container.getScene().lookup("#gameButton");
-        button.setText("Submit Move");
-        button.setDisable(false);
-
-        button.setOnAction(event -> {
-            String startValueText = responseText.getText();
-            try {
-                int startValue = Integer.parseInt(startValueText);
-                ScoreCard scoreCard = ScorecardService.getInstance().getScorecards()[Board.getInstance().getGameWeek()];
-                scoreCard.setEstimate(startValue);
-                ScorecardService.getInstance().getBacklog().addToBacklog(startValue);
-            } catch (NumberFormatException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText("Must enter a valid number");
-                alert.setContentText("Please enter a valid number");
-                alert.showAndWait();
-            }
-        });
+    public static void promptForWorkItemEstimates(@NonNull Pane container) throws IOException {
+        Stage stage = new Stage();
+        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml")).load();
+        stage.setScene(new Scene(root));
+        stage.setTitle("My modal window");
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(container.getScene().getWindow());
+        stage.showAndWait();
 
     }
 
@@ -222,7 +206,7 @@ public class Prompts {
     }
 
     public static int promptForWorkItemWorkstationMoves(@NonNull Workstation workstation, int workstationPosition) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         if (LOGGER.isInfoEnabled()) {
@@ -251,7 +235,7 @@ public class Prompts {
 
     public static void promptToAddOneToWorkstationCapacity(int dieSides) throws IOException {
 
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         LOGGER.info("Choose which workstation to add one to its capacity");
@@ -270,7 +254,7 @@ public class Prompts {
     }
 
     public static HumanServer promptToAddSkill() throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         SkillCard skillCard = (SkillCard) CardService.getInstance().pickACard(Card.SKILLS);
@@ -306,7 +290,7 @@ public class Prompts {
     }
 
     public static void promptToAutomateWorkstation() throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         if (LOGGER.isInfoEnabled()) {
@@ -321,7 +305,7 @@ public class Prompts {
     }
 
     public static void promptToDoubleWorkstationCapacity(int dieSides) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         LOGGER.info("Choose which workstation to double its capacity");
@@ -337,20 +321,20 @@ public class Prompts {
 
     }
 
-    public static void publishDayStart( int runDay, int runWeek)  {
+    public static void publishDayStart(int runDay, int runWeek) {
 
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("SOD");
         alert.setHeaderText("Start of Day");
-        alert.setContentText("Current Board -> Day: "+(runDay + 1)+"  Week:  "+(runWeek + 1));
+        alert.setContentText("Current Board -> Day: " + (runDay + 1) + "  Week:  " + (runWeek + 1));
         alert.showAndWait();
 
 
     }
 
 
-    public static void publishStartWeek(int week)  {
+    public static void publishStartWeek(int week) {
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("SOW");
@@ -387,7 +371,7 @@ public class Prompts {
 
 
     public static boolean serverChanceCardPlay(@NonNull Server server, @NonNull Workstation workstation) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         if (workstation.getWorkItemCount() == 0) {
@@ -421,9 +405,8 @@ public class Prompts {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Mood");
         alert.setHeaderText("Team Mood");
-        alert.setContentText("Rolled for Team Mood." + "  Team Mood is "+teamMood+" and backlog has "+ ScorecardService.getInstance().getBacklog().getBacklogItemCount()+" work items" + "At the prompt you can move up to "+Math.min(teamMood, ScorecardService.getInstance().getBacklog().getBacklogItemCount())+" items into your 1st workstation");
+        alert.setContentText("Rolled for Team Mood." + "  Team Mood is " + teamMood + " and backlog has " + ScorecardService.getInstance().getBacklog().getBacklogItemCount() + " work items" + "At the prompt you can move up to " + Math.min(teamMood, ScorecardService.getInstance().getBacklog().getBacklogItemCount()) + " items into your 1st workstation");
         alert.showAndWait();
-
 
 
         return Math.min(teamMood, ScorecardService.getInstance().getBacklog().getBacklogItemCount());

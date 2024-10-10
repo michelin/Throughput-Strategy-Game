@@ -3,7 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
+
 <BorderPane layoutY="-2.0" prefHeight="750.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/11.0.14-internal"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.michelin.throughputfxproject.controllers.BoardController" styleClass="img-background" stylesheets="@throughput.css">
@@ -42,11 +42,9 @@
                 <Label fx:id="totalScore" styleClass="date-box" stylesheets="@throughput.css" text="0"/>
             </HBox>
 
-            <VBox fx:id="gameDialogPane">
-                <TextArea fx:id="gameText" prefHeight="200.0" prefWidth="450.0"/>
-                <TextField fx:id="responseText"/>
-                <Button fx:id="gameButton" disable="true" text="Ok"/>
-            </VBox>
+            <Pane fx:id="gameDialogPane">
+
+            </Pane>
         </VBox>
     </center>
     <bottom>
