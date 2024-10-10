@@ -1,5 +1,6 @@
 package com.michelin.throughputfxproject.services;
 
+import com.michelin.throughputfxproject.Board;
 import com.michelin.throughputfxproject.Color;
 import com.michelin.throughputfxproject.entities.Die;
 import com.michelin.throughputfxproject.entities.Workstation;
@@ -23,22 +24,27 @@ public class WorkstationService {
         return new Workstation(humanServer, capacity, color);
     }
 
-    public static void createWorkstations(int workstationCount, int maxCapacity) {
+    private static void createWorkstations(int workstationCount, int maxCapacity) {
 
         Die[] capacities = DiceService.getDice(maxCapacity, workstationCount);
         DiceService.rollDice(capacities);
-        LOGGER.debug("Workstation capacity: {}", Arrays.toString(capacities));
 
-        Workstation[] workstations = new Workstation[workstationCount];
-        for (int i = 0; i < workstationCount; i++) {
-            workstations[i] = getNewWorkstation(ServerService.getHumanServer(Color.values()[i]), Color.values()[i], capacities[i].getValue());
+        if(LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Workstation capacity: {}", Arrays.toString(capacities));
         }
-        WorkstationService.workstations = workstations;
-        LOGGER.debug("Workstations: {}", Arrays.toString(workstations));
+
+        Workstation[] localWorkstations = new Workstation[workstationCount];
+        for (int i = 0; i < workstationCount; i++) {
+            localWorkstations[i] = getNewWorkstation(ServerService.getHumanServer(Color.values()[i]), Color.values()[i], capacities[i].getValue());
+        }
+        WorkstationService.workstations = localWorkstations;
+        if(LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Workstations: {}", Arrays.toString(WorkstationService.workstations));
+        }
     }
 
     public static Workstation getWorkstation(Color color) {
-        for (Workstation workstation : workstations) {
+        for (Workstation workstation : getWorkstations()) {
             if (workstation.getColor() == color) {
                 return workstation;
             }
@@ -46,25 +52,25 @@ public class WorkstationService {
         return null;
     }
 
-    public static void automateWorkstation(Color color){
+    public static void automateWorkstation(Color color) {
         Objects.requireNonNull(getWorkstation(color)).getServers().add(ServerService.getRobotServer(color));
     }
 
-    public static void pairWorkstation(Color color){
+    public static void pairWorkstation(Color color) {
         Objects.requireNonNull(getWorkstation(color)).getServers().add(ServerService.getPairPartnerInstance());
     }
 
     public static Workstation getWorkstation(int index) {
-            if (index > workstations.length-1) {
-                throw new IndexOutOfBoundsException(index + " > " + workstations.length);
-            }
+        if (index > getWorkstations().length - 1) {
+            throw new IndexOutOfBoundsException(index + " > " + getWorkstations().length);
+        }
 
-        return workstations[index];
+        return getWorkstations()[index];
     }
 
     public static int getWorkstationIndex(Color color) {
-        for (int i = 0; i < workstations.length; i++) {
-            Workstation workstation = workstations[i];
+        for (int i = 0; i < getWorkstations().length; i++) {
+            Workstation workstation = getWorkstations()[i];
             if (workstation.getColor() == color) {
                 return i;
             }
@@ -72,11 +78,14 @@ public class WorkstationService {
         return -1;
     }
 
-    public static int tallyWorkInProcess(){
-        return Arrays.stream(workstations).mapToInt(Workstation::getWorkItemCount).sum();
+    public static int tallyWorkInProcess() {
+        return Arrays.stream(getWorkstations()).mapToInt(Workstation::getWorkItemCount).sum();
     }
 
     public static Workstation[] getWorkstations() {
+        if (workstations == null) {
+            createWorkstations(Board.FIVE_STATIONS, Board.SIX_SIDES);
+        }
         return workstations;
     }
 }

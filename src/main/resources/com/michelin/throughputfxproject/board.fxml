@@ -3,19 +3,21 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" layoutY="-2.0" prefHeight="800.0" prefWidth="700.0"
-            xmlns="http://javafx.com/javafx/11.0.14-internal"
-            fx:controller="com.michelin.throughputfxproject.controllers.BoardController">
+<?import javafx.scene.text.Text?>
+<BorderPane layoutY="-2.0" prefHeight="750.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.michelin.throughputfxproject.controllers.BoardController" styleClass="img-background" stylesheets="@throughput.css">
     <top>
         <VBox alignment="CENTER">
             <Label id="header" styleClass="header" stylesheets="@throughput.css" text="Throughput">
             </Label>
             <Label id="header1" styleClass="sub-header" stylesheets="@throughput.css" text="::  A Strategy Game  ::">
             </Label>
+            <Button mnemonicParsing="false" onAction="#runGame" text="Run Game"/>
         </VBox>
     </top>
     <center>
-        <HBox styleClass="img-background" stylesheets="@throughput.css">
+        <VBox >
             <HBox maxHeight="51.0" prefHeight="51.0" prefWidth="608.0" styleClass="date-group"
                   stylesheets="@throughput.css">
                 <Label styleClass="date-box-label" stylesheets="@throughput.css" text="Week:">
@@ -39,7 +41,13 @@
                 </Label>
                 <Label fx:id="totalScore" styleClass="date-box" stylesheets="@throughput.css" text="0"/>
             </HBox>
-        </HBox>
+
+            <VBox fx:id="gameDialogPane">
+                <TextArea fx:id="gameText" prefHeight="200.0" prefWidth="450.0"/>
+                <TextField fx:id="responseText"/>
+                <Button fx:id="gameButton" disable="true" text="Ok"/>
+            </VBox>
+        </VBox>
     </center>
     <bottom>
         <HBox alignment="CENTER" spacing="40">
@@ -49,39 +57,65 @@
             </VBox>
 
             <VBox id="workstation0" alignment="BOTTOM_CENTER">
-                <Label fx:id="servers0" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00">
-                </Label>
-                <Label fx:id="workstationCount0" styleClass="score-box" stylesheets="@throughput.css" text="000">
+                <VBox>
+                    <Label fx:id="servers02" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
+                           visible="false"/>
+                    <Label fx:id="servers01" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
+                           visible="false"/>
+                    <Label fx:id="servers00" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"/>
+                </VBox>
+                <Label fx:id="workstationCount0" styleClass="score-box" stylesheets="@throughput.css" text="000"/>
+                <Label fx:id="workstationLabel0" styleClass="score-box-label" stylesheets="@throughput.css"
+                       text="WK00"/>
 
-                </Label>
-                <Label fx:id="workstationLabel0" styleClass="score-box-label" stylesheets="@throughput.css" text="WK00">
-                </Label>
             </VBox>
             <VBox id="workstation1" alignment="BOTTOM_CENTER">
-                <Label fx:id="servers1" styleClass="score-box-label" stylesheets="@throughput.css" text="SV01"/>
-                <Label fx:id="workstationCount1" styleClass="score-box" stylesheets="@throughput.css" text="000">
-                </Label>
+                <VBox>
+                    <Label fx:id="servers12" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
+                           visible="false"/>
+                    <Label fx:id="servers11" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
+                           visible="false"/>
+                    <Label fx:id="servers10" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"/>
+                </VBox>
+                <Label fx:id="workstationCount1" styleClass="score-box" stylesheets="@throughput.css" text="000"/>
                 <Label fx:id="workstationLabel1" styleClass="score-box-label" stylesheets="@throughput.css"
                        text="WK01"/>
             </VBox>
             <VBox id="workstation2" alignment="BOTTOM_CENTER">
-                <Label fx:id="servers2" styleClass="score-box-label" stylesheets="@throughput.css" text="SV02"/>
+                <VBox>
+                    <Label fx:id="servers22" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
+                           visible="false"/>
+                    <Label fx:id="servers21" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
+                           visible="false"/>
+                    <Label fx:id="servers20" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"/>
+                </VBox>
                 <Label fx:id="workstationCount2" styleClass="score-box" stylesheets="@throughput.css" text="000">
                 </Label>
                 <Label fx:id="workstationLabel2" styleClass="score-box-label" stylesheets="@throughput.css"
                        text="WK02"/>
             </VBox>
             <VBox id="workstation3" alignment="BOTTOM_CENTER">
-                <Label fx:id="servers3" styleClass="score-box-label" stylesheets="@throughput.css" text="SV03"/>
+                <VBox>
+                    <Label fx:id="servers32" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
+                           visible="false"/>
+                    <Label fx:id="servers31" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
+                           visible="false"/>
+                    <Label fx:id="servers30" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"/>
+                </VBox>
                 <Label fx:id="workstationCount3" styleClass="score-box" stylesheets="@throughput.css" text="000">
                 </Label>
                 <Label fx:id="workstationLabel3" styleClass="score-box-label" stylesheets="@throughput.css"
                        text="WK03"/>
             </VBox>
             <VBox id="workstation4" alignment="BOTTOM_CENTER">
-                <Label fx:id="servers4" styleClass="score-box-label" stylesheets="@throughput.css" text="SV04"/>
-                <Label fx:id="workstationCount4" styleClass="score-box" stylesheets="@throughput.css" text="000">
-                </Label>
+                <VBox>
+                    <Label fx:id="servers42" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
+                           visible="false"/>
+                    <Label fx:id="servers41" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
+                           visible="false"/>
+                    <Label fx:id="servers40" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"/>
+                </VBox>
+                <Label fx:id="workstationCount4" styleClass="score-box" stylesheets="@throughput.css" text="000"/>
                 <Label fx:id="workstationLabel4" styleClass="score-box-label" stylesheets="@throughput.css"
                        text="WK04"/>
             </VBox>
