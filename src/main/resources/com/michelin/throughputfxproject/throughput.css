@@ -1,5 +1,6 @@
 .img-background{
     -fx-background-image: url('images/Flow1.jpg');
+    -fx-background-size: cover;
     -fx-background-position: center;
     -fx-background-color: white;
     -fx-background-repeat: no-repeat;

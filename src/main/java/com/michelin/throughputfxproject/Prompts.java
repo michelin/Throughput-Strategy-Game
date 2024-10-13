@@ -7,15 +7,16 @@ import com.michelin.throughputfxproject.entities.cards.ChanceRobotCard;
 import com.michelin.throughputfxproject.entities.cards.SkillCard;
 import com.michelin.throughputfxproject.entities.servers.AutomatedServer;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
-import com.michelin.throughputfxproject.entities.servers.ServerMove;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
@@ -26,18 +27,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class Prompts {
     public static final Logger LOGGER = LoggerFactory.getLogger(Prompts.class.getName());
-    private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_RED = "\u001B[31m";
-    private static final String ANSI_CYAN = "\u001B[36m";
-    private static final String WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE = "{}  {}workstation is empty, No moves are possible{}";
-    private static final String GREEN_BLUE_ROSE_VIOLET_YELLOW = "\\b(GREEN|BLUE|ROSE|VIOLET|YELLOW)\\b";
-    private static final String GREEN_ROSE_YELLOW = "\\b(GREEN|ROSE|YELLOW)\\b";
+    private static final String WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE = "Workstation is empty, No moves are possible";
+
 
 
     private Prompts() {
@@ -101,72 +96,59 @@ public class Prompts {
         LOGGER.info("{} Loses {}", trap.getEffected(), trap.getMitigatedDuration());
     }
 
-    public static List<ServerMove> promptForServerMoves(HumanServer inTraining) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
+    public static void promptForServerMoves(@NonNull Pane container, HumanServer inTraining) throws IOException {
 
-        List<ServerMove> moves = new ArrayList<>();
-
-        LOGGER.info("SERVER MOVES!! ->  At prompting please enter: Server Color > Workstation Color");
-        LOGGER.info("Workstation is the receiving workstation - Worker must possess the skill (color) of the receiving workstation");
-        LOGGER.info("You can only move Human Servers!");
-        if (inTraining != null && LOGGER.isInfoEnabled()) {
-            LOGGER.info("You cannot move: {}. They are inTraining", inTraining.getColor().nameWithColor());
-        }
-        LOGGER.info("Example BLUE>YELLOW  will move the Blue HUMAN SERVER to the Yellow Workstation");
-        LOGGER.info("Type 'exit' when you are finished with your moves");
-
-        while (true) {
-            LOGGER.info("Next move: ");
-            String wholeLine = "scanner.nextLine()";
-            if (wholeLine.equalsIgnoreCase("exit")) {
-                break;
-            }
-            if (testServerMoveRegex(wholeLine)) {
-                String[] arguments = wholeLine.split(">");
-                String serverToMove = arguments[0].toUpperCase(Locale.ROOT);
-                if (inTraining == null) {
-                    moves.add(new ServerMove(serverToMove, arguments[1].toUpperCase(Locale.ROOT)));
-                } else {
-                    if (Color.valueOf(serverToMove) != inTraining.getColor()) {
-                        moves.add(new ServerMove(serverToMove, arguments[1].toUpperCase(Locale.ROOT)));
-                    }
-                }
-                LOGGER.info("Registered move: {}", wholeLine);
-            } else {
-                LOGGER.info("Please use the COLOR>COLOR format");
-                LOGGER.info("For example BLUE>YELLOW. Valid colors are GREEN|BLUE|ROSE|VIOLET|YELLOW");
-            }
-        }
-        return moves;
-    }
-
-    public static boolean promptForServerRetry(@NonNull Server server) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
-
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Your first try failed for Server {}", server.getColor().nameWithColor());
-            LOGGER.info("You have a Retry card, would you like to use it? 'Y/N'");
-        }
-
-        String retry = "scanner.nextLine()";
-        return retry.equalsIgnoreCase("Y");
-    }
-
-    public static void promptForWorkItemEstimates(@NonNull Pane container) throws IOException {
         Stage stage = new Stage();
-        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml")).load();
+        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("server-moves.fxml")).load();
+
+        StringBuilder builder = new StringBuilder("SERVER MOVES!! ->  At prompting please enter: Server Color > Workstation Color.  Workstation is the receiving workstation - Worker must possess the skill (color) of the receiving workstation. You can only move Human Servers!");
+        if (inTraining != null && LOGGER.isInfoEnabled()) {
+            builder.append("You cannot move: ").append(inTraining.getColor().name()).append(" They are inTraining");;
+        }
+        builder.append("Example BLUE>YELLOW  will move the Blue HUMAN SERVER to the Yellow Workstation");
+        builder.append("Type 'exit' when you are finished with your moves");
+
         stage.setScene(new Scene(root));
-        stage.setTitle("My modal window");
+        TextArea node = (TextArea) root.getScene().lookup("#serverMovesText");
+        node.setText(builder.toString());
+
+        ObservableList<javafx.scene.paint.Color> colors = FXCollections.observableArrayList(javafx.scene.paint.Color.BLUE,javafx.scene.paint.Color.PURPLE, javafx.scene.paint.Color.YELLOW, javafx.scene.paint.Color.GREEN,javafx.scene.paint.Color.PINK);
+        ComboBox<javafx.scene.paint.Color> serverColorPicker =  (ComboBox<javafx.scene.paint.Color>)root.getScene().lookup("#serverToMove");
+        serverColorPicker.setItems(colors);
+
+        ComboBox<javafx.scene.paint.Color> workstationColorPicker =  (ComboBox<javafx.scene.paint.Color>)root.getScene().lookup("#workstationToMoveTo");
+        workstationColorPicker.setItems(colors);
+
+
+        stage.setTitle("Server Moves");
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(container.getScene().getWindow());
         stage.showAndWait();
 
     }
 
-    public static void promptForWorkItemInitialMoves(@NonNull Pane container, int startValue, int backlogCount) {
+    public static boolean promptForServerRetry(@NonNull Server server)  {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION,"Your first try failed for Server " + server.getColor().nameWithColor()+ " You have a Retry card, would you like to use it? 'Y/N'", ButtonType.YES, ButtonType.NO);
+        alert.setTitle("Retry");
+        Optional<ButtonType> result = alert.showAndWait();
 
+        ButtonType  button = result.orElse(null);
+        return button == null || button == ButtonType.YES;
+
+    }
+
+    public static void promptForWorkItemEstimates(@NonNull Pane container) throws IOException {
+        Stage stage = new Stage();
+        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml")).load();
+        stage.setScene(new Scene(root));
+        stage.setTitle("Estimate your Week");
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(container.getScene().getWindow());
+        stage.showAndWait();
+
+    }
+
+    public static void promptForWorkItemInitialMoves(@NonNull Pane container, int startValue, int backlogCount) throws IOException {
 
         if (backlogCount <= 0) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -175,62 +157,66 @@ public class Prompts {
             alert.setContentText("Team Mood is ignored");
             alert.show();
         } else {
-            TextArea gameText = (TextArea) container.getScene().lookup("#gameText");
-            gameText.setText("Choose how many items to move to your 1st workstation from the backlog ->  At prompting please enter any number <= " + startValue + "  '" + startValue + "' will move " + startValue + " work items to the 1st workstation");
 
-            Text responseText = (Text) container.getScene().lookup("#responseText");
+            Stage stage = new Stage();
+            Parent root = new FXMLLoader(ThroughputApplication.class.getResource("move-initial-work-item.fxml")).load();
 
-            Button button = (Button) container.getScene().lookup("#gameButton");
-            button.setText("Submit Number");
-            button.setDisable(false);
+            String builder = "Choose how many items to move to your 1st workstation from the backlog ->  At prompting please enter any number <= " + startValue +
+                    "   '" + startValue + "' will move " + startValue + " work items to the 1st workstation";
+            stage.setScene(new Scene(root));
+            TextArea node = (TextArea) root.getScene().lookup("#workItemMoveText");
+            node.setText(builder);
 
-            button.setOnAction(event -> {
-                String moveValueText = responseText.getText();
-                try {
-                    int initialMoveFromBacklog = Integer.parseInt(moveValueText);
-                    final Workstation workstationZero = WorkstationService.getWorkstation(0);
-                    workstationZero.addToWorkItemCount(initialMoveFromBacklog);
-                    ScorecardService.getInstance().getBacklog().subtractFromBacklog(initialMoveFromBacklog);
-                } catch (NumberFormatException e) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Error");
-                    alert.setHeaderText("Must enter a valid number");
-                    alert.setContentText("Please enter a valid number");
-                    alert.showAndWait();
-                }
-            });
+            TextField workItemResponseText =  (TextField) root.getScene().lookup("#workItemMoveResponseText");
+            workItemResponseText.setText(String.valueOf(startValue));
 
+            stage.setTitle("Move Items");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initOwner(container.getScene().getWindow());
+            stage.showAndWait();
         }
 
 
     }
 
-    public static int promptForWorkItemWorkstationMoves(@NonNull Workstation workstation, int workstationPosition) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
-
-        if (LOGGER.isInfoEnabled()) {
-            if (workstation.getWorkItemCount() == 0) {
-                LOGGER.info(WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE, workstation.getColor().nameWithColor(), ANSI_RED, ANSI_RESET);
-                return 0;
-            }
-            final int maxIntToMove = Math.min(workstation.getCapacity(), workstation.getWorkItemCount());
-
-            LOGGER.info("Choose how many items to move from the {} workstation to the next ->  At prompting please enter any number <= {}", workstation.getColor().nameWithColor(), maxIntToMove);
-
-            if (workstationPosition == 4) {
-                LOGGER.info("{} will move {} work items to finished goods", maxIntToMove, maxIntToMove);
-            } else {
-                LOGGER.info("{} will move {} work items to the next workstation", maxIntToMove, maxIntToMove);
-            }
-
-//            int moves = scanner.nextInt();
-//            if (scanner.hasNextLine()) {
-//                scanner.nextLine();
-//            }
-//            return moves;
+    public static void promptForWorkItemWorkstationMoves(@NonNull Pane container, @NonNull Workstation workstation, int workstationPosition) throws IOException {
+        if (workstation.getWorkItemCount() == 0) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("No Moves");
+            alert.setHeaderText("No Moves " + workstation.getColor());
+            alert.setContentText(workstation.getColor() + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE);
+            alert.showAndWait();
+            return;
         }
-        return -1;
+
+        Stage stage = new Stage();
+        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("move-work-item.fxml")).load();
+
+        StringBuilder builder = new StringBuilder();
+        final int maxIntToMove = Math.min(workstation.getCapacity(), workstation.getWorkItemCount());
+        builder.append("Choose how many items to move from the ").append(workstation.getColor().name()).append(" workstation to the next ->  At prompting please enter any number <= '").append(maxIntToMove);
+
+        if (workstationPosition == 4) {
+            builder.append(" '").append(maxIntToMove).append("' will move '").append(maxIntToMove).append("' work items to finished goods");
+        } else {
+            builder.append(" '").append(maxIntToMove).append("' will move '").append(maxIntToMove).append("' work items to the next workstation");
+        }
+
+        stage.setScene(new Scene(root));
+        TextArea node = (TextArea) root.getScene().lookup("#workItemMoveText");
+        node.setText(builder.toString());
+
+        Text workstationPositionText =  (Text) root.getScene().lookup("#txtWorkstationPosition");
+        workstationPositionText.setText(String.valueOf(workstationPosition));
+
+        TextField workItemResponseText =  (TextField) root.getScene().lookup("#workItemMoveResponseText");
+        workItemResponseText.setText(String.valueOf(maxIntToMove));
+
+
+        stage.setTitle("Move Items");
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(container.getScene().getWindow());
+        stage.showAndWait();
     }
 
     public static void promptToAddOneToWorkstationCapacity(int dieSides) throws IOException {
@@ -241,50 +227,50 @@ public class Prompts {
         LOGGER.info("Choose which workstation to add one to its capacity");
         LOGGER.info("Example: BLUE will augment the BLUE workstation from {} to {}", Objects.requireNonNull(WorkstationService.getWorkstation(Color.BLUE)).getCapacity(), Math.min(Objects.requireNonNull(WorkstationService.getWorkstation(Color.BLUE)).getCapacity() + 1, dieSides));
 
-//        String workstationColorToAddCapacity = scanner.next(colorPattern);
-//
-//        Color color = Color.valueOf(workstationColorToAddCapacity.toUpperCase());
-//        Objects.requireNonNull(WorkstationService.getWorkstation(color)).setCapacity(Math.min(Objects.requireNonNull(WorkstationService.getWorkstation(color)).getCapacity() + 1, dieSides));
-//
-//        if (scanner.hasNextLine()) {
-//            scanner.nextLine();
-//        }
-
 
     }
 
-    public static HumanServer promptToAddSkill() throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
+
+    public static boolean promptToDrawSkillsCard() throws IOException {
 
         SkillCard skillCard = (SkillCard) CardService.getInstance().pickACard(Card.SKILLS);
-        assert skillCard != null;
-        LOGGER.info("Skill Card {}", skillCard);
-        if (!skillCard.isSuccess()) {
-            return null;
-        }
+        Alert alert = new Alert(Alert.AlertType.INFORMATION,skillCard.getInstructions(), ButtonType.YES, ButtonType.NO);
+        alert.setTitle("Skills Card");
+        ImageView imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/SkillTraining.jpg")).openStream()));
+        alert.setGraphic(imageView);
+        Optional<ButtonType> result = alert.showAndWait();
 
-        LOGGER.info(ANSI_CYAN + "Choose which server to add a skill and which skill to add" + ANSI_RESET);
-        LOGGER.info("At prompting please enter: Server Color>Skill Color");
-        LOGGER.info(ANSI_CYAN + "You can only assign to Human Servers!" + ANSI_RESET);
-        LOGGER.info("Example BLUE>YELLOW  will assign the BLUE HUMAN SERVER a YELLOW skill");
+        ButtonType  button = result.orElse(null);
+        return button == null || button == ButtonType.YES;
+    }
 
 
-        String wholeLine = "scanner.nextLine()";
-        LOGGER.info("WHOLE LINE: {}", wholeLine);
-        if (testServerMoveRegex(wholeLine)) {
-            String[] arguments = wholeLine.split(">");
-            HumanServer skillReceiver = ServerService.getHumanServer(Color.valueOf(arguments[0].toUpperCase()));
-            skillReceiver.getSkills().add(Color.valueOf(arguments[1].toUpperCase()));
-            return skillReceiver;
-        } else {
-            if (wholeLine.equalsIgnoreCase("none")) {
-                return null;
-            }
-            LOGGER.info("Please use the COLOR>COLOR format");
-            LOGGER.info("For example BLUE>YELLOW. Valid colors are GREEN|BLUE|ROSE|VIOLET|YELLOW");
-            return promptToAddSkill();
-        }
+    public static void promptToAddSkill(@NonNull Pane container) throws IOException {
+
+        Stage stage = new Stage();
+        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("add-skills.fxml")).load();
+
+        String builder = "Choose which server to add a skill and which skill to add. " + System.lineSeparator() +
+                " At prompting please enter: Server Color>Skill Color." +
+                " You can only assign to Human Servers!" + System.lineSeparator() +
+                " Example BLUE>YELLOW  will assign the BLUE HUMAN SERVER a YELLOW skill";
+
+        stage.setScene(new Scene(root));
+
+        TextArea node = (TextArea) root.getScene().lookup("#skillAddText");
+        node.setText(builder);
+
+        ObservableList<javafx.scene.paint.Color> colors = FXCollections.observableArrayList(javafx.scene.paint.Color.BLUE,javafx.scene.paint.Color.PURPLE, javafx.scene.paint.Color.YELLOW, javafx.scene.paint.Color.GREEN,javafx.scene.paint.Color.PINK);
+        ComboBox<javafx.scene.paint.Color> serverColorPicker =  (ComboBox<javafx.scene.paint.Color>)root.getScene().lookup("#serverToAddSkills");
+        serverColorPicker.setItems(colors);
+
+        ComboBox<javafx.scene.paint.Color> workstationColorPicker =  (ComboBox<javafx.scene.paint.Color>)root.getScene().lookup("#skillsToAddToServer");
+        workstationColorPicker.setItems(colors);
+
+        stage.setTitle("Skills Add Window");
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(container.getScene().getWindow());
+        stage.showAndWait();
 
 
     }
@@ -325,7 +311,7 @@ public class Prompts {
 
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("SOD");
+        alert.setTitle("Start of Day");
         alert.setHeaderText("Start of Day");
         alert.setContentText("Current Board -> Day: " + (runDay + 1) + "  Week:  " + (runWeek + 1));
         alert.showAndWait();
@@ -337,7 +323,7 @@ public class Prompts {
     public static void publishStartWeek(int week) {
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("SOW");
+        alert.setTitle("Start of Week");
         alert.setHeaderText("Start of Week");
         alert.setContentText("Week: " + (week + 1));
         alert.showAndWait();
@@ -371,54 +357,51 @@ public class Prompts {
 
 
     public static boolean serverChanceCardPlay(@NonNull Server server, @NonNull Workstation workstation) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
         if (workstation.getWorkItemCount() == 0) {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info(WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE, workstation.getColor().nameWithColor(), ANSI_RED, ANSI_RESET);
-            }
+            Alert alert = new Alert(Alert.AlertType.INFORMATION,WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE, ButtonType.OK);
+            alert.setHeaderText(workstation.getColor().name());
+            alert.setTitle("Chance Card");
+            alert.showAndWait();
+
+
             return false;
         }
-        //Draw chance card
+
         ChanceCard chanceCard;
+        ImageView imageView;
         if (server instanceof AutomatedServer) {
             chanceCard = (ChanceRobotCard) CardService.getInstance().pickACard(Card.AUTOMATED_CHANCE);
+            imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/ChanceTheRobot.jpg")).openStream()));
         } else {
             chanceCard = (ChanceCard) CardService.getInstance().pickACard(Card.CHANCE);
+            imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/Chance.jpg")).openStream()));
         }
-        assert chanceCard != null;
-        //If chance card successful prompt for move count up to capacity - depending on available work items
+        imageView.setFitHeight(50);
+        imageView.setPreserveRatio(true);
+      Objects.requireNonNull(chanceCard);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION,chanceCard.getInstructions(), ButtonType.OK);
+        alert.setTitle("Chance Card");
+        alert.setHeaderText(workstation.getColor().name() + " - " + chanceCard.getChanceText());
+        alert.setGraphic(imageView);
+        alert.showAndWait();
 
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Chance for: {}", workstation.getColor().nameWithColor());
-            LOGGER.info(chanceCard.toString());
-        }
-        return chanceCard.isSuccess();
+        return  chanceCard.isSuccess();
+
     }
 
 
-    public static int teamMood(@NonNull Pane container, int dieSides) throws IOException {
+    public static int teamMood(int dieSides)  {
 
         int teamMood = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Mood");
+        alert.setTitle("Team Mood");
         alert.setHeaderText("Team Mood");
-        alert.setContentText("Rolled for Team Mood." + "  Team Mood is " + teamMood + " and backlog has " + ScorecardService.getInstance().getBacklog().getBacklogItemCount() + " work items" + "At the prompt you can move up to " + Math.min(teamMood, ScorecardService.getInstance().getBacklog().getBacklogItemCount()) + " items into your 1st workstation");
+        alert.setContentText("Rolled for Team Mood." + "  Team Mood is " + teamMood + " and backlog has " + ScorecardService.getInstance().getBacklog().getBacklogItemCount() + " work items" + " At the prompt you can move up to " + Math.min(teamMood, ScorecardService.getInstance().getBacklog().getBacklogItemCount()) + " items into your 1st workstation");
         alert.showAndWait();
 
-
         return Math.min(teamMood, ScorecardService.getInstance().getBacklog().getBacklogItemCount());
-    }
-
-    private static boolean testServerMoveRegex(final String input) {
-        // Compile regular expression
-        final Pattern pattern = Pattern.compile("^\\b(GREEN|BLUE|ROSE|VIOLET|YELLOW)\\b\\s*+>\\s*\\b(GREEN|BLUE|ROSE|VIOLET|YELLOW)\\b+$", Pattern.CASE_INSENSITIVE);
-        // Match regex against input
-        final Matcher matcher = pattern.matcher(input);
-        // Use results...
-        return matcher.matches();
     }
 
 

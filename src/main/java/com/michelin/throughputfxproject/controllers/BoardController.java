@@ -8,8 +8,6 @@ import com.michelin.throughputfxproject.entities.Server;
 import com.michelin.throughputfxproject.entities.Trap;
 import com.michelin.throughputfxproject.entities.Workstation;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
-import com.michelin.throughputfxproject.entities.servers.HumanServer;
-import com.michelin.throughputfxproject.entities.servers.ServerMove;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
@@ -17,25 +15,35 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
-import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 public class BoardController {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(BoardController.class.getName());
 
-
+    @FXML
+    private Button buttonServerMoves;
+    @FXML
+    private Button buttonRunDay;
+    @FXML
+    private Button buttonAddSkills;
+    @FXML
+    private Button buttonRunWeek;
+    @FXML
+    private Button buttonRunGame;
     @FXML
     private Pane gameDialogPane;
     @FXML
@@ -80,6 +88,8 @@ public class BoardController {
     private Label workstationLabel3;
     @FXML
     private Label workstationLabel4;
+    @FXML
+    private Button buttonEndGame;
 
 
     @FXML
@@ -138,11 +148,11 @@ public class BoardController {
         backlogCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.getInstance().getBacklog().getBacklogItemCount()), 3, '0'));
         finishedGoodsCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.getInstance().getFinishedGoods().getFinishedGoods()), 3, '0'));
 
-        workstationLabel0.setText(workstation0.getColor().name());
-        workstationLabel1.setText(workstation1.getColor().name());
-        workstationLabel2.setText(workstation2.getColor().name());
-        workstationLabel3.setText(workstation3.getColor().name());
-        workstationLabel4.setText(workstation4.getColor().name());
+        workstationLabel0.setText(workstation0.getColor().name()+": "+workstation0.getCapacity());
+        workstationLabel1.setText(workstation1.getColor().name()+": "+workstation1.getCapacity());
+        workstationLabel2.setText(workstation2.getColor().name()+": "+workstation2.getCapacity());
+        workstationLabel3.setText(workstation3.getColor().name()+": "+workstation3.getCapacity());
+        workstationLabel4.setText(workstation4.getColor().name()+": "+workstation4.getCapacity());
 
         dayNumber.setText(String.valueOf(Board.getInstance().getDayOfTheWeek() + 1));
         weekNumber.setText(String.valueOf(Board.getInstance().getGameWeek() + 1));
@@ -151,6 +161,7 @@ public class BoardController {
 
         updateScorecardTable();
     }
+
 
     private void updateScorecardTable() {
         ObservableList<ScoreCard> scoreCards = FXCollections.observableArrayList(ScorecardService.getInstance().getScorecards());
@@ -180,42 +191,90 @@ public class BoardController {
     protected void runGame(ActionEvent actionEvent) {
 
         reinitialize();
-        runGame(gameDialogPane);
+        buttonRunGame.setDisable(true);
+        runGame();
+
     }
 
 
     @SneakyThrows
-    private void runDay(Pane container, boolean vanilla, HumanServer inTraining) {
+    private void runDay() {
         LOGGER.debug("Run Day {}", Board.getInstance().getDayOfTheWeek() + 1);
 
         Prompts.publishDayStart(Board.getInstance().getDayOfTheWeek(), Board.getInstance().getGameWeek());
 
-        //If not Week 1 ask about moving servers
-        if (!vanilla) {
-            //Server Moves
-            List<ServerMove> moves = Prompts.promptForServerMoves(inTraining);
-            Board.getInstance().startDay(moves);
-        }
-
         //Get Team mood and start moving work items
-        final int startValue = Prompts.teamMood(container, Board.SIX_SIDES);
-
-        Prompts.promptForWorkItemInitialMoves(container, startValue, ScorecardService.getInstance().getBacklog().getBacklogItemCount());
-
+        final int startValue = Prompts.teamMood(Board.SIX_SIDES);
+        Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, ScorecardService.getInstance().getBacklog().getBacklogItemCount());
 
         for (int i = 0; i < Board.FIVE_STATIONS; i++) {
-            runWorkstationDay(vanilla, i);
+            runWorkstationDay(Board.getInstance().getGameWeek() == 0, i);
+            reinitialize();
         }
-        if (inTraining != null) {
-            Board.getInstance().returnServerToWorkstation(inTraining);
+
+        Board.getInstance().returnServerToWorkstation();
+
+        Board.getInstance().augmentDayOfTheWeek();
+        if (Board.getInstance().getDayOfTheWeek() == (Board.RUN_DAYS - 1)) {
+            ScoreCard scoreCard = ScorecardService.getInstance().getScorecards()[Board.getInstance().getGameWeek()];
+            Board.getInstance().getWeekHoldCards().clear();
+            //Tally board
+            scoreCard.setWorkInProcess(WorkstationService.tallyWorkInProcess());
+            scoreCard.setFinishedGoods(ScorecardService.getInstance().getFinishedGoods().getFinishedGoods());
+            scoreCard.setScore(ScorecardService.getInstance().getFinishedGoods().calculateScore() - (ScorecardService.getInstance().getBacklog().getBacklogItemCount() + scoreCard.getWorkInProcess()));
+            //Remove finished Goods
+            ScorecardService.getInstance().getFinishedGoods().setFinishedGoods(0);
+
+            Prompts.publishEndWeek(Board.getInstance().getGameWeek(), scoreCard);
+        }
+        reinitialize();
+    }
+
+    public void runDay(ActionEvent actionEvent) {
+        //During Runday activities week activities are hidden and server moves disabled
+        //buttonRunWeek.setVisible(false);
+        buttonServerMoves.setDisable(true);
+        //buttonAddSkills.setVisible(false);
+
+        runDay();
+        //if it is not the last day show run day and enable server moves
+        if (Board.getInstance().getDayOfTheWeek() < (Board.RUN_DAYS - 1)) {
+            //buttonRunDay.setVisible(true);
+            //buttonServerMoves.setVisible(true);
+            buttonServerMoves.setDisable(false);
+            //buttonRunWeek.setVisible(false);
+            //buttonAddSkills.setVisible(false);
+        } else {
+            //re-enable week buttons and disable day buttons
+            buttonRunDay.setVisible(false);
+            buttonServerMoves.setVisible(false);
+
+            if (Board.getInstance().getGameWeek() < Board.RUN_WEEKS) {
+                Board.getInstance().augmentGameWeek();
+                buttonRunWeek.setVisible(true);
+                buttonAddSkills.setVisible(true);
+                buttonAddSkills.setDisable(false);
+            } else {
+                buttonEndGame.setVisible(true);
+            }
+
         }
     }
 
-    public void runGame(@NonNull Pane container) {
+    public void serverMoves(ActionEvent actionEvent) {
 
         try {
-            runWeek(container);
-            Board.getInstance().augmentGameWeek();
+            Prompts.promptForServerMoves(gameDialogPane, Board.getInstance().getInTrainingServer());
+        } catch (IOException e) {
+            throw new ThroughputRuntimeException(e);
+        }
+
+    }
+
+    public void runGame() {
+
+        try {
+            runWeek();
 
         } catch (IOException e) {
             throw new ThroughputRuntimeException(e);
@@ -226,46 +285,76 @@ public class BoardController {
         }
     }
 
-    private void runWeek(Pane container) throws IOException {
-
-        ScoreCard scoreCard = ScorecardService.getInstance().getScorecards()[Board.getInstance().getGameWeek()];
+    private void runWeek() throws IOException {
+        //Start Week
         Prompts.publishStartWeek(Board.getInstance().getGameWeek());
+        //Hide Week Buttons
+        buttonRunWeek.setVisible(false);
+        buttonAddSkills.setVisible(false);
 
         //Estimate Work Items
-        Prompts.promptForWorkItemEstimates(container);
-
-        HumanServer inTraining = null;
-        if (Board.getInstance().getGameWeek() > 0) {
-            //Get skills
-            inTraining = Prompts.promptToAddSkill();
-            if (inTraining != null) {
-                Board.getInstance().findAndRemoveServer(inTraining.getColor());
-            }
-        }
-
-  //      runDay(container, Board.getInstance().getGameWeek() == 0, inTraining);
-        Board.getInstance().augmentDayOfTheWeek();
-        if (Board.getInstance().getDayOfTheWeek() == 4) {
-            Board.getInstance().getWeekHoldCards().clear();
-            //Tally board
-            scoreCard.setWorkInProcess(WorkstationService.tallyWorkInProcess());
-            scoreCard.setFinishedGoods(ScorecardService.getInstance().getFinishedGoods().getFinishedGoods());
-            scoreCard.setScore(ScorecardService.getInstance().getFinishedGoods().calculateScore() - (ScorecardService.getInstance().getBacklog().getBacklogItemCount() + scoreCard.getWorkInProcess()));
-            //Remove finished Goods
-            ScorecardService.getInstance().getFinishedGoods().setFinishedGoods(0);
-            Prompts.publishEndWeek(Board.getInstance().getGameWeek(), scoreCard);
-        }
+        Prompts.promptForWorkItemEstimates(gameDialogPane);
         reinitialize();
+
+        //Skills add is triggered by button push
+
+        //Show buttons to run day
+        buttonRunDay.setVisible(true);
+        if (Board.getInstance().getGameWeek() > 0) {
+            buttonServerMoves.setVisible(true);
+            buttonServerMoves.setDisable(false);
+        }
+    }
+
+    public void runWeek(ActionEvent actionEvent) {
+        try {
+            runWeek();
+        } catch (IOException e) {
+            throw new ThroughputRuntimeException(e);
+        }
+    }
+
+    public void addSkillsToServer(ActionEvent actionEvent) {
+
+        try {
+            boolean addSkills = false;
+            if (Board.getInstance().getGameWeek() != 0) {
+                addSkills = Prompts.promptToDrawSkillsCard();
+            }
+            if (addSkills) {
+                Prompts.promptToAddSkill(gameDialogPane);
+            }
+
+        } catch (IOException e) {
+            throw new ThroughputRuntimeException(e);
+        }
     }
 
 
-
-    private void runWorkstationDay(boolean vanilla, int i) throws InterruptedException, IOException {
+    private void runWorkstationDay(boolean vanilla, int position) throws InterruptedException, IOException {
         //For each server
-        Workstation workstation = WorkstationService.getWorkstation(i);
+        Workstation workstation = WorkstationService.getWorkstation(position);
         for (Server server : workstation.getServers()) {
 
-            Board.getInstance().handleChanceCardAndServerMovements(server, workstation, i);
+            boolean success = Prompts.serverChanceCardPlay(server, workstation);
+            if (success) {
+                Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
+            } else {
+                if (Board.getInstance().getWeekHoldCards().isEmpty()) {
+                    TimeUnit.SECONDS.sleep(3);
+                } else {
+                    //Prompt for do over
+                    boolean retry = Prompts.promptForServerRetry(server);
+                    if (retry) {
+                        Board.getInstance().getWeekHoldCards().remove(0);
+                        boolean secondChanceSuccess = Prompts.serverChanceCardPlay(server, workstation);
+                        if (secondChanceSuccess) {
+                            Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
+                        }
+
+                    }
+                }
+            }
 
             if (!vanilla) {
                 BitCard bitCard = Prompts.drawBit(Board.SIX_SIDES);
@@ -291,5 +380,9 @@ public class BoardController {
         }
     }
 
+    public void endGame(ActionEvent ignoredActionEvent) {
+        ScoreCard scoreCard = ScorecardService.getInstance().getScorecards()[Board.getInstance().getGameWeek()];
+        Prompts.publishEndOfGame(Board.getInstance().getGameWeek(), scoreCard);
+    }
 
 }

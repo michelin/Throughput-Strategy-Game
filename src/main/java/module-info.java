@@ -8,6 +8,7 @@ module com.michelin.throughputfxproject {
     requires java.sql;
     requires ch.qos.logback.core;
     requires org.slf4j;
+    requires java.desktop;
 
     opens com.michelin.throughputfxproject to javafx.fxml;
     exports com.michelin.throughputfxproject;

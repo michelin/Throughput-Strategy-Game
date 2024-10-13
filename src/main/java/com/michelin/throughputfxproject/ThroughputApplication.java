@@ -22,7 +22,6 @@ public class ThroughputApplication extends Application {
         stage.setTitle("Throughput");
         stage.setScene(scene);
         stage.show();
-
     }
 
 

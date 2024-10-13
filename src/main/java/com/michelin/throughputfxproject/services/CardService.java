@@ -58,6 +58,9 @@ public class CardService {
     }
 
     public static CardService getInstance() {
+        if(instance == null) {
+            instance = new CardService();
+        }
         return instance;
     }
 

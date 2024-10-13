@@ -1,121 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane layoutY="-2.0" prefHeight="750.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/11.0.14-internal"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.michelin.throughputfxproject.controllers.BoardController" styleClass="img-background" stylesheets="@throughput.css">
+<BorderPane layoutY="-2.0" prefHeight="750.0" prefWidth="750.0" styleClass="img-background" stylesheets="@throughput.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.BoardController">
     <top>
         <VBox alignment="CENTER">
-            <Label id="header" styleClass="header" stylesheets="@throughput.css" text="Throughput">
-            </Label>
-            <Label id="header1" styleClass="sub-header" stylesheets="@throughput.css" text="::  A Strategy Game  ::">
-            </Label>
-            <Button mnemonicParsing="false" onAction="#runGame" text="Run Game"/>
+            <Label id="header" styleClass="header" stylesheets="@throughput.css" text="Throughput"/>
+            <Label id="header1" styleClass="sub-header" stylesheets="@throughput.css" text="::  A Strategy Game  ::" />
+            <Button fx:id="buttonRunGame" mnemonicParsing="false" onAction="#runGame" text="Run Game" />
         </VBox>
     </top>
     <center>
-        <VBox >
-            <HBox maxHeight="51.0" prefHeight="51.0" prefWidth="608.0" styleClass="date-group"
-                  stylesheets="@throughput.css">
+        <VBox>
+            <HBox maxHeight="51.0" prefHeight="51.0" prefWidth="608.0" styleClass="date-group" stylesheets="@throughput.css">
                 <Label styleClass="date-box-label" stylesheets="@throughput.css" text="Week:">
                     <padding>
-                        <Insets right="10.0"/>
+                        <Insets right="10.0" />
                     </padding>
                 </Label>
-                <Label fx:id="weekNumber" styleClass="date-box" stylesheets="@throughput.css" text="2"/>
-                <Pane prefWidth="30"/>
+                <Label fx:id="weekNumber" styleClass="date-box" stylesheets="@throughput.css" text="2" />
+                <Pane prefWidth="30" />
                 <Label styleClass="date-box-label" stylesheets="@throughput.css" text="Day:">
                     <padding>
-                        <Insets right="10.0"/>
+                        <Insets right="10.0" />
                     </padding>
                 </Label>
-                <Label fx:id="dayNumber" styleClass="date-box" stylesheets="@throughput.css" text="3"/>
-                <Pane minWidth="-Infinity" prefWidth="100.0"/>
+                <Label fx:id="dayNumber" styleClass="date-box" stylesheets="@throughput.css" text="3" />
+                <Pane minWidth="-Infinity" prefWidth="100.0" />
                 <Label styleClass="date-box-label" stylesheets="@throughput.css" text="Total Score:">
                     <padding>
-                        <Insets right="10.0"/>
+                        <Insets right="10.0" />
                     </padding>
                 </Label>
-                <Label fx:id="totalScore" styleClass="date-box" stylesheets="@throughput.css" text="0"/>
+                <Label fx:id="totalScore" styleClass="date-box" stylesheets="@throughput.css" text="0" />
             </HBox>
-
             <Pane fx:id="gameDialogPane">
-
+                <ButtonBar prefHeight="40.0" prefWidth="200.0">
+                    <buttons>
+                        <Button fx:id="buttonServerMoves" mnemonicParsing="false" text="Server Moves" visible="false" onAction="#serverMoves"/>
+                        <Button fx:id="buttonRunDay" mnemonicParsing="false" text="Run Day" visible="false" onAction="#runDay"/>
+                        <Button fx:id="buttonAddSkills" mnemonicParsing="false" text="Add Skill" visible="false" onAction="#addSkillsToServer"/>
+                        <Button fx:id="buttonRunWeek" mnemonicParsing="false" text="Run Week" visible="false" onAction="#runWeek"/>
+                        <Button fx:id="buttonEndGame" mnemonicParsing="false" text="End Game" visible="false" onAction="#endGame"/>
+                    </buttons>
+                </ButtonBar>
             </Pane>
         </VBox>
     </center>
     <bottom>
         <HBox alignment="CENTER" spacing="40">
             <VBox id="backlogBox" alignment="BOTTOM_CENTER">
-                <Label fx:id="backlogCount" styleClass="score-box" stylesheets="@throughput.css" text="000"/>
-                <Label styleClass="score-box-label" stylesheets="@throughput.css" text="BackLog"/>
+                <Label fx:id="backlogCount" styleClass="score-box" stylesheets="@throughput.css" text="000" />
+                <Label styleClass="score-box-label" stylesheets="@throughput.css" text="BackLog" />
             </VBox>
 
             <VBox id="workstation0" alignment="BOTTOM_CENTER">
                 <VBox>
-                    <Label fx:id="servers02" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
-                           visible="false"/>
-                    <Label fx:id="servers01" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
-                           visible="false"/>
-                    <Label fx:id="servers00" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"/>
+                    <Label fx:id="servers02" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" visible="false" />
+                    <Label fx:id="servers01" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" visible="false" />
+                    <Label fx:id="servers00" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" />
                 </VBox>
-                <Label fx:id="workstationCount0" styleClass="score-box" stylesheets="@throughput.css" text="000"/>
-                <Label fx:id="workstationLabel0" styleClass="score-box-label" stylesheets="@throughput.css"
-                       text="WK00"/>
+                <Label fx:id="workstationCount0" styleClass="score-box" stylesheets="@throughput.css" text="000" />
+                <Label fx:id="workstationLabel0" styleClass="score-box-label" stylesheets="@throughput.css" text="WK00" />
 
             </VBox>
             <VBox id="workstation1" alignment="BOTTOM_CENTER">
                 <VBox>
-                    <Label fx:id="servers12" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
-                           visible="false"/>
-                    <Label fx:id="servers11" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
-                           visible="false"/>
-                    <Label fx:id="servers10" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"/>
+                    <Label fx:id="servers12" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" visible="false" />
+                    <Label fx:id="servers11" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" visible="false" />
+                    <Label fx:id="servers10" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" />
                 </VBox>
-                <Label fx:id="workstationCount1" styleClass="score-box" stylesheets="@throughput.css" text="000"/>
-                <Label fx:id="workstationLabel1" styleClass="score-box-label" stylesheets="@throughput.css"
-                       text="WK01"/>
+                <Label fx:id="workstationCount1" styleClass="score-box" stylesheets="@throughput.css" text="000" />
+                <Label fx:id="workstationLabel1" styleClass="score-box-label" stylesheets="@throughput.css" text="WK01" />
             </VBox>
             <VBox id="workstation2" alignment="BOTTOM_CENTER">
                 <VBox>
-                    <Label fx:id="servers22" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
-                           visible="false"/>
-                    <Label fx:id="servers21" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
-                           visible="false"/>
-                    <Label fx:id="servers20" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"/>
+                    <Label fx:id="servers22" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" visible="false" />
+                    <Label fx:id="servers21" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" visible="false" />
+                    <Label fx:id="servers20" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" />
                 </VBox>
                 <Label fx:id="workstationCount2" styleClass="score-box" stylesheets="@throughput.css" text="000">
                 </Label>
-                <Label fx:id="workstationLabel2" styleClass="score-box-label" stylesheets="@throughput.css"
-                       text="WK02"/>
+                <Label fx:id="workstationLabel2" styleClass="score-box-label" stylesheets="@throughput.css" text="WK02" />
             </VBox>
             <VBox id="workstation3" alignment="BOTTOM_CENTER">
                 <VBox>
-                    <Label fx:id="servers32" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
-                           visible="false"/>
-                    <Label fx:id="servers31" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
-                           visible="false"/>
-                    <Label fx:id="servers30" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"/>
+                    <Label fx:id="servers32" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" visible="false" />
+                    <Label fx:id="servers31" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" visible="false" />
+                    <Label fx:id="servers30" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" />
                 </VBox>
                 <Label fx:id="workstationCount3" styleClass="score-box" stylesheets="@throughput.css" text="000">
                 </Label>
-                <Label fx:id="workstationLabel3" styleClass="score-box-label" stylesheets="@throughput.css"
-                       text="WK03"/>
+                <Label fx:id="workstationLabel3" styleClass="score-box-label" stylesheets="@throughput.css" text="WK03" />
             </VBox>
             <VBox id="workstation4" alignment="BOTTOM_CENTER">
                 <VBox>
-                    <Label fx:id="servers42" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
-                           visible="false"/>
-                    <Label fx:id="servers41" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"
-                           visible="false"/>
-                    <Label fx:id="servers40" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00"/>
+                    <Label fx:id="servers42" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" visible="false" />
+                    <Label fx:id="servers41" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" visible="false" />
+                    <Label fx:id="servers40" styleClass="score-box-label" stylesheets="@throughput.css" text="SV00" />
                 </VBox>
-                <Label fx:id="workstationCount4" styleClass="score-box" stylesheets="@throughput.css" text="000"/>
-                <Label fx:id="workstationLabel4" styleClass="score-box-label" stylesheets="@throughput.css"
-                       text="WK04"/>
+                <Label fx:id="workstationCount4" styleClass="score-box" stylesheets="@throughput.css" text="000" />
+                <Label fx:id="workstationLabel4" styleClass="score-box-label" stylesheets="@throughput.css" text="WK04" />
             </VBox>
 
             <VBox id="finishedGoodsBox" alignment="BOTTOM_CENTER">
@@ -129,11 +116,11 @@
     <right>
         <TableView fx:id="scoreTableView" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
             <columns>
-                <TableColumn prefWidth="35.0" text="Wk"/>
-                <TableColumn prefWidth="35.0" text="Est"/>
-                <TableColumn prefWidth="35.0" text="WIP"/>
-                <TableColumn prefWidth="35.0" text="FG"/>
-                <TableColumn prefWidth="35.0" text="Pts"/>
+                <TableColumn prefWidth="35.0" text="Wk" />
+                <TableColumn prefWidth="35.0" text="Est" />
+                <TableColumn prefWidth="35.0" text="WIP" />
+                <TableColumn prefWidth="35.0" text="FG" />
+                <TableColumn prefWidth="35.0" text="Pts" />
             </columns>
         </TableView>
     </right>

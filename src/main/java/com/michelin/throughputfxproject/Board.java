@@ -11,6 +11,7 @@ import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 
 public class Board {
@@ -33,14 +33,19 @@ public class Board {
     public static final String ANY_SERVER = "ANY_SERVER";
     public static final String HUMAN_SERVER = "HUMAN_SERVER";
     public static final String WEEK = "WEEK";
-
+    private static Board board;
 
     @Getter
     private final List<BitCard> weekHoldCards = new ArrayList<>(10);
     private final List<BitCard> gameHoldCards = new ArrayList<>(10);
+    @Getter
     private Integer dayOfTheWeek = 0;
+    @Getter
     private Integer gameWeek = 0;
-    private static Board board;
+    @Getter
+    @Setter
+    private HumanServer inTrainingServer = null;
+
 
     private Board() {
 
@@ -141,25 +146,13 @@ public class Board {
         ScorecardService.getInstance().getFinishedGoods().setValue(4);
     }
 
-    public int getDayOfTheWeek() {
-        return dayOfTheWeek;
-    }
-
-    public int getGameWeek() {
-        return gameWeek;
-    }
 
     public void augmentDayOfTheWeek() {
-         dayOfTheWeek++;
+        dayOfTheWeek++;
     }
 
     public void augmentGameWeek() {
-         gameWeek++;
-    }
-
-    public void handleChanceCardAndServerMovements(Server server, Workstation workstation, int i) throws InterruptedException, IOException {
-        boolean success = Prompts.serverChanceCardPlay(server, workstation);
-        workItemMoves(server, success, workstation, i);
+        gameWeek++;
     }
 
 
@@ -196,52 +189,21 @@ public class Board {
         ScorecardService.getInstance().getFinishedGoods().setFinishedGoods(0);
     }
 
-    public void returnServerToWorkstation(@NonNull HumanServer serverToMove) {
-        Workstation workstation = WorkstationService.getWorkstation(serverToMove.getColor());
+    public void returnServerToWorkstation() {
+        if (inTrainingServer == null) {
+            return;
+        }
+        Workstation workstation = WorkstationService.getWorkstation(inTrainingServer.getColor());
         if (workstation != null) {
-            workstation.getServers().add(serverToMove);
+            workstation.getServers().add(inTrainingServer);
         }
     }
 
 
-
-
-    public void startDay(List<ServerMove> moves) {
-        moves.forEach(move -> {
-            HumanServer serverToMove = findAndRemoveServer(move.getServerColor());
-            assert serverToMove != null;
-            addServer(serverToMove, move.getWorkstationColor());
-        });
+    public void startDay(@NonNull ServerMove move) {
+        HumanServer serverToMove = findAndRemoveServer(move.getServerColor());
+        addServer(Objects.requireNonNull(serverToMove), move.getWorkstationColor());
     }
 
-
-    private void workItemMoves(Server server, boolean success, Workstation workstation, int i) throws InterruptedException, IOException {
-        if (success) {
-            //Move available work items to next workstation
-            int workstationMovesInt = Prompts.promptForWorkItemWorkstationMoves(workstation, i);
-            if (i == 4) {
-                ScorecardService.getInstance().getFinishedGoods().addToFinishedGoods(workstationMovesInt);
-            } else {
-                WorkstationService.getWorkstation(i + 1).addToWorkItemCount(workstationMovesInt);
-            }
-            workstation.subtractFromWorkItemCount(workstationMovesInt);
-            //Prompts.asciiArt3(backlog, finishedGoods);
-        } else {
-            if (weekHoldCards.isEmpty()) {
-                TimeUnit.SECONDS.sleep(3);
-            } else {
-                //Prompt for do over
-                boolean retry = Prompts.promptForServerRetry(server);
-                if (retry) {
-                    weekHoldCards.remove(0);
-                    boolean secondChanceSuccess = Prompts.serverChanceCardPlay(server, workstation);
-                    if (secondChanceSuccess) {
-                        workItemMoves(server, true, workstation, i);
-                    }
-
-                }
-            }
-        }
-    }
 
 }
