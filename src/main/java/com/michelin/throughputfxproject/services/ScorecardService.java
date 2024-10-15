@@ -9,13 +9,11 @@ import lombok.Getter;
 import java.util.Arrays;
 
 
+@Getter
 public class ScorecardService {
 
-    @Getter
     private  final Backlog backlog = new Backlog();
-    @Getter
     private  final FinishedGoods finishedGoods = new FinishedGoods();
-    @Getter
     private  final ScoreCard[] scorecards = new ScoreCard[Board.RUN_WEEKS];
     private static ScorecardService instance = null;
 
@@ -35,6 +33,10 @@ public class ScorecardService {
 
 
     public int getTotalScore() {
-        return Arrays.stream(scorecards).mapToInt(ScoreCard::getScore).sum();
+        return Arrays.stream(scorecards).filter(scoreCard -> scoreCard.getWeek() < (Board.getInstance().getGameWeek()+1)).mapToInt(ScoreCard::getScore).sum() + currentWeekRunningScore();
+    }
+
+    public int currentWeekRunningScore(){
+        return (WorkstationService.tallyWorkInProcess()*-1) + (backlog.getBacklogItemCount()*-1) + finishedGoods.calculateScore();
     }
 }

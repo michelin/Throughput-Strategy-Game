@@ -4,17 +4,17 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane layoutY="-2.0" prefHeight="750.0" prefWidth="750.0" styleClass="img-background" stylesheets="@throughput.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.BoardController">
+<BorderPane prefHeight="1000.0" prefWidth="925.0" style="-fx-background-color: #FFD700; -fx-padding: 10px;" styleClass="img-background" stylesheets="@throughput.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.BoardController">
     <top>
-        <VBox alignment="CENTER">
-            <Label id="header" styleClass="header" stylesheets="@throughput.css" text="Throughput"/>
+        <VBox alignment="CENTER" styleClass="outer-score-box" stylesheets="@throughput.css">
+            <Label id="header" styleClass="header" stylesheets="@throughput.css" text="Throughput" />
             <Label id="header1" styleClass="sub-header" stylesheets="@throughput.css" text="::  A Strategy Game  ::" />
-            <Button fx:id="buttonRunGame" mnemonicParsing="false" onAction="#runGame" text="Run Game" />
+            <Button fx:id="buttonRunGame" defaultButton="true" mnemonicParsing="false" onAction="#runGame" styleClass="buttons" stylesheets="@throughput.css" text="Run Game" />
         </VBox>
     </top>
     <center>
         <VBox>
-            <HBox maxHeight="51.0" prefHeight="51.0" prefWidth="608.0" styleClass="date-group" stylesheets="@throughput.css">
+            <HBox maxHeight="50.0" prefHeight="50.0" prefWidth="600.0" styleClass="date-group" stylesheets="@throughput.css">
                 <Label styleClass="date-box-label" stylesheets="@throughput.css" text="Week:">
                     <padding>
                         <Insets right="10.0" />
@@ -37,20 +37,20 @@
                 <Label fx:id="totalScore" styleClass="date-box" stylesheets="@throughput.css" text="0" />
             </HBox>
             <Pane fx:id="gameDialogPane">
-                <ButtonBar prefHeight="40.0" prefWidth="200.0">
+                <ButtonBar buttonMinWidth="100.0" prefHeight="40.0" prefWidth="200.0">
                     <buttons>
-                        <Button fx:id="buttonServerMoves" mnemonicParsing="false" text="Server Moves" visible="false" onAction="#serverMoves"/>
-                        <Button fx:id="buttonRunDay" mnemonicParsing="false" text="Run Day" visible="false" onAction="#runDay"/>
-                        <Button fx:id="buttonAddSkills" mnemonicParsing="false" text="Add Skill" visible="false" onAction="#addSkillsToServer"/>
-                        <Button fx:id="buttonRunWeek" mnemonicParsing="false" text="Run Week" visible="false" onAction="#runWeek"/>
-                        <Button fx:id="buttonEndGame" mnemonicParsing="false" text="End Game" visible="false" onAction="#endGame"/>
+                        <Button fx:id="buttonServerMoves" mnemonicParsing="false" onAction="#serverMoves" prefHeight="39.0" styleClass="buttons" stylesheets="@throughput.css" text="Server Moves" visible="false" />
+                        <Button fx:id="buttonRunDay" mnemonicParsing="false" onAction="#runDay" prefHeight="39.0" styleClass="buttons" stylesheets="@throughput.css" text="Run Day" textAlignment="CENTER" textOverrun="CLIP" visible="true" />
+                        <Button fx:id="buttonAddSkills" mnemonicParsing="false" onAction="#addSkillsToServer" styleClass="buttons" stylesheets="@throughput.css" text="Add Skill" visible="false" />
+                        <Button fx:id="buttonRunWeek" mnemonicParsing="false" onAction="#runWeek" styleClass="buttons" stylesheets="@throughput.css" text="Run Week" visible="false" />
+                        <Button fx:id="buttonEndGame" mnemonicParsing="false" onAction="#endGame" styleClass="buttons" stylesheets="@throughput.css" text="End Game" visible="false" />
                     </buttons>
                 </ButtonBar>
             </Pane>
         </VBox>
     </center>
     <bottom>
-        <HBox alignment="CENTER" spacing="40">
+        <HBox alignment="CENTER" spacing="40" styleClass="outer-score-box" stylesheets="@throughput.css">
             <VBox id="backlogBox" alignment="BOTTOM_CENTER">
                 <Label fx:id="backlogCount" styleClass="score-box" stylesheets="@throughput.css" text="000" />
                 <Label styleClass="score-box-label" stylesheets="@throughput.css" text="BackLog" />
@@ -114,14 +114,19 @@
         </HBox>
     </bottom>
     <right>
-        <TableView fx:id="scoreTableView" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-            <columns>
-                <TableColumn prefWidth="35.0" text="Wk" />
-                <TableColumn prefWidth="35.0" text="Est" />
-                <TableColumn prefWidth="35.0" text="WIP" />
-                <TableColumn prefWidth="35.0" text="FG" />
-                <TableColumn prefWidth="35.0" text="Pts" />
-            </columns>
-        </TableView>
+        <AnchorPane>
+            <TableView fx:id="scoreTableView" layoutX="-37.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.rightAnchor="-18.0">
+                <columns>
+                    <TableColumn prefWidth="35.0" text="Wk" />
+                    <TableColumn prefWidth="35.0" text="Est" />
+                    <TableColumn prefWidth="35.0" text="WIP" />
+                    <TableColumn prefWidth="35.0" text="FG" />
+                    <TableColumn prefWidth="35.0" text="Pts" />
+                </columns>
+                <rotationAxis>
+                    <Point3D />
+                </rotationAxis>
+            </TableView>
+        </AnchorPane>
     </right>
 </BorderPane>

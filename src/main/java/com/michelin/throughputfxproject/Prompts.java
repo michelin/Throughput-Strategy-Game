@@ -7,8 +7,10 @@ import com.michelin.throughputfxproject.entities.cards.ChanceRobotCard;
 import com.michelin.throughputfxproject.entities.cards.SkillCard;
 import com.michelin.throughputfxproject.entities.servers.AutomatedServer;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
-import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
-import com.michelin.throughputfxproject.services.*;
+import com.michelin.throughputfxproject.services.CardService;
+import com.michelin.throughputfxproject.services.DiceService;
+import com.michelin.throughputfxproject.services.ScorecardService;
+import com.michelin.throughputfxproject.services.WorkstationService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -17,16 +19,18 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
+import javafx.stage.Popup;
 import javafx.stage.Stage;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 
 
 public class Prompts {
@@ -34,23 +38,60 @@ public class Prompts {
     private static final String WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE = "Workstation is empty, No moves are possible";
 
 
-
     private Prompts() {
         super();
     }
 
 
-    public static BitCard drawBit(int dieSides) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
+    public static @NonNull BitCard drawBit(@NonNull Pane container, int dieSides) throws IOException {
         //If not week 1 draw BIT card if they roll a 6
         int drawBitInt = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
         if (drawBitInt == 6) {
-            LOGGER.info("Draw a {} card!", Card.BOOSTER_INOCULATE_TRAP);
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Draw a " + Card.BOOSTER_INOCULATE_TRAP + " card!", ButtonType.OK);
+            alert.setTitle(Card.BOOSTER_INOCULATE_TRAP);
+            alert.showAndWait();
+
             BitCard bitCard = (BitCard) CardService.getInstance().pickACardDestructively(Card.BOOSTER_INOCULATE_TRAP);
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info(bitCard.toString());
-            }
+            Objects.requireNonNull(bitCard);
+
+            // Create an image view with the desired image
+            Image image = new Image(Objects.requireNonNull(CardPopup.class.getResource("cards/BIT.jpg")).openStream());
+            ImageView imageView = new ImageView(image);
+
+            // Set the image view's dimensions to 3.5 inches x 2.5 inches
+            double width = 2.5 * 72; // Convert inches to pixels (assuming 72 DPI)
+            double height = 3.5 * 72;
+            imageView.setFitWidth(width);
+            imageView.setFitHeight(height);
+            imageView.setPreserveRatio(false);
+
+            bitCard.getDescriptionImg();
+            VBox cardText = new VBox();
+            cardText.getChildren().addAll(
+                    new Label(bitCard.getTitle()),
+                    new Label(bitCard.getSubtitle()),
+                    new Label(bitCard.getReason()),
+                    new Label(bitCard.getInstructions()),
+                    new Label(bitCard.getDescriptionTitle()),
+                    new Label(bitCard.getDescription()));
+
+            Pane pane = new Pane(cardText);
+            pane.setPrefSize(width, height);
+            // Create a stack pane to hold the image view
+            HBox hBox = new HBox(pane, imageView);
+
+            // Create a popup and add the stack pane to it
+            Popup popup = new Popup();
+            popup.getContent().add(hBox);
+
+            // Set the popup's size to match the image view
+            popup.setWidth(width);
+            popup.setHeight(height);
+
+            // Show the popup
+            popup.show(container.getScene().getWindow());
+
             //Follow the instructions on BIT card. If we get a hold card put in weekly hold or game hold.
             //Execute work item traps immediately, otherwise return traps for future execution.
             return bitCard;
@@ -61,21 +102,27 @@ public class Prompts {
     }
 
 
-    public static void implementPairedProgramming() throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
+    public static void implementPairedProgramming(@NonNull Pane container) throws IOException {
 
-        Scanner scanner = new Scanner(System.in);
-        LOGGER.info("Choose which color workstation to pair. Requires a HUMAN server on the same workstation to work");
-        LOGGER.info("Pair Partner gives an additional chance for a successful day");
-        String workstationColorToAddPair = scanner.nextLine();
-        try {
-            WorkstationService.pairWorkstation(Color.valueOf(workstationColorToAddPair.toUpperCase()));
-        } catch (IllegalArgumentException e) {
-            throw new ThroughputRuntimeException(e);
-        }
+        Stage stage = new Stage();
+        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("implement-pairs.fxml")).load();
 
-        scanner.close();
+        String implementPairsText = "Choose which color workstation to pair. Requires a HUMAN server on the same workstation to work" +
+                "  Pair Partner gives an additional chance for a successful day";
+
+        stage.setScene(new Scene(root));
+        TextArea node = (TextArea) root.getScene().lookup("#implementPairsText");
+        node.setText(implementPairsText);
+
+        //todo - filter for workstations without human servers
+        ObservableList<javafx.scene.paint.Color> colors = FXCollections.observableArrayList(javafx.scene.paint.Color.BLUE, javafx.scene.paint.Color.PURPLE, javafx.scene.paint.Color.YELLOW, javafx.scene.paint.Color.GREEN, javafx.scene.paint.Color.PINK);
+        ComboBox<javafx.scene.paint.Color> serverColorPicker = (ComboBox<javafx.scene.paint.Color>) root.getScene().lookup("#workstationToPairWith");
+        serverColorPicker.setItems(colors);
+
+        stage.setTitle("Paired Work");
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(container.getScene().getWindow());
+        stage.showAndWait();
     }
 
 
@@ -103,7 +150,7 @@ public class Prompts {
 
         StringBuilder builder = new StringBuilder("SERVER MOVES!! ->  At prompting please enter: Server Color > Workstation Color.  Workstation is the receiving workstation - Worker must possess the skill (color) of the receiving workstation. You can only move Human Servers!");
         if (inTraining != null && LOGGER.isInfoEnabled()) {
-            builder.append("You cannot move: ").append(inTraining.getColor().name()).append(" They are inTraining");;
+            builder.append("You cannot move: ").append(inTraining.getColor().name()).append(" They are inTraining");
         }
         builder.append("Example BLUE>YELLOW  will move the Blue HUMAN SERVER to the Yellow Workstation");
         builder.append("Type 'exit' when you are finished with your moves");
@@ -112,11 +159,11 @@ public class Prompts {
         TextArea node = (TextArea) root.getScene().lookup("#serverMovesText");
         node.setText(builder.toString());
 
-        ObservableList<javafx.scene.paint.Color> colors = FXCollections.observableArrayList(javafx.scene.paint.Color.BLUE,javafx.scene.paint.Color.PURPLE, javafx.scene.paint.Color.YELLOW, javafx.scene.paint.Color.GREEN,javafx.scene.paint.Color.PINK);
-        ComboBox<javafx.scene.paint.Color> serverColorPicker =  (ComboBox<javafx.scene.paint.Color>)root.getScene().lookup("#serverToMove");
+        ObservableList<javafx.scene.paint.Color> colors = FXCollections.observableArrayList(javafx.scene.paint.Color.BLUE, javafx.scene.paint.Color.PURPLE, javafx.scene.paint.Color.YELLOW, javafx.scene.paint.Color.GREEN, javafx.scene.paint.Color.PINK);
+        ComboBox<javafx.scene.paint.Color> serverColorPicker = (ComboBox<javafx.scene.paint.Color>) root.getScene().lookup("#serverToMove");
         serverColorPicker.setItems(colors);
 
-        ComboBox<javafx.scene.paint.Color> workstationColorPicker =  (ComboBox<javafx.scene.paint.Color>)root.getScene().lookup("#workstationToMoveTo");
+        ComboBox<javafx.scene.paint.Color> workstationColorPicker = (ComboBox<javafx.scene.paint.Color>) root.getScene().lookup("#workstationToMoveTo");
         workstationColorPicker.setItems(colors);
 
 
@@ -127,12 +174,12 @@ public class Prompts {
 
     }
 
-    public static boolean promptForServerRetry(@NonNull Server server)  {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION,"Your first try failed for Server " + server.getColor().nameWithColor()+ " You have a Retry card, would you like to use it? 'Y/N'", ButtonType.YES, ButtonType.NO);
+    public static boolean promptForServerRetry(@NonNull Server server) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Your first try failed for Server " + server.getColor().nameWithColor() + " You have a Retry card, would you like to use it? 'Y/N'", ButtonType.YES, ButtonType.NO);
         alert.setTitle("Retry");
         Optional<ButtonType> result = alert.showAndWait();
 
-        ButtonType  button = result.orElse(null);
+        ButtonType button = result.orElse(null);
         return button == null || button == ButtonType.YES;
 
     }
@@ -167,7 +214,7 @@ public class Prompts {
             TextArea node = (TextArea) root.getScene().lookup("#workItemMoveText");
             node.setText(builder);
 
-            TextField workItemResponseText =  (TextField) root.getScene().lookup("#workItemMoveResponseText");
+            TextField workItemResponseText = (TextField) root.getScene().lookup("#workItemMoveResponseText");
             workItemResponseText.setText(String.valueOf(startValue));
 
             stage.setTitle("Move Items");
@@ -185,7 +232,7 @@ public class Prompts {
             alert.setTitle("No Moves");
             alert.setHeaderText("No Moves " + workstation.getColor());
             alert.setContentText(workstation.getColor() + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE);
-            alert.showAndWait();
+            alert.show();
             return;
         }
 
@@ -206,10 +253,10 @@ public class Prompts {
         TextArea node = (TextArea) root.getScene().lookup("#workItemMoveText");
         node.setText(builder.toString());
 
-        Text workstationPositionText =  (Text) root.getScene().lookup("#txtWorkstationPosition");
+        Text workstationPositionText = (Text) root.getScene().lookup("#txtWorkstationPosition");
         workstationPositionText.setText(String.valueOf(workstationPosition));
 
-        TextField workItemResponseText =  (TextField) root.getScene().lookup("#workItemMoveResponseText");
+        TextField workItemResponseText = (TextField) root.getScene().lookup("#workItemMoveResponseText");
         workItemResponseText.setText(String.valueOf(maxIntToMove));
 
 
@@ -234,13 +281,15 @@ public class Prompts {
     public static boolean promptToDrawSkillsCard() throws IOException {
 
         SkillCard skillCard = (SkillCard) CardService.getInstance().pickACard(Card.SKILLS);
-        Alert alert = new Alert(Alert.AlertType.INFORMATION,skillCard.getInstructions(), ButtonType.YES, ButtonType.NO);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, skillCard.getInstructions(), ButtonType.YES, ButtonType.NO);
         alert.setTitle("Skills Card");
         ImageView imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/SkillTraining.jpg")).openStream()));
+        imageView.setFitHeight(50);
+        imageView.setPreserveRatio(true);
         alert.setGraphic(imageView);
         Optional<ButtonType> result = alert.showAndWait();
 
-        ButtonType  button = result.orElse(null);
+        ButtonType button = result.orElse(null);
         return button == null || button == ButtonType.YES;
     }
 
@@ -260,12 +309,38 @@ public class Prompts {
         TextArea node = (TextArea) root.getScene().lookup("#skillAddText");
         node.setText(builder);
 
-        ObservableList<javafx.scene.paint.Color> colors = FXCollections.observableArrayList(javafx.scene.paint.Color.BLUE,javafx.scene.paint.Color.PURPLE, javafx.scene.paint.Color.YELLOW, javafx.scene.paint.Color.GREEN,javafx.scene.paint.Color.PINK);
-        ComboBox<javafx.scene.paint.Color> serverColorPicker =  (ComboBox<javafx.scene.paint.Color>)root.getScene().lookup("#serverToAddSkills");
-        serverColorPicker.setItems(colors);
 
-        ComboBox<javafx.scene.paint.Color> workstationColorPicker =  (ComboBox<javafx.scene.paint.Color>)root.getScene().lookup("#skillsToAddToServer");
-        workstationColorPicker.setItems(colors);
+        ComboBox<Color> serverColorPicker = (ComboBox) root.getScene().lookup("#serverToAddSkills");
+        serverColorPicker.getItems().addAll(Color.values());
+        serverColorPicker.setCellFactory(listView -> new ListCell<Color>() {
+            @Override
+            public void updateItem(Color item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.name());
+                    setBackground(new Background(new BackgroundFill(item.lookupFXColor(), null, null)));
+                }
+                setDisable(!empty);
+            }
+        });
+
+        ComboBox<Color> workstationColorPicker = (ComboBox) root.getScene().lookup("#skillsToAddToServer");
+        workstationColorPicker.getItems().addAll(Color.values());
+        workstationColorPicker.setCellFactory(listView -> new ListCell<Color>() {
+            @Override
+            public void updateItem(Color item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.name());
+                    setBackground(new Background(new BackgroundFill(item.lookupFXColor(), null, null)));
+                }
+                setDisable(!empty);
+            }
+        });
 
         stage.setTitle("Skills Add Window");
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -359,7 +434,7 @@ public class Prompts {
     public static boolean serverChanceCardPlay(@NonNull Server server, @NonNull Workstation workstation) throws IOException {
 
         if (workstation.getWorkItemCount() == 0) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION,WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE, ButtonType.OK);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE, ButtonType.OK);
             alert.setHeaderText(workstation.getColor().name());
             alert.setTitle("Chance Card");
             alert.showAndWait();
@@ -379,19 +454,19 @@ public class Prompts {
         }
         imageView.setFitHeight(50);
         imageView.setPreserveRatio(true);
-      Objects.requireNonNull(chanceCard);
-        Alert alert = new Alert(Alert.AlertType.INFORMATION,chanceCard.getInstructions(), ButtonType.OK);
+        Objects.requireNonNull(chanceCard);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, chanceCard.getInstructions(), ButtonType.OK);
         alert.setTitle("Chance Card");
         alert.setHeaderText(workstation.getColor().name() + " - " + chanceCard.getChanceText());
         alert.setGraphic(imageView);
         alert.showAndWait();
 
-        return  chanceCard.isSuccess();
+        return chanceCard.isSuccess();
 
     }
 
 
-    public static int teamMood(int dieSides)  {
+    public static int teamMood(int dieSides) {
 
         int teamMood = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
 
@@ -402,6 +477,10 @@ public class Prompts {
         alert.showAndWait();
 
         return Math.min(teamMood, ScorecardService.getInstance().getBacklog().getBacklogItemCount());
+    }
+
+    public static void promptForFinishedGoodsAreNowFourPoints() {
+        ScorecardService.getInstance().getFinishedGoods().setValue(4);
     }
 
 

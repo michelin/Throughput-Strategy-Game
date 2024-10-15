@@ -6,22 +6,23 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FinishedGoods {
-    private int finishedGoods;
+    private int finishedGoodsTally;
     private int value = 3;
 
     public void addToFinishedGoods(int amount) {
-        assert amount >= 0;
-        finishedGoods += amount;
+        if (amount < 0) {
+            amount = 0;
+        }
+        finishedGoodsTally += amount;
     }
 
-    public int calculateScore(){
-        return finishedGoods * value;
+    public int calculateScore() {
+        return finishedGoodsTally * value;
     }
-
 
 
     @Override
     public String toString() {
-        return "Finished Goods: " + getFinishedGoods();
+        return "Finished Goods: " + finishedGoodsTally;
     }
 }

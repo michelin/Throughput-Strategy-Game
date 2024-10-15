@@ -1,3 +1,3 @@
 copies|chance|chance_style|instructions|success
-64|[32mJob well done! You have completed your work for the day.[0m|"{color:rgba(12, 53, 18, 1)}"|Move the number of work items that you desire, up to the workstations capacity.|true
-33|[31m Bummer! An unexpected issue causes you not to complete your work for the day.[0m|"{color:rgba(236, 32, 41, 1)}"|Do not move any work items for this workstation.|false
+64|Job well done! You have completed your work for the day.|"{color:rgba(12, 53, 18, 1)}"|Move the number of work items that you desire, up to the workstations capacity.|true
+33|Bummer! An unexpected issue causes you not to complete your work for the day.|"{color:rgba(236, 32, 41, 1)}"|Do not move any work items for this workstation.|false

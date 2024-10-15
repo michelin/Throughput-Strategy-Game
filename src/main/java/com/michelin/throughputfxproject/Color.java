@@ -14,19 +14,23 @@ public enum Color {
         return this.name();
     }
 
-    public static Color lookupByFXColor(javafx.scene.paint.Color fxColor) {
+    public javafx.scene.paint.Color lookupFXColor() {
 
-        if (fxColor.equals(javafx.scene.paint.Color.BLUE)) {
-            return Color.BLUE;
-        } else if (fxColor.equals(javafx.scene.paint.Color.PURPLE)) {
-            return Color.VIOLET;
-        } else if (fxColor.equals(javafx.scene.paint.Color.YELLOW)) {
-            return Color.YELLOW;
-        } else if (fxColor.equals(javafx.scene.paint.Color.GREEN)) {
-            return Color.GREEN;
-        } else if (fxColor.equals(javafx.scene.paint.Color.PINK)) {
-            return Color.ROSE;
+        switch (this) {
+            case BLUE:
+                return javafx.scene.paint.Color.BLUE;
+            case VIOLET:
+                return javafx.scene.paint.Color.PURPLE;
+            case YELLOW:
+                return javafx.scene.paint.Color.YELLOW;
+            case GREEN:
+                return javafx.scene.paint.Color.GREEN;
+            case ROSE:
+                return javafx.scene.paint.Color.PINK;
+            default:
+                return javafx.scene.paint.Color.WHITE;
         }
-        return Color.GRAY;
+
     }
+
 }

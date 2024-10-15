@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Trap {
+public class Trap implements BoardAction {
     private final String effected;
     private final String duration;
     private final String mitigatedDuration;

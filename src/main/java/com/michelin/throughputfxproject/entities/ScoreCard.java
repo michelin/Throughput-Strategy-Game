@@ -1,84 +1,53 @@
 package com.michelin.throughputfxproject.entities;
 
+import com.michelin.throughputfxproject.Board;
+import com.michelin.throughputfxproject.services.WorkstationService;
 import javafx.beans.property.SimpleIntegerProperty;
+import lombok.Getter;
+import lombok.Setter;
 
 
+@Getter
+@Setter
 public class ScoreCard {
-    private final SimpleIntegerProperty week = new SimpleIntegerProperty();
-    private final SimpleIntegerProperty score= new SimpleIntegerProperty();
-    private final SimpleIntegerProperty estimate= new SimpleIntegerProperty();
-    private final SimpleIntegerProperty workInProcess= new SimpleIntegerProperty();
-    private final SimpleIntegerProperty finishedGoods= new SimpleIntegerProperty();
+
+    private final int week;
+    private  int score;
+    private  int estimate;
+    private  int workInProcess;
+    private  int finishedGoods;
 
     public ScoreCard(int week, int score, int finishedGoods, int estimate, int wip) {
-        setScore(score);
-        setFinishedGoods(finishedGoods);
-        setEstimate(estimate);
-        setWeek(week);
-        setWorkInProcess(wip);
+        this.score = score;
+        this.finishedGoods = finishedGoods;
+        this.estimate = estimate;
+        this.week = week;
+        this.workInProcess = wip;
 
     }
 
-    public int getWorkInProcess() {
-        return workInProcess.get();
-    }
 
     public SimpleIntegerProperty workInProcessProperty() {
-        return workInProcess;
-    }
-
-    public int getWeek() {
-        return week.get();
+        return new SimpleIntegerProperty(workInProcess);
     }
 
     public SimpleIntegerProperty weekProperty() {
-        return week;
-    }
-
-    public int getScore() {
-        return score.get();
+        return new SimpleIntegerProperty(week);
     }
 
     public SimpleIntegerProperty scoreProperty() {
-        return score;
-    }
-
-    public int getFinishedGoods() {
-        return finishedGoods.get();
+        return new SimpleIntegerProperty(score);
     }
 
     public SimpleIntegerProperty finishedGoodsProperty() {
-        return finishedGoods;
-    }
-
-    public int getEstimate() {
-        return estimate.get();
+        return new SimpleIntegerProperty(finishedGoods);
     }
 
     public SimpleIntegerProperty estimateProperty() {
-        return estimate;
+        return new SimpleIntegerProperty(estimate);
     }
 
 
-    public void setWorkInProcess(int workInProcess) {
-        this.workInProcess.set(workInProcess);
-    }
-
-    public void setWeek(int week) {
-        this.week.set(week);
-    }
-
-    public void setScore(int score) {
-        this.score.set(score);
-    }
-
-    public void setFinishedGoods(int finishedGoods) {
-        this.finishedGoods.set(finishedGoods);
-    }
-
-    public void setEstimate(int estimate) {
-        this.estimate.set(estimate);
-    }
 
 
 }

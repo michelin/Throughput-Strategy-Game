@@ -16,11 +16,16 @@
     -fx-font-family: Michelin, sans-serif;
     -fx-font-size: 18pt;
  }
+.outer-score-box{
+    -fx-background-color: rgb(255,255,255,.8);
+}
 .score-box-label{
     -fx-font-family: Michelin, sans-serif;
     -fx-font-size: 12pt;
 }
-
+.outer-title-box{
+    -fx-background-color: rgb(255,255,255,.5);
+}
 .header{
     -fx-font-family: Michelin-Bold, sans-serif;
     -fx-font-size: 40pt;
@@ -51,5 +56,21 @@
 .date-box-label{
     -fx-font-family: Michelin, sans-serif;
     -fx-font-size: 14pt;
+    -fx-font-weight: bold;
+}
+
+.read-only-textarea{
+    -fx-background-color: white;
+    -fx-border-width: 2px;
+    -fx-border-color: black;
+    -fx-opacity: 1;
+    -fx-font-family: Michelin, sans-serif;
+    -fx-font-size: 12pt;
+}
+
+.buttons{
+    -fx-font-family: Michelin-Bold, sans-serif;
+    -fx-font-size: 14pt;
+    -fx-text-alignment: center;
     -fx-font-weight: bold;
 }

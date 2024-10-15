@@ -45,7 +45,7 @@ public class BitCard implements Card {
 
     @Override
     public File getBackImage() {
-        return new File("./cards/BIT.jpg");
+        return new File("cards/BIT.jpg");
     }
 
     @Override

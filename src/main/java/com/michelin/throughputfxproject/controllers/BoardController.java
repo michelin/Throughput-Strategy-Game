@@ -3,10 +3,7 @@ package com.michelin.throughputfxproject.controllers;
 import com.michelin.throughputfxproject.Board;
 import com.michelin.throughputfxproject.Color;
 import com.michelin.throughputfxproject.Prompts;
-import com.michelin.throughputfxproject.entities.ScoreCard;
-import com.michelin.throughputfxproject.entities.Server;
-import com.michelin.throughputfxproject.entities.Trap;
-import com.michelin.throughputfxproject.entities.Workstation;
+import com.michelin.throughputfxproject.entities.*;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.ScorecardService;
@@ -28,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+
+import static com.michelin.throughputfxproject.Board.SIX_SIDES;
 
 
 public class BoardController {
@@ -119,7 +118,7 @@ public class BoardController {
         dayNumber.setText(String.valueOf(Board.getInstance().getDayOfTheWeek() + 1));
         weekNumber.setText(String.valueOf(Board.getInstance().getGameWeek() + 1));
 
-        totalScore.setText("0");
+        totalScore.setText("000");
 
         updateScorecardTable();
     }
@@ -146,13 +145,13 @@ public class BoardController {
         workstationCount4.setText(StringUtils.leftPad(String.valueOf(workstation4.getWorkItemCount()), 3, '0'));
 
         backlogCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.getInstance().getBacklog().getBacklogItemCount()), 3, '0'));
-        finishedGoodsCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.getInstance().getFinishedGoods().getFinishedGoods()), 3, '0'));
+        finishedGoodsCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.getInstance().getFinishedGoods().getFinishedGoodsTally()), 3, '0'));
 
-        workstationLabel0.setText(workstation0.getColor().name()+": "+workstation0.getCapacity());
-        workstationLabel1.setText(workstation1.getColor().name()+": "+workstation1.getCapacity());
-        workstationLabel2.setText(workstation2.getColor().name()+": "+workstation2.getCapacity());
-        workstationLabel3.setText(workstation3.getColor().name()+": "+workstation3.getCapacity());
-        workstationLabel4.setText(workstation4.getColor().name()+": "+workstation4.getCapacity());
+        workstationLabel0.setText(workstation0.getColor().name() + ": " + workstation0.getCapacity());
+        workstationLabel1.setText(workstation1.getColor().name() + ": " + workstation1.getCapacity());
+        workstationLabel2.setText(workstation2.getColor().name() + ": " + workstation2.getCapacity());
+        workstationLabel3.setText(workstation3.getColor().name() + ": " + workstation3.getCapacity());
+        workstationLabel4.setText(workstation4.getColor().name() + ": " + workstation4.getCapacity());
 
         dayNumber.setText(String.valueOf(Board.getInstance().getDayOfTheWeek() + 1));
         weekNumber.setText(String.valueOf(Board.getInstance().getGameWeek() + 1));
@@ -165,7 +164,6 @@ public class BoardController {
 
     private void updateScorecardTable() {
         ObservableList<ScoreCard> scoreCards = FXCollections.observableArrayList(ScorecardService.getInstance().getScorecards());
-        scoreTableView.setItems(scoreCards);
 
         TableColumn<ScoreCard, String> weekCol = new TableColumn<>("Wk");
         weekCol.setCellValueFactory(new PropertyValueFactory<>(scoreCards.get(0).weekProperty().getName()));
@@ -184,6 +182,9 @@ public class BoardController {
 
         scoreTableView.getColumns().setAll(weekCol, estimatedCol, wipCol, finishedGoodsCol, scoreCol);
 
+        scoreTableView.setItems(scoreCards);
+
+
         scoreTableView.refresh();
     }
 
@@ -192,7 +193,7 @@ public class BoardController {
 
         reinitialize();
         buttonRunGame.setDisable(true);
-        runGame();
+        executeGame();
 
     }
 
@@ -204,7 +205,7 @@ public class BoardController {
         Prompts.publishDayStart(Board.getInstance().getDayOfTheWeek(), Board.getInstance().getGameWeek());
 
         //Get Team mood and start moving work items
-        final int startValue = Prompts.teamMood(Board.SIX_SIDES);
+        final int startValue = Prompts.teamMood(SIX_SIDES);
         Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, ScorecardService.getInstance().getBacklog().getBacklogItemCount());
 
         for (int i = 0; i < Board.FIVE_STATIONS; i++) {
@@ -220,10 +221,10 @@ public class BoardController {
             Board.getInstance().getWeekHoldCards().clear();
             //Tally board
             scoreCard.setWorkInProcess(WorkstationService.tallyWorkInProcess());
-            scoreCard.setFinishedGoods(ScorecardService.getInstance().getFinishedGoods().getFinishedGoods());
+            scoreCard.setFinishedGoods(ScorecardService.getInstance().getFinishedGoods().getFinishedGoodsTally());
             scoreCard.setScore(ScorecardService.getInstance().getFinishedGoods().calculateScore() - (ScorecardService.getInstance().getBacklog().getBacklogItemCount() + scoreCard.getWorkInProcess()));
             //Remove finished Goods
-            ScorecardService.getInstance().getFinishedGoods().setFinishedGoods(0);
+            ScorecardService.getInstance().getFinishedGoods().setFinishedGoodsTally(0);
 
             Prompts.publishEndWeek(Board.getInstance().getGameWeek(), scoreCard);
         }
@@ -231,19 +232,16 @@ public class BoardController {
     }
 
     public void runDay(ActionEvent actionEvent) {
-        //During Runday activities week activities are hidden and server moves disabled
-        //buttonRunWeek.setVisible(false);
+        //During run day activities week activities are hidden and run day and server moves disabled
+        buttonRunDay.setDisable(true);
         buttonServerMoves.setDisable(true);
-        //buttonAddSkills.setVisible(false);
+
 
         runDay();
         //if it is not the last day show run day and enable server moves
         if (Board.getInstance().getDayOfTheWeek() < (Board.RUN_DAYS - 1)) {
-            //buttonRunDay.setVisible(true);
-            //buttonServerMoves.setVisible(true);
+            buttonRunDay.setDisable(false);
             buttonServerMoves.setDisable(false);
-            //buttonRunWeek.setVisible(false);
-            //buttonAddSkills.setVisible(false);
         } else {
             //re-enable week buttons and disable day buttons
             buttonRunDay.setVisible(false);
@@ -271,7 +269,7 @@ public class BoardController {
 
     }
 
-    public void runGame() {
+    public void executeGame() {
 
         try {
             runWeek();
@@ -335,47 +333,83 @@ public class BoardController {
         //For each server
         Workstation workstation = WorkstationService.getWorkstation(position);
         for (Server server : workstation.getServers()) {
-
             boolean success = Prompts.serverChanceCardPlay(server, workstation);
             if (success) {
                 Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
             } else {
                 if (Board.getInstance().getWeekHoldCards().isEmpty()) {
-                    TimeUnit.SECONDS.sleep(3);
+                    TimeUnit.SECONDS.sleep(1);
                 } else {
-                    //Prompt for do over
-                    boolean retry = Prompts.promptForServerRetry(server);
-                    if (retry) {
-                        Board.getInstance().getWeekHoldCards().remove(0);
-                        boolean secondChanceSuccess = Prompts.serverChanceCardPlay(server, workstation);
-                        if (secondChanceSuccess) {
-                            Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
-                        }
-
-                    }
+                    retry(position, server, workstation);
                 }
             }
+            bitActionsDetermined(vanilla);
+        }
+    }
 
-            if (!vanilla) {
-                BitCard bitCard = Prompts.drawBit(Board.SIX_SIDES);
-                //Discover bit actions handles a null bit card
-                Trap trap = Board.getInstance().discoverBitActions(bitCard, Board.getInstance().getDayOfTheWeek(), Board.getInstance().getGameWeek());
-                if (bitCard != null && trap != null) {
-                    boolean trapMitigated = Board.getInstance().isTrapMitigated(bitCard);
-                    if (!trapMitigated) {
-                        Prompts.promptForAppliedTrap(trap);
-                        if (trap.getEffected().equals(Board.TEAM) && trap.getDuration().equals(Board.WEEK)) {
-                            Board.getInstance().augmentGameWeek();
-                        } else if (trap.getEffected().equals(Board.TEAM) && trap.getDuration().equals(Board.DAY)) {
-                            Board.getInstance().augmentDayOfTheWeek();
-                        }
-                    } else {
-                        Prompts.promptForMitigatedTrap(trap);
-                        if (trap.getEffected().equals(Board.TEAM) && trap.getMitigatedDuration().equals(Board.DAY)) {
-                            Board.getInstance().augmentDayOfTheWeek();
-                        }
-                    }
-                }
+    private void retry(int position, Server server, Workstation workstation) throws IOException {
+        //Prompt for do over
+        boolean retry = Prompts.promptForServerRetry(server);
+        if (retry) {
+            Board.getInstance().getWeekHoldCards().remove(0);
+            boolean secondChanceSuccess = Prompts.serverChanceCardPlay(server, workstation);
+            if (secondChanceSuccess) {
+                Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
+            }
+        }
+    }
+
+    private void bitActionsDetermined(boolean vanilla) throws IOException {
+        if (vanilla) {
+            return;
+        }
+        BitCard bitCard = Prompts.drawBit(gameDialogPane, SIX_SIDES);
+        //Discover bit actions handles a null bit card
+        BoardAction boardAction = Board.getInstance().discoverBitActions(bitCard, Board.getInstance().getDayOfTheWeek(), Board.getInstance().getGameWeek());
+        if (boardAction == null) {
+            return;
+        }
+
+        if (boardAction instanceof Trap) {
+            activateTrap((Trap) boardAction, bitCard);
+        } else if (boardAction instanceof HelpAction) {
+
+            switch (((HelpAction) boardAction).getType()) {
+                case ADD_ONE:
+                    Prompts.promptToAddOneToWorkstationCapacity(SIX_SIDES);
+                    return;
+                case DOUBLE:
+                    Prompts.promptToDoubleWorkstationCapacity(SIX_SIDES);
+                    return;
+                case AUTOMATE:
+                    Prompts.promptToAutomateWorkstation();
+                    return;
+                case PAIR:
+                    Prompts.implementPairedProgramming(gameDialogPane);
+                    return;
+                case AUGMENT:
+                    Prompts.promptForFinishedGoodsAreNowFourPoints();
+                    return;
+            }
+
+        }
+
+    }
+
+    private static void activateTrap(Trap trap, BitCard bitCard) throws IOException {
+
+        boolean trapMitigated = Board.getInstance().isTrapMitigated(bitCard);
+        if (!trapMitigated) {
+            Prompts.promptForAppliedTrap(trap);
+            if (trap.getEffected().equals(Board.TEAM) && trap.getDuration().equals(Board.WEEK)) {
+                Board.getInstance().augmentGameWeek();
+            } else if (trap.getEffected().equals(Board.TEAM) && trap.getDuration().equals(Board.DAY)) {
+                Board.getInstance().augmentDayOfTheWeek();
+            }
+        } else {
+            Prompts.promptForMitigatedTrap(trap);
+            if (trap.getEffected().equals(Board.TEAM) && trap.getMitigatedDuration().equals(Board.DAY)) {
+                Board.getInstance().augmentDayOfTheWeek();
             }
         }
     }

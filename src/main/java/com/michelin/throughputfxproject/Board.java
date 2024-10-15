@@ -1,9 +1,6 @@
 package com.michelin.throughputfxproject;
 
-import com.michelin.throughputfxproject.entities.Card;
-import com.michelin.throughputfxproject.entities.Server;
-import com.michelin.throughputfxproject.entities.Trap;
-import com.michelin.throughputfxproject.entities.Workstation;
+import com.michelin.throughputfxproject.entities.*;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import com.michelin.throughputfxproject.entities.servers.ServerMove;
@@ -68,7 +65,7 @@ public class Board {
     }
 
 
-    public Trap discoverBitActions(BitCard bitCard, int runDay, int runWeek) throws IOException {
+    public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) throws IOException {
 
         //Reduce complexity of calling method by passing along null
         if (bitCard == null) {
@@ -82,53 +79,43 @@ public class Board {
         switch (bitCard.getAction()) {
             case 1:
                 weekHoldCards.add(bitCard);
-                break;
+                return null;
             case 2:
-                Prompts.promptToAddOneToWorkstationCapacity(SIX_SIDES);
-                break;
+                return new HelpAction(HelpAction.HelpActionType.ADD_ONE);
             case 3:
-                Prompts.promptToDoubleWorkstationCapacity(SIX_SIDES);
-                break;
+                return new HelpAction(HelpAction.HelpActionType.DOUBLE);
             case 4:
-                Prompts.promptToAutomateWorkstation();
-                break;
+                return new HelpAction(HelpAction.HelpActionType.AUTOMATE);
             case 5:
             case 6:
             case 7:
                 gameHoldCards.add(bitCard);
-                break;
+                return null;
             case 8:
-                finishedGoodsAreNowFourPoints();
-                break;
+                return new HelpAction(HelpAction.HelpActionType.AUGMENT);
             case 9:
-                Prompts.implementPairedProgramming();
-                break;
+                return new HelpAction(HelpAction.HelpActionType.PAIR);
             case 10:
                 //Team loses the day
                 return new Trap(TEAM, DAY, runWeek, runDay, NONE);
-
             case 11:
                 //Skip the next server
                 return new Trap(ANY_SERVER, DAY, runWeek, runDay, NONE);
-
             case 12:
                 returnFinishedGoodsToBacklog();
-                break;
+                return null;
             case 13:
                 moveWorkItemsFromColorWorkstationToPrevious(bitCard);
-                break;
+                return null;
             case 14:
                 //Skip the next human server
                 return new Trap(HUMAN_SERVER, DAY, runWeek, runDay, NONE);
-
             case 15:
                 //Team loses the week
                 return new Trap(TEAM, WEEK, runWeek, runDay, DAY);
-
             default:
                 return null;
         }
-        return null;
     }
 
 
@@ -140,10 +127,6 @@ public class Board {
             }
         }
         return null;
-    }
-
-    private void finishedGoodsAreNowFourPoints() {
-        ScorecardService.getInstance().getFinishedGoods().setValue(4);
     }
 
 
@@ -185,8 +168,8 @@ public class Board {
 
 
     private void returnFinishedGoodsToBacklog() {
-        ScorecardService.getInstance().getBacklog().addToBacklog(ScorecardService.getInstance().getFinishedGoods().getFinishedGoods());
-        ScorecardService.getInstance().getFinishedGoods().setFinishedGoods(0);
+        ScorecardService.getInstance().getBacklog().addToBacklog(ScorecardService.getInstance().getFinishedGoods().getFinishedGoodsTally());
+        ScorecardService.getInstance().getFinishedGoods().setFinishedGoodsTally(0);
     }
 
     public void returnServerToWorkstation() {

@@ -1,12 +1,15 @@
 package com.michelin.throughputfxproject.controllers;
 
+import com.michelin.throughputfxproject.Color;
 import com.michelin.throughputfxproject.entities.Server;
 import com.michelin.throughputfxproject.services.ServerService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
-import javafx.scene.paint.Color;
+
+import java.util.Objects;
+
 
 public class SkillsController {
 
@@ -20,8 +23,8 @@ public class SkillsController {
 
     @FXML
     protected void addSkillsToServer(ActionEvent actionEvent) {
-        Server server = ServerService.getHumanServer(com.michelin.throughputfxproject.Color.lookupByFXColor(serverToAddSkills.getSelectionModel().getSelectedItem()));
-        server.getSkills().add(com.michelin.throughputfxproject.Color.lookupByFXColor(skillsToAddToServer.getSelectionModel().getSelectedItem()));
+        Server server = ServerService.getHumanServer(serverToAddSkills.getSelectionModel().getSelectedItem());
+        Objects.requireNonNull(server).getSkills().add(Objects.requireNonNull(skillsToAddToServer.getSelectionModel().getSelectedItem()));
 
     }
 }
