@@ -11,8 +11,7 @@ import com.michelin.throughputfxproject.services.CardService;
 import com.michelin.throughputfxproject.services.DiceService;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.util.StringConverter;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -58,40 +57,46 @@ public class Prompts {
             BitCard bitCard = (BitCard) CardService.getInstance().pickACardDestructively(Card.BOOSTER_INOCULATE_TRAP);
             Objects.requireNonNull(bitCard);
 
+
+            Parent root = new FXMLLoader(ThroughputApplication.class.getResource("bit-card.fxml")).load();
+
+            Label labelTitle =  (Label)root.getScene().lookup("#getTitle");
+            labelTitle.setText(bitCard.getTitle());
+
+            Label subtitleLabel =  (Label)root.getScene().lookup("#getSubtitle");
+            subtitleLabel.setText(bitCard.getSubtitle());
+
+            Label reasonLabel =  (Label)root.getScene().lookup("#getReason");
+            reasonLabel.setText(bitCard.getReason());
+
+            Label instructionLabel =  (Label)root.getScene().lookup("#getInstructions");
+            instructionLabel.setText(bitCard.getInstructions());
+
+            Label descriptionLabel =  (Label)root.getScene().lookup("#getDescription");
+            descriptionLabel.setText(bitCard.getDescription());
+
+            Label descriptionTitleLabel =  (Label)root.getScene().lookup("#getDescriptionTitle");
+            descriptionTitleLabel.setText(bitCard.getDescriptionTitle());
+
+            ImageView backImageView = (ImageView) root.getScene().lookup("#cardBackImage");
+            Image backImage = new Image(Objects.requireNonNull(Prompts.class.getResource("cards/BIT.jpg")).openStream());
+            backImageView.setImage(backImage);
             // Create an image view with the desired image
-            Image image = new Image(Objects.requireNonNull(CardPopup.class.getResource("cards/BIT.jpg")).openStream());
-            ImageView imageView = new ImageView(image);
 
-            // Set the image view's dimensions to 3.5 inches x 2.5 inches
-            double width = 2.5 * 72; // Convert inches to pixels (assuming 72 DPI)
-            double height = 3.5 * 72;
-            imageView.setFitWidth(width);
-            imageView.setFitHeight(height);
-            imageView.setPreserveRatio(false);
-
-            //todo - build the structure of the card
-            bitCard.getDescriptionImg();
-            VBox cardText = new VBox();
-            cardText.getChildren().addAll(
-                    new Label(bitCard.getTitle()),
-                    new Label(bitCard.getSubtitle()),
-                    new Label(bitCard.getReason()),
-                    new Label(bitCard.getInstructions()),
-                    new Label(bitCard.getDescriptionTitle()),
-                    new Label(bitCard.getDescription()));
-
-            Pane pane = new Pane(cardText);
-            pane.setPrefSize(width, height);
-            // Create a stack pane to hold the image view
-            HBox hBox = new HBox(pane, imageView);
+            String descritionImgString = bitCard.getDescriptionImg();
+            if(descritionImgString != null) {
+                ImageView descriptionImageView = (ImageView) root.getScene().lookup("#descriptionImage");
+                Image descriptionImg = new Image(Objects.requireNonNull(Prompts.class.getResource(descritionImgString)).openStream());
+                descriptionImageView.setImage(descriptionImg);
+            }
 
             // Create a popup and add the stack pane to it
             Popup popup = new Popup();
-            popup.getContent().add(hBox);
+            popup.getContent().add(root);
 
             // Set the popup's size to match the image view
-            popup.setWidth(width);
-            popup.setHeight(height);
+            popup.setWidth(400);
+            popup.setHeight(300);
 
             // Show the popup
             popup.show(container.getScene().getWindow());
@@ -119,7 +124,7 @@ public class Prompts {
         node.setText(implementPairsText);
 
         List<Color> listOfWorkstationsWithHumanServers = Arrays.stream(WorkstationService.getWorkstations()).filter(Workstation::hasHumanServers).map(Workstation::getColor).collect(Collectors.toList());
-        ComboBox<Color> serverColorPicker = (ComboBox) root.getScene().lookup("#workstationToPairWith");
+        ComboBox<Color> serverColorPicker = (ComboBox<Color>) root.getScene().lookup("#workstationToPairWith");
         buildColorCombobox(serverColorPicker, listOfWorkstationsWithHumanServers.toArray(new Color[0]));
 
         stage.setTitle("Paired Work");
@@ -163,12 +168,12 @@ public class Prompts {
         TextArea node = (TextArea) root.getScene().lookup("#serverMovesText");
         node.setText(builder.toString());
 
-        ObservableList<javafx.scene.paint.Color> colors = FXCollections.observableArrayList(javafx.scene.paint.Color.BLUE, javafx.scene.paint.Color.PURPLE, javafx.scene.paint.Color.YELLOW, javafx.scene.paint.Color.GREEN, javafx.scene.paint.Color.PINK);
-        ComboBox<javafx.scene.paint.Color> serverColorPicker = (ComboBox<javafx.scene.paint.Color>) root.getScene().lookup("#serverToMove");
-        serverColorPicker.setItems(colors);
 
-        ComboBox<javafx.scene.paint.Color> workstationColorPicker = (ComboBox<javafx.scene.paint.Color>) root.getScene().lookup("#workstationToMoveTo");
-        workstationColorPicker.setItems(colors);
+        ComboBox<Color> serverColorPicker = (ComboBox<Color>) root.getScene().lookup("#serverToMove");
+        buildColorCombobox(serverColorPicker, Color.humanColorValues());
+
+        ComboBox<Color> workstationColorPicker = (ComboBox<Color>) root.getScene().lookup("#workstationToMoveTo");
+        buildColorCombobox(workstationColorPicker, Color.humanColorValues());
 
 
         stage.setTitle("Server Moves");
@@ -283,7 +288,7 @@ public class Prompts {
         TextArea node = (TextArea) root.getScene().lookup("#addCapacityText");
         node.setText(builder.toString());
 
-        ComboBox<Color> workstationToAddCapacity = (ComboBox) root.getScene().lookup("#workstationToAddCapacity");
+        ComboBox<Color> workstationToAddCapacity = (ComboBox<Color>) root.getScene().lookup("#workstationToAddCapacity");
         buildColorCombobox(workstationToAddCapacity, Color.humanColorValues());
 
         stage.setTitle("Add Capacity");
@@ -343,10 +348,10 @@ public class Prompts {
         node.setText(builder);
 
 
-        ComboBox<Color> serverColorPicker = (ComboBox) root.getScene().lookup("#serverToAddSkills");
+        ComboBox<Color> serverColorPicker = (ComboBox<Color>) root.getScene().lookup("#serverToAddSkills");
         buildColorCombobox(serverColorPicker, Color.humanColorValues());
 
-        ComboBox<Color> workstationColorPicker = (ComboBox) root.getScene().lookup("#skillsToAddToServer");
+        ComboBox<Color> workstationColorPicker = (ComboBox<Color>) root.getScene().lookup("#skillsToAddToServer");
         buildColorCombobox(workstationColorPicker, Color.humanColorValues());
 
         stage.setTitle("Skills Add Window");
@@ -370,15 +375,15 @@ public class Prompts {
         TextArea node = (TextArea) root.getScene().lookup("#addAutomationText");
         node.setText(builder);
 
-        ComboBox<Color> serverWorkstationColorPicker = (ComboBox) root.getScene().lookup("#workstationToAddAutomation");
+        ComboBox<Color> serverWorkstationColorPicker = (ComboBox<Color>) root.getScene().lookup("#workstationToAddAutomation");
         buildColorCombobox(serverWorkstationColorPicker, Color.automatedColorValues());
 
 
     }
 
-    private static void buildColorCombobox(ComboBox<Color> serverWorkstationColorPicker, Color[] es) {
-        serverWorkstationColorPicker.getItems().addAll(es);
-        serverWorkstationColorPicker.setCellFactory(listView -> new ListCell<Color>() {
+    private static void buildColorCombobox(ComboBox<Color> colorPicker, Color[] es) {
+        colorPicker.getItems().addAll(es);
+        colorPicker.setCellFactory(listView -> new ListCell<>() {
             @Override
             public void updateItem(Color item, boolean empty) {
                 super.updateItem(item, empty);
@@ -389,6 +394,16 @@ public class Prompts {
                     setBackground(new Background(new BackgroundFill(item.lookupFXColor(), null, null)));
                 }
                 setDisable(!empty);
+            }
+        });
+        colorPicker.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Color color) {
+                return color.name();
+            }
+            @Override
+            public Color fromString(String s) {
+                return Color.valueOf(s);
             }
         });
     }

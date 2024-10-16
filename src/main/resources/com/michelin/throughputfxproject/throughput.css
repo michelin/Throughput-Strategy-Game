@@ -74,3 +74,37 @@
     -fx-text-alignment: center;
     -fx-font-weight: bold;
 }
+
+.card-box{
+    -fx-border-color: black;
+    -fx-border-width: 4;
+    -fx-border-radius: 18 18 18 18;
+    -fx-background-color: transparent;
+}
+.card-title{
+    -fx-font-family: Michelin-Bold, sans-serif;
+    -fx-font-size: 18pt;
+    -fx-font-weight: bold;
+}
+.card-subtitle{
+    -fx-font-family: Michelin-Bold, sans-serif;
+    -fx-font-size: 16pt;
+    -fx-font-weight: bold;
+}
+.card-reason{
+    -fx-font-family: Michelin-Bold, sans-serif;
+    -fx-font-size: 12pt;
+}
+.card-description-title{
+    -fx-font-family: Michelin, sans-serif;
+    -fx-font-size: 10pt;
+}
+.card-description{
+    -fx-font-family: Michelin, sans-serif;
+    -fx-font-size: 8pt;
+}
+.card-instruction{
+    -fx-font-family: Michelin, sans-serif;
+    -fx-font-size: 8pt;
+    -fx-font-weight: bold;
+}
