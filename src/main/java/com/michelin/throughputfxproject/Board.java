@@ -157,7 +157,7 @@ public class Board {
             offendingWorkstation.setWorkItemCount(0);
         } else if (offendingWorkstationIndex < 0) {
             if (LOGGER.isWarnEnabled()) {
-                LOGGER.warn("Couldn't find workstation for color {}", color.nameWithColor());
+                LOGGER.warn("Couldn't find workstation for color {}", color.name());
             }
         } else {
             Workstation receivingWorkstation = WorkstationService.getWorkstation(offendingWorkstationIndex - 1);

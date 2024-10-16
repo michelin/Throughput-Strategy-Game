@@ -5,8 +5,9 @@ import com.michelin.throughputfxproject.entities.Server;
 import com.michelin.throughputfxproject.services.ServerService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextArea;
+import javafx.stage.Stage;
 
 import java.util.Objects;
 
@@ -14,7 +15,7 @@ import java.util.Objects;
 public class SkillsController {
 
     @FXML
-    private TextArea skillAddText;
+    private Button skillAddButton;
     @FXML
     private ComboBox<Color> serverToAddSkills;
     @FXML
@@ -24,7 +25,9 @@ public class SkillsController {
     @FXML
     protected void addSkillsToServer(ActionEvent actionEvent) {
         Server server = ServerService.getHumanServer(serverToAddSkills.getSelectionModel().getSelectedItem());
-        Objects.requireNonNull(server).getSkills().add(Objects.requireNonNull(skillsToAddToServer.getSelectionModel().getSelectedItem()));
+        Objects.requireNonNull(server).getSkills().add(skillsToAddToServer.getSelectionModel().getSelectedItem());
+
+        ((Stage)skillAddButton.getParent().getScene().getWindow()).close();
 
     }
 }

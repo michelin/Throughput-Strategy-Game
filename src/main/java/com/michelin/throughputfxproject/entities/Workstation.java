@@ -33,6 +33,10 @@ public class Workstation {
         workItemCount += amount;
     }
 
+    public boolean hasHumanServers() {
+        return servers.stream().anyMatch(server -> server.getType().equals(Server.TYPE_HUMAN));
+    }
+
     public void subtractFromWorkItemCount(int amount) {
         if (amount < 0) throw new AssertionError();
         if (amount > workItemCount) throw new AssertionError();
@@ -41,7 +45,7 @@ public class Workstation {
 
     @Override
     public String toString() {
-        return  "Workstation=" + getColor().nameWithColor() + System.lineSeparator() +
+        return  "Workstation=" + getColor().name() + System.lineSeparator() +
                 ", Capacity=" + getCapacity() + System.lineSeparator() +
                 ", Wrk Items=" + getWorkItemCount() + System.lineSeparator() +
                 ", Servers=" + getServers();

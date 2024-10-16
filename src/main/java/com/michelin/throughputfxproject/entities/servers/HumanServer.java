@@ -37,7 +37,7 @@ public class HumanServer implements Server {
         List<String> builder = new ArrayList<>();
         skills.forEach(skill -> {
             if (color.equals(skill)) {
-                builder.add(skill.nameWithColor());
+                builder.add(skill.name());
             } else {
                 builder.add(skill.initialWithColor());
             }

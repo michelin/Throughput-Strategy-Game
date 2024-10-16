@@ -6,6 +6,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.stage.Stage;
 
 public class PairProgrammingController {
 
@@ -18,5 +19,7 @@ public class PairProgrammingController {
 
         Color workstationColor = workstationToPairWith.getSelectionModel().getSelectedItem();
         WorkstationService.pairWorkstation(workstationColor);
+
+        ((Stage)pairButton.getParent().getScene().getWindow()).close();
     }
 }

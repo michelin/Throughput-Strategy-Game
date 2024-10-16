@@ -29,8 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 public class Prompts {
@@ -43,7 +46,7 @@ public class Prompts {
     }
 
 
-    public static @NonNull BitCard drawBit(@NonNull Pane container, int dieSides) throws IOException {
+    public static BitCard drawBit(@NonNull Pane container, int dieSides) throws IOException {
         //If not week 1 draw BIT card if they roll a 6
         int drawBitInt = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
         if (drawBitInt == 6) {
@@ -66,6 +69,7 @@ public class Prompts {
             imageView.setFitHeight(height);
             imageView.setPreserveRatio(false);
 
+            //todo - build the structure of the card
             bitCard.getDescriptionImg();
             VBox cardText = new VBox();
             cardText.getChildren().addAll(
@@ -114,10 +118,9 @@ public class Prompts {
         TextArea node = (TextArea) root.getScene().lookup("#implementPairsText");
         node.setText(implementPairsText);
 
-        //todo - filter for workstations without human servers
-        ObservableList<javafx.scene.paint.Color> colors = FXCollections.observableArrayList(javafx.scene.paint.Color.BLUE, javafx.scene.paint.Color.PURPLE, javafx.scene.paint.Color.YELLOW, javafx.scene.paint.Color.GREEN, javafx.scene.paint.Color.PINK);
-        ComboBox<javafx.scene.paint.Color> serverColorPicker = (ComboBox<javafx.scene.paint.Color>) root.getScene().lookup("#workstationToPairWith");
-        serverColorPicker.setItems(colors);
+        List<Color> listOfWorkstationsWithHumanServers = Arrays.stream(WorkstationService.getWorkstations()).filter(Workstation::hasHumanServers).map(Workstation::getColor).collect(Collectors.toList());
+        ComboBox<Color> serverColorPicker = (ComboBox) root.getScene().lookup("#workstationToPairWith");
+        buildColorCombobox(serverColorPicker, listOfWorkstationsWithHumanServers.toArray(new Color[0]));
 
         stage.setTitle("Paired Work");
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -126,22 +129,23 @@ public class Prompts {
     }
 
 
-    public static void promptForAppliedTrap(Trap trap) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
+    public static void promptForAppliedTrap(Trap trap, boolean isMitigated) {
 
-        LOGGER.info("No Mitigation available for trap");
-        LOGGER.info("{} Loses {}", trap.getEffected(), trap.getDuration());
+        String builder;
+        if (isMitigated) {
+            builder = "Applying Mitigation for trap" +
+                    "  " + trap.getEffected() + " Loses " + trap.getMitigatedDuration();
+        } else {
+            builder = "No Mitigation available for trap" +
+                    "  " + trap.getEffected() + "Loses " + trap.getDuration();
+        }
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, builder, ButtonType.OK);
+        alert.setTitle("TRAP!");
+        alert.showAndWait();
 
     }
 
-    public static void promptForMitigatedTrap(Trap trap) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
-
-        LOGGER.info("Applying Mitigation for trap");
-        LOGGER.info("{} Loses {}", trap.getEffected(), trap.getMitigatedDuration());
-    }
 
     public static void promptForServerMoves(@NonNull Pane container, HumanServer inTraining) throws IOException {
 
@@ -175,7 +179,7 @@ public class Prompts {
     }
 
     public static boolean promptForServerRetry(@NonNull Server server) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Your first try failed for Server " + server.getColor().nameWithColor() + " You have a Retry card, would you like to use it? 'Y/N'", ButtonType.YES, ButtonType.NO);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Your first try failed for Server " + server.getColor().name() + " You have a Retry card, would you like to use it? 'Y/N'", ButtonType.YES, ButtonType.NO);
         alert.setTitle("Retry");
         Optional<ButtonType> result = alert.showAndWait();
 
@@ -266,15 +270,44 @@ public class Prompts {
         stage.showAndWait();
     }
 
-    public static void promptToAddOneToWorkstationCapacity(int dieSides) throws IOException {
+    public static void promptToAugmentWorkstationCapacity(@NonNull Pane container, boolean timesTwo) throws IOException {
 
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
+        Stage stage = new Stage();
+        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("add-capacity.fxml")).load();
 
-        LOGGER.info("Choose which workstation to add one to its capacity");
-        LOGGER.info("Example: BLUE will augment the BLUE workstation from {} to {}", Objects.requireNonNull(WorkstationService.getWorkstation(Color.BLUE)).getCapacity(), Math.min(Objects.requireNonNull(WorkstationService.getWorkstation(Color.BLUE)).getCapacity() + 1, dieSides));
+        Workstation workstationBlue = Objects.requireNonNull(WorkstationService.getWorkstation(Color.BLUE));
+        StringBuilder builder = getStringBuilder(timesTwo, workstationBlue);
 
+        stage.setScene(new Scene(root));
 
+        TextArea node = (TextArea) root.getScene().lookup("#addCapacityText");
+        node.setText(builder.toString());
+
+        ComboBox<Color> workstationToAddCapacity = (ComboBox) root.getScene().lookup("#workstationToAddCapacity");
+        buildColorCombobox(workstationToAddCapacity, Color.humanColorValues());
+
+        stage.setTitle("Add Capacity");
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(container.getScene().getWindow());
+        stage.showAndWait();
+    }
+
+    private static StringBuilder getStringBuilder(boolean timesTwo, Workstation workstationBlue) {
+        StringBuilder builder = new StringBuilder();
+        if (!timesTwo) {
+            builder.append("Choose which workstation to add one to its capacity");
+            builder.append("  Example: BLUE will augment the BLUE workstation from ");
+            builder.append(workstationBlue.getCapacity());
+            builder.append(" to ");
+            builder.append(Math.min(workstationBlue.getCapacity() + 1, Board.SIX_SIDES));
+        } else {
+            builder.append("Choose which workstation to double its capacity");
+            builder.append("  Example: BLUE will augment the BLUE workstation from ");
+            builder.append(workstationBlue.getCapacity());
+            builder.append(" to ");
+            builder.append(Math.min(workstationBlue.getCapacity() + 1, Board.SIX_SIDES));
+        }
+        return builder;
     }
 
 
@@ -311,36 +344,10 @@ public class Prompts {
 
 
         ComboBox<Color> serverColorPicker = (ComboBox) root.getScene().lookup("#serverToAddSkills");
-        serverColorPicker.getItems().addAll(Color.values());
-        serverColorPicker.setCellFactory(listView -> new ListCell<Color>() {
-            @Override
-            public void updateItem(Color item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.name());
-                    setBackground(new Background(new BackgroundFill(item.lookupFXColor(), null, null)));
-                }
-                setDisable(!empty);
-            }
-        });
+        buildColorCombobox(serverColorPicker, Color.humanColorValues());
 
         ComboBox<Color> workstationColorPicker = (ComboBox) root.getScene().lookup("#skillsToAddToServer");
-        workstationColorPicker.getItems().addAll(Color.values());
-        workstationColorPicker.setCellFactory(listView -> new ListCell<Color>() {
-            @Override
-            public void updateItem(Color item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.name());
-                    setBackground(new Background(new BackgroundFill(item.lookupFXColor(), null, null)));
-                }
-                setDisable(!empty);
-            }
-        });
+        buildColorCombobox(workstationColorPicker, Color.humanColorValues());
 
         stage.setTitle("Skills Add Window");
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -351,46 +358,49 @@ public class Prompts {
     }
 
     public static void promptToAutomateWorkstation() throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
 
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Choose which color workstation to add automation {}|{}|{}", Color.GREEN.nameWithColor(), Color.ROSE.nameWithColor(), Color.YELLOW.nameWithColor());
-            LOGGER.info("Example: GREEN will will automate the GREEN workstation. The human server will remain until moved");
-        }
+        Stage stage = new Stage();
+        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("add-automation.fxml")).load();
 
-        String workstationColorToAddAutomation = "scanner.next(robotColorPattern)";
-        WorkstationService.automateWorkstation(Color.valueOf(workstationColorToAddAutomation.toUpperCase()));
+        String builder = "Choose which color workstation to add automation " + Color.GREEN.name() + "|" + Color.ROSE.name() + "|" + Color.YELLOW.name() +
+                "Example: GREEN will will automate the GREEN workstation. The human server will remain until moved";
 
+        stage.setScene(new Scene(root));
 
-    }
+        TextArea node = (TextArea) root.getScene().lookup("#addAutomationText");
+        node.setText(builder);
 
-    public static void promptToDoubleWorkstationCapacity(int dieSides) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
-
-        LOGGER.info("Choose which workstation to double its capacity");
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Example: BLUE will augment the BLUE workstation from {} to {}", Objects.requireNonNull(WorkstationService.getWorkstation(Color.BLUE)).getCapacity(), Math.min(Objects.requireNonNull(WorkstationService.getWorkstation(Color.BLUE)).getCapacity() * 2, dieSides));
-        }
-
-        String workstationColorToAddCapacity = "scanner.next()";
-
-        Color color = Color.valueOf(workstationColorToAddCapacity.toUpperCase());
-        Objects.requireNonNull(WorkstationService.getWorkstation(color)).setCapacity(Math.min(Objects.requireNonNull(WorkstationService.getWorkstation(color)).getCapacity() * 2, dieSides));
+        ComboBox<Color> serverWorkstationColorPicker = (ComboBox) root.getScene().lookup("#workstationToAddAutomation");
+        buildColorCombobox(serverWorkstationColorPicker, Color.automatedColorValues());
 
 
     }
+
+    private static void buildColorCombobox(ComboBox<Color> serverWorkstationColorPicker, Color[] es) {
+        serverWorkstationColorPicker.getItems().addAll(es);
+        serverWorkstationColorPicker.setCellFactory(listView -> new ListCell<Color>() {
+            @Override
+            public void updateItem(Color item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.name());
+                    setBackground(new Background(new BackgroundFill(item.lookupFXColor(), null, null)));
+                }
+                setDisable(!empty);
+            }
+        });
+    }
+
 
     public static void publishDayStart(int runDay, int runWeek) {
-
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Start of Day");
         alert.setHeaderText("Start of Day");
         alert.setContentText("Current Board -> Day: " + (runDay + 1) + "  Week:  " + (runWeek + 1));
         alert.showAndWait();
-
 
     }
 
@@ -408,26 +418,20 @@ public class Prompts {
     public static void publishEndWeek(int week, @NonNull ScoreCard scoreCard) {
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("EOW");
-        alert.setHeaderText("End of Week");
+        alert.setTitle("End of Week");
         alert.setContentText("Prepare for the start of the next week");
         alert.showAndWait();
 
-        LOGGER.info("Finished week: {}", (week + 1));
-        LOGGER.info("Score: {}", scoreCard.getScore());
 
     }
 
     public static void publishEndOfGame(int week, @NonNull ScoreCard scoreCard) {
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("EOW");
-        alert.setHeaderText("End of Week");
-        alert.setContentText("Prepare for the start of the next week");
+        alert.setTitle("End of Game");
+        alert.setContentText("Assess and discuss how you did");
         alert.showAndWait();
 
-        LOGGER.info("Finished Game: {}", (week + 1));
-        LOGGER.info("Score: {}", scoreCard.getScore());
     }
 
 
@@ -472,7 +476,6 @@ public class Prompts {
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Team Mood");
-        alert.setHeaderText("Team Mood");
         alert.setContentText("Rolled for Team Mood." + "  Team Mood is " + teamMood + " and backlog has " + ScorecardService.getInstance().getBacklog().getBacklogItemCount() + " work items" + " At the prompt you can move up to " + Math.min(teamMood, ScorecardService.getInstance().getBacklog().getBacklogItemCount()) + " items into your 1st workstation");
         alert.showAndWait();
 
@@ -480,6 +483,10 @@ public class Prompts {
     }
 
     public static void promptForFinishedGoodsAreNowFourPoints() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Team Mood");
+        alert.setContentText("Augmenting finished goods value to 4 for the remainder of the game");
+        alert.show();
         ScorecardService.getInstance().getFinishedGoods().setValue(4);
     }
 

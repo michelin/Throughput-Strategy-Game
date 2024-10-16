@@ -10,8 +10,12 @@ public enum Color {
 
     }
 
-    public String nameWithColor() {
-        return this.name();
+    public static Color[] automatedColorValues() {
+        return new Color[]{ROSE, GREEN,  YELLOW};
+    }
+
+    public static Color[] humanColorValues() {
+        return new Color[]{BLUE, ROSE, GREEN, VIOLET, YELLOW};
     }
 
     public javafx.scene.paint.Color lookupFXColor() {

@@ -376,10 +376,10 @@ public class BoardController {
 
             switch (((HelpAction) boardAction).getType()) {
                 case ADD_ONE:
-                    Prompts.promptToAddOneToWorkstationCapacity(SIX_SIDES);
+                    Prompts.promptToAugmentWorkstationCapacity(gameDialogPane,false);
                     return;
                 case DOUBLE:
-                    Prompts.promptToDoubleWorkstationCapacity(SIX_SIDES);
+                    Prompts.promptToAugmentWorkstationCapacity(gameDialogPane,true);
                     return;
                 case AUTOMATE:
                     Prompts.promptToAutomateWorkstation();
@@ -389,7 +389,6 @@ public class BoardController {
                     return;
                 case AUGMENT:
                     Prompts.promptForFinishedGoodsAreNowFourPoints();
-                    return;
             }
 
         }
@@ -399,15 +398,14 @@ public class BoardController {
     private static void activateTrap(Trap trap, BitCard bitCard) throws IOException {
 
         boolean trapMitigated = Board.getInstance().isTrapMitigated(bitCard);
+        Prompts.promptForAppliedTrap(trap, trapMitigated);
         if (!trapMitigated) {
-            Prompts.promptForAppliedTrap(trap);
             if (trap.getEffected().equals(Board.TEAM) && trap.getDuration().equals(Board.WEEK)) {
                 Board.getInstance().augmentGameWeek();
             } else if (trap.getEffected().equals(Board.TEAM) && trap.getDuration().equals(Board.DAY)) {
                 Board.getInstance().augmentDayOfTheWeek();
             }
         } else {
-            Prompts.promptForMitigatedTrap(trap);
             if (trap.getEffected().equals(Board.TEAM) && trap.getMitigatedDuration().equals(Board.DAY)) {
                 Board.getInstance().augmentDayOfTheWeek();
             }

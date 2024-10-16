@@ -3,8 +3,10 @@ package com.michelin.throughputfxproject.services;
 import com.michelin.throughputfxproject.Board;
 import com.michelin.throughputfxproject.Color;
 import com.michelin.throughputfxproject.entities.Die;
+import com.michelin.throughputfxproject.entities.Server;
 import com.michelin.throughputfxproject.entities.Workstation;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
+import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +54,12 @@ public class WorkstationService {
         return null;
     }
 
-    public static void automateWorkstation(Color color) {
-        Objects.requireNonNull(getWorkstation(color)).getServers().add(ServerService.getRobotServer(color));
+    public static void automateWorkstation(@NonNull Color color) {
+        Server server = ServerService.getRobotServer(color);
+        Objects.requireNonNull(server);
+        Workstation workstation = WorkstationService.getWorkstation(color);
+        Objects.requireNonNull(workstation);
+        workstation.getServers().add(server);
     }
 
     public static void pairWorkstation(Color color) {
