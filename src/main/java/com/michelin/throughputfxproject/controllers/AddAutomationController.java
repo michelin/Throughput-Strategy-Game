@@ -7,12 +7,14 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.stage.Stage;
+import lombok.Getter;
 
 
 public class AddAutomationController {
     @FXML
     private Button automationButton;
     @FXML
+    @Getter
     private ComboBox<Color> workstationToAddAutomation;
 
     public void addAutomation(ActionEvent actionEvent) {

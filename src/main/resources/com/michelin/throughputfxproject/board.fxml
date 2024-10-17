@@ -37,13 +37,21 @@
                 <Label fx:id="totalScore" styleClass="date-box" stylesheets="@throughput.css" text="0" />
             </HBox>
             <Pane fx:id="gameDialogPane">
-                <ButtonBar buttonMinWidth="100.0" prefHeight="40.0" prefWidth="200.0">
+                <ButtonBar fx:id="dailyButtonBar" visible="false">
                     <buttons>
-                        <Button fx:id="buttonServerMoves" mnemonicParsing="false" onAction="#serverMoves" prefHeight="39.0" styleClass="buttons" stylesheets="@throughput.css" text="Server Moves" visible="false" />
-                        <Button fx:id="buttonRunDay" mnemonicParsing="false" onAction="#runDay" prefHeight="39.0" styleClass="buttons" stylesheets="@throughput.css" text="Run Day" textAlignment="CENTER" textOverrun="CLIP" visible="true" />
-                        <Button fx:id="buttonAddSkills" mnemonicParsing="false" onAction="#addSkillsToServer" styleClass="buttons" stylesheets="@throughput.css" text="Add Skill" visible="false" />
-                        <Button fx:id="buttonRunWeek" mnemonicParsing="false" onAction="#runWeek" styleClass="buttons" stylesheets="@throughput.css" text="Run Week" visible="false" />
-                        <Button fx:id="buttonEndGame" mnemonicParsing="false" onAction="#endGame" styleClass="buttons" stylesheets="@throughput.css" text="End Game" visible="false" />
+                        <Button fx:id="buttonServerMoves" minWidth="275.0" mnemonicParsing="false" onAction="#serverMoves" prefWidth="300.0" styleClass="buttons" stylesheets="@throughput.css" text="Server Moves" visible="true" />
+                        <Button fx:id="buttonRunDay" minWidth="150.0" mnemonicParsing="false" onAction="#runDay" prefWidth="150.0" styleClass="buttons" stylesheets="@throughput.css" text="Run Day" textAlignment="CENTER" textOverrun="CLIP" visible="true" />
+                    </buttons>
+                </ButtonBar>
+                <ButtonBar fx:id="weeklyButtonBar"  visible="false">
+                    <buttons>
+                        <Button fx:id="buttonAddSkills" minWidth="275.0" mnemonicParsing="false" onAction="#addSkillsToServer" prefWidth="300.0" styleClass="buttons" stylesheets="@throughput.css" text="Add Skill" visible="true" />
+                        <Button fx:id="buttonRunWeek" minWidth="150.0" mnemonicParsing="false" onAction="#runWeek" prefWidth="150.0" styleClass="buttons" stylesheets="@throughput.css" text="Run Week" textAlignment="CENTER" textOverrun="CLIP" visible="true" />
+                    </buttons>
+                </ButtonBar>
+                <ButtonBar fx:id="gameButtonBar"  prefWidth="200.0" visible="false">
+                    <buttons>
+                        <Button fx:id="buttonEndGame" mnemonicParsing="false" onAction="#endGame" prefWidth="150.0" styleClass="buttons" stylesheets="@throughput.css" text="End Game" textAlignment="CENTER" textOverrun="CLIP" visible="true" />
                     </buttons>
                 </ButtonBar>
             </Pane>
@@ -115,7 +123,7 @@
     </bottom>
     <right>
         <AnchorPane>
-            <TableView fx:id="scoreTableView" layoutX="-37.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.rightAnchor="-18.0">
+            <TableView fx:id="scoreTableView" layoutX="-37.0" prefHeight="200.0" prefWidth="200.0" stylesheets="@throughput.css" AnchorPane.rightAnchor="-18.0">
                 <columns>
                     <TableColumn prefWidth="35.0" text="Wk" />
                     <TableColumn prefWidth="35.0" text="Est" />

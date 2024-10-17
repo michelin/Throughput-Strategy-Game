@@ -1,5 +1,6 @@
 package com.michelin.throughputfxproject;
 
+import com.michelin.throughputfxproject.controllers.*;
 import com.michelin.throughputfxproject.entities.*;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
 import com.michelin.throughputfxproject.entities.cards.ChanceCard;
@@ -7,32 +8,34 @@ import com.michelin.throughputfxproject.entities.cards.ChanceRobotCard;
 import com.michelin.throughputfxproject.entities.cards.SkillCard;
 import com.michelin.throughputfxproject.entities.servers.AutomatedServer;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
+import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.CardService;
 import com.michelin.throughputfxproject.services.DiceService;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
-import javafx.util.StringConverter;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 
 
 public class Prompts {
@@ -50,42 +53,43 @@ public class Prompts {
         int drawBitInt = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
         if (drawBitInt == 6) {
 
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Draw a " + Card.BOOSTER_INOCULATE_TRAP + " card!", ButtonType.OK);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION,"Follow the instructions on the card." , ButtonType.OK);
+            alert.setHeaderText("Draw a " + Card.BOOSTER_INOCULATE_TRAP + " card!");
             alert.setTitle(Card.BOOSTER_INOCULATE_TRAP);
             alert.showAndWait();
 
             BitCard bitCard = (BitCard) CardService.getInstance().pickACardDestructively(Card.BOOSTER_INOCULATE_TRAP);
             Objects.requireNonNull(bitCard);
 
+            FXMLLoader loader = new FXMLLoader(Prompts.class.getResource("bit-card.fxml"));
+            Parent root = loader.load();
 
-            Parent root = new FXMLLoader(ThroughputApplication.class.getResource("bit-card.fxml")).load();
-
-            Label labelTitle =  (Label)root.getScene().lookup("#getTitle");
+            Label labelTitle =  ((BITController)loader.getController()).getCardTitle();
             labelTitle.setText(bitCard.getTitle());
 
-            Label subtitleLabel =  (Label)root.getScene().lookup("#getSubtitle");
+            Label subtitleLabel =  ((BITController)loader.getController()).getCardSubtitle();
             subtitleLabel.setText(bitCard.getSubtitle());
 
-            Label reasonLabel =  (Label)root.getScene().lookup("#getReason");
+            Label reasonLabel =  ((BITController)loader.getController()).getCardReason();
             reasonLabel.setText(bitCard.getReason());
 
-            Label instructionLabel =  (Label)root.getScene().lookup("#getInstructions");
+            Label instructionLabel =  ((BITController)loader.getController()).getCardInstructions();
             instructionLabel.setText(bitCard.getInstructions());
 
-            Label descriptionLabel =  (Label)root.getScene().lookup("#getDescription");
+            Label descriptionLabel =  ((BITController)loader.getController()).getCardDescription();
             descriptionLabel.setText(bitCard.getDescription());
 
-            Label descriptionTitleLabel =  (Label)root.getScene().lookup("#getDescriptionTitle");
+            Label descriptionTitleLabel =  ((BITController)loader.getController()).getCardDescriptionTitle();
             descriptionTitleLabel.setText(bitCard.getDescriptionTitle());
 
-            ImageView backImageView = (ImageView) root.getScene().lookup("#cardBackImage");
+            ImageView backImageView = ((BITController)loader.getController()).getCardBackImage();
             Image backImage = new Image(Objects.requireNonNull(Prompts.class.getResource("cards/BIT.jpg")).openStream());
             backImageView.setImage(backImage);
             // Create an image view with the desired image
 
             String descritionImgString = bitCard.getDescriptionImg();
             if(descritionImgString != null) {
-                ImageView descriptionImageView = (ImageView) root.getScene().lookup("#descriptionImage");
+                ImageView descriptionImageView = ((BITController)loader.getController()).getDescriptionImage();
                 Image descriptionImg = new Image(Objects.requireNonNull(Prompts.class.getResource(descritionImgString)).openStream());
                 descriptionImageView.setImage(descriptionImg);
             }
@@ -114,7 +118,8 @@ public class Prompts {
     public static void implementPairedProgramming(@NonNull Pane container) throws IOException {
 
         Stage stage = new Stage();
-        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("implement-pairs.fxml")).load();
+        FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("programming.fxml"));
+        Parent root = loader.load();
 
         String implementPairsText = "Choose which color workstation to pair. Requires a HUMAN server on the same workstation to work" +
                 "  Pair Partner gives an additional chance for a successful day";
@@ -123,9 +128,8 @@ public class Prompts {
         TextArea node = (TextArea) root.getScene().lookup("#implementPairsText");
         node.setText(implementPairsText);
 
-        List<Color> listOfWorkstationsWithHumanServers = Arrays.stream(WorkstationService.getWorkstations()).filter(Workstation::hasHumanServers).map(Workstation::getColor).collect(Collectors.toList());
-        ComboBox<Color> serverColorPicker = (ComboBox<Color>) root.getScene().lookup("#workstationToPairWith");
-        buildColorCombobox(serverColorPicker, listOfWorkstationsWithHumanServers.toArray(new Color[0]));
+        ComboBox<Color> serverColorPicker = ((PairingController) loader.getController()).getWorkstationToPairWith();
+        buildColorCombobox(serverColorPicker, Arrays.stream(WorkstationService.getWorkstations()).filter(Workstation::hasHumanServers).map(Workstation::getColor).toArray(Color[]::new));
 
         stage.setTitle("Paired Work");
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -155,7 +159,8 @@ public class Prompts {
     public static void promptForServerMoves(@NonNull Pane container, HumanServer inTraining) throws IOException {
 
         Stage stage = new Stage();
-        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("server-moves.fxml")).load();
+        FXMLLoader loader = new FXMLLoader(Prompts.class.getResource("server-moves.fxml"));
+        Parent root = loader.load();
 
         StringBuilder builder = new StringBuilder("SERVER MOVES!! ->  At prompting please enter: Server Color > Workstation Color.  Workstation is the receiving workstation - Worker must possess the skill (color) of the receiving workstation. You can only move Human Servers!");
         if (inTraining != null && LOGGER.isInfoEnabled()) {
@@ -169,10 +174,10 @@ public class Prompts {
         node.setText(builder.toString());
 
 
-        ComboBox<Color> serverColorPicker = (ComboBox<Color>) root.getScene().lookup("#serverToMove");
+        ComboBox<Color> serverColorPicker = ((ServerMovesController) loader.getController()).getServerToMove();
         buildColorCombobox(serverColorPicker, Color.humanColorValues());
 
-        ComboBox<Color> workstationColorPicker = (ComboBox<Color>) root.getScene().lookup("#workstationToMoveTo");
+        ComboBox<Color> workstationColorPicker = ((ServerMovesController) loader.getController()).getWorkstationToMoveTo();
         buildColorCombobox(workstationColorPicker, Color.humanColorValues());
 
 
@@ -211,7 +216,7 @@ public class Prompts {
             alert.setTitle("Backlog moves");
             alert.setHeaderText("Backlog is Empty");
             alert.setContentText("Team Mood is ignored");
-            alert.show();
+            alert.showAndWait();
         } else {
 
             Stage stage = new Stage();
@@ -278,7 +283,8 @@ public class Prompts {
     public static void promptToAugmentWorkstationCapacity(@NonNull Pane container, boolean timesTwo) throws IOException {
 
         Stage stage = new Stage();
-        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("add-capacity.fxml")).load();
+        FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-capacity.fxml"));
+        Parent root = loader.load();
 
         Workstation workstationBlue = Objects.requireNonNull(WorkstationService.getWorkstation(Color.BLUE));
         StringBuilder builder = getStringBuilder(timesTwo, workstationBlue);
@@ -288,7 +294,7 @@ public class Prompts {
         TextArea node = (TextArea) root.getScene().lookup("#addCapacityText");
         node.setText(builder.toString());
 
-        ComboBox<Color> workstationToAddCapacity = (ComboBox<Color>) root.getScene().lookup("#workstationToAddCapacity");
+        ComboBox<Color> workstationToAddCapacity = ((AddedCapacityController) loader.getController()).getWorkstationToAddCapacity();
         buildColorCombobox(workstationToAddCapacity, Color.humanColorValues());
 
         stage.setTitle("Add Capacity");
@@ -335,7 +341,8 @@ public class Prompts {
     public static void promptToAddSkill(@NonNull Pane container) throws IOException {
 
         Stage stage = new Stage();
-        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("add-skills.fxml")).load();
+        FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-skills.fxml"));
+        Parent root = loader.load();
 
         String builder = "Choose which server to add a skill and which skill to add. " + System.lineSeparator() +
                 " At prompting please enter: Server Color>Skill Color." +
@@ -347,12 +354,12 @@ public class Prompts {
         TextArea node = (TextArea) root.getScene().lookup("#skillAddText");
         node.setText(builder);
 
-
-        ComboBox<Color> serverColorPicker = (ComboBox<Color>) root.getScene().lookup("#serverToAddSkills");
+        ComboBox<Color> serverColorPicker = ((SkillsController)loader.getController()).getServerToAddSkills();
         buildColorCombobox(serverColorPicker, Color.humanColorValues());
 
-        ComboBox<Color> workstationColorPicker = (ComboBox<Color>) root.getScene().lookup("#skillsToAddToServer");
-        buildColorCombobox(workstationColorPicker, Color.humanColorValues());
+
+        ComboBox<Color> skillColorPicker = ((SkillsController)loader.getController()).getSkillsToAddToServer();
+        buildColorCombobox(skillColorPicker, Color.humanColorValues());
 
         stage.setTitle("Skills Add Window");
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -365,7 +372,8 @@ public class Prompts {
     public static void promptToAutomateWorkstation() throws IOException {
 
         Stage stage = new Stage();
-        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("add-automation.fxml")).load();
+        FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-automation.fxml"));
+        Parent root = loader.load();
 
         String builder = "Choose which color workstation to add automation " + Color.GREEN.name() + "|" + Color.ROSE.name() + "|" + Color.YELLOW.name() +
                 "Example: GREEN will will automate the GREEN workstation. The human server will remain until moved";
@@ -375,9 +383,8 @@ public class Prompts {
         TextArea node = (TextArea) root.getScene().lookup("#addAutomationText");
         node.setText(builder);
 
-        ComboBox<Color> serverWorkstationColorPicker = (ComboBox<Color>) root.getScene().lookup("#workstationToAddAutomation");
+        ComboBox<Color> serverWorkstationColorPicker = ((AddAutomationController)loader.getController()).getWorkstationToAddAutomation();
         buildColorCombobox(serverWorkstationColorPicker, Color.automatedColorValues());
-
 
     }
 
@@ -385,25 +392,29 @@ public class Prompts {
         colorPicker.getItems().addAll(es);
         colorPicker.setCellFactory(listView -> new ListCell<>() {
             @Override
-            public void updateItem(Color item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.name());
-                    setBackground(new Background(new BackgroundFill(item.lookupFXColor(), null, null)));
+            public void updateItem(Color color, boolean empty) {
+                super.updateItem(color, empty);
+                setText(color == null ? "" : color.name());
+                if (color != null) {
+                    setBackground(new Background(new BackgroundFill(color.lookupFXColor(), null, null)));
                 }
-                setDisable(!empty);
             }
         });
         colorPicker.setConverter(new StringConverter<>() {
             @Override
             public String toString(Color color) {
+                if (color == null) {
+                    return "NULL";
+                }
                 return color.name();
             }
             @Override
             public Color fromString(String s) {
-                return Color.valueOf(s);
+                try {
+                    return Color.valueOf(s);
+                } catch (IllegalArgumentException e) {
+                    throw new ThroughputRuntimeException(e);
+                }
             }
         });
     }
@@ -430,7 +441,7 @@ public class Prompts {
 
     }
 
-    public static void publishEndWeek(int week, @NonNull ScoreCard scoreCard) {
+    public static void publishEndWeek() {
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("End of Week");
@@ -440,7 +451,7 @@ public class Prompts {
 
     }
 
-    public static void publishEndOfGame(int week, @NonNull ScoreCard scoreCard) {
+    public static void publishEndOfGame() {
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("End of Game");

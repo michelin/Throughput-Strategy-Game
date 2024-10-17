@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
+import lombok.Getter;
 
 import java.util.Objects;
 
@@ -20,6 +21,7 @@ public class AddedCapacityController {
     @FXML
     private Button capacityButton;
     @FXML
+    @Getter
     private ComboBox<Color> workstationToAddCapacity;
 
     public void addCapacity(ActionEvent actionEvent) {

@@ -12,10 +12,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Pane;
 import lombok.SneakyThrows;
@@ -32,6 +29,13 @@ import static com.michelin.throughputfxproject.Board.SIX_SIDES;
 public class BoardController {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(BoardController.class.getName());
+
+    @FXML
+    private ButtonBar dailyButtonBar;
+    @FXML
+    private ButtonBar weeklyButtonBar;
+    @FXML
+    private ButtonBar gameButtonBar;
 
     @FXML
     private Button buttonServerMoves;
@@ -165,26 +169,24 @@ public class BoardController {
     private void updateScorecardTable() {
         ObservableList<ScoreCard> scoreCards = FXCollections.observableArrayList(ScorecardService.getInstance().getScorecards());
 
-        TableColumn<ScoreCard, String> weekCol = new TableColumn<>("Wk");
-        weekCol.setCellValueFactory(new PropertyValueFactory<>(scoreCards.get(0).weekProperty().getName()));
+        TableColumn<ScoreCard, Integer> weekCol = new TableColumn<>("Wk");
+        weekCol.setCellValueFactory(new PropertyValueFactory<>("week"));
 
-        TableColumn<ScoreCard, String> estimatedCol = new TableColumn<>("Est");
-        estimatedCol.setCellValueFactory(new PropertyValueFactory<>(scoreCards.get(0).estimateProperty().getName()));
+        TableColumn<ScoreCard, Integer> estimatedCol = new TableColumn<>("Est");
+        estimatedCol.setCellValueFactory(new PropertyValueFactory<>("estimate"));
 
-        TableColumn<ScoreCard, String> wipCol = new TableColumn<>("WIP");
-        wipCol.setCellValueFactory(new PropertyValueFactory<>(scoreCards.get(0).workInProcessProperty().getName()));
+        TableColumn<ScoreCard, Integer> wipCol = new TableColumn<>("WIP");
+        wipCol.setCellValueFactory(new PropertyValueFactory<>("workInProcess"));
 
-        TableColumn<ScoreCard, String> finishedGoodsCol = new TableColumn<>("FIN");
-        finishedGoodsCol.setCellValueFactory(new PropertyValueFactory<>(scoreCards.get(0).finishedGoodsProperty().getName()));
+        TableColumn<ScoreCard, Integer> finishedGoodsCol = new TableColumn<>("FIN");
+        finishedGoodsCol.setCellValueFactory(new PropertyValueFactory<>("finishedGoods"));
 
-        TableColumn<ScoreCard, String> scoreCol = new TableColumn<>("Pts");
-        scoreCol.setCellValueFactory(new PropertyValueFactory<>(scoreCards.get(0).scoreProperty().getName()));
+        TableColumn<ScoreCard, Integer> scoreCol = new TableColumn<>("Pts");
+        scoreCol.setCellValueFactory(new PropertyValueFactory<>("score"));
 
-        scoreTableView.getColumns().setAll(weekCol, estimatedCol, wipCol, finishedGoodsCol, scoreCol);
-
+        ObservableList<TableColumn<ScoreCard, ?>> columns = scoreTableView.getColumns();
+        columns.setAll(weekCol, estimatedCol, wipCol, finishedGoodsCol, scoreCol);
         scoreTableView.setItems(scoreCards);
-
-
         scoreTableView.refresh();
     }
 
@@ -205,11 +207,15 @@ public class BoardController {
         Prompts.publishDayStart(Board.getInstance().getDayOfTheWeek(), Board.getInstance().getGameWeek());
 
         //Get Team mood and start moving work items
-        final int startValue = Prompts.teamMood(SIX_SIDES);
-        Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, ScorecardService.getInstance().getBacklog().getBacklogItemCount());
+        int startValue = 0;
+        int localBacklogCount = ScorecardService.getInstance().getBacklog().getBacklogItemCount();
+        if (localBacklogCount > 0) {
+            startValue = Prompts.teamMood(SIX_SIDES);
+        }
+        Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, localBacklogCount);
 
         for (int i = 0; i < Board.FIVE_STATIONS; i++) {
-            runWorkstationDay(Board.getInstance().getGameWeek() == 0, i);
+            runWorkstationDay(i);
             reinitialize();
         }
 
@@ -226,7 +232,7 @@ public class BoardController {
             //Remove finished Goods
             ScorecardService.getInstance().getFinishedGoods().setFinishedGoodsTally(0);
 
-            Prompts.publishEndWeek(Board.getInstance().getGameWeek(), scoreCard);
+            Prompts.publishEndWeek();
         }
         reinitialize();
     }
@@ -244,15 +250,18 @@ public class BoardController {
             buttonServerMoves.setDisable(false);
         } else {
             //re-enable week buttons and disable day buttons
+            dailyButtonBar.setVisible(false);
             buttonRunDay.setVisible(false);
             buttonServerMoves.setVisible(false);
 
             if (Board.getInstance().getGameWeek() < Board.RUN_WEEKS) {
                 Board.getInstance().augmentGameWeek();
+                weeklyButtonBar.setVisible(true);
                 buttonRunWeek.setVisible(true);
                 buttonAddSkills.setVisible(true);
                 buttonAddSkills.setDisable(false);
             } else {
+                gameButtonBar.setVisible(true);
                 buttonEndGame.setVisible(true);
             }
 
@@ -278,15 +287,13 @@ public class BoardController {
             throw new ThroughputRuntimeException(e);
         }
 
-        if (Board.getInstance().getGameWeek() == Board.RUN_WEEKS) {
-            Prompts.publishEndWeek(Board.getInstance().getGameWeek(), ScorecardService.getInstance().getScorecards()[Board.getInstance().getGameWeek()]);
-        }
     }
 
     private void runWeek() throws IOException {
         //Start Week
         Prompts.publishStartWeek(Board.getInstance().getGameWeek());
         //Hide Week Buttons
+        weeklyButtonBar.setVisible(false);
         buttonRunWeek.setVisible(false);
         buttonAddSkills.setVisible(false);
 
@@ -297,8 +304,9 @@ public class BoardController {
         //Skills add is triggered by button push
 
         //Show buttons to run day
+        dailyButtonBar.setVisible(true);
         buttonRunDay.setVisible(true);
-        if (Board.getInstance().getGameWeek() > 0) {
+        if (!isVanilla()) {
             buttonServerMoves.setVisible(true);
             buttonServerMoves.setDisable(false);
         }
@@ -310,6 +318,10 @@ public class BoardController {
         } catch (IOException e) {
             throw new ThroughputRuntimeException(e);
         }
+    }
+
+    private static boolean isVanilla() {
+        return Board.getInstance().getGameWeek() < 0;
     }
 
     public void addSkillsToServer(ActionEvent actionEvent) {
@@ -329,7 +341,7 @@ public class BoardController {
     }
 
 
-    private void runWorkstationDay(boolean vanilla, int position) throws InterruptedException, IOException {
+    private void runWorkstationDay(int position) throws InterruptedException, IOException {
         //For each server
         Workstation workstation = WorkstationService.getWorkstation(position);
         for (Server server : workstation.getServers()) {
@@ -343,7 +355,7 @@ public class BoardController {
                     retry(position, server, workstation);
                 }
             }
-            bitActionsDetermined(vanilla);
+            bitActionsDetermined();
         }
     }
 
@@ -359,8 +371,8 @@ public class BoardController {
         }
     }
 
-    private void bitActionsDetermined(boolean vanilla) throws IOException {
-        if (vanilla) {
+    private void bitActionsDetermined() throws IOException {
+        if (isVanilla()) {
             return;
         }
         BitCard bitCard = Prompts.drawBit(gameDialogPane, SIX_SIDES);
@@ -376,10 +388,10 @@ public class BoardController {
 
             switch (((HelpAction) boardAction).getType()) {
                 case ADD_ONE:
-                    Prompts.promptToAugmentWorkstationCapacity(gameDialogPane,false);
+                    Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, false);
                     return;
                 case DOUBLE:
-                    Prompts.promptToAugmentWorkstationCapacity(gameDialogPane,true);
+                    Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, true);
                     return;
                 case AUTOMATE:
                     Prompts.promptToAutomateWorkstation();
@@ -395,7 +407,7 @@ public class BoardController {
 
     }
 
-    private static void activateTrap(Trap trap, BitCard bitCard) throws IOException {
+    private static void activateTrap(Trap trap, BitCard bitCard) {
 
         boolean trapMitigated = Board.getInstance().isTrapMitigated(bitCard);
         Prompts.promptForAppliedTrap(trap, trapMitigated);
@@ -413,8 +425,7 @@ public class BoardController {
     }
 
     public void endGame(ActionEvent ignoredActionEvent) {
-        ScoreCard scoreCard = ScorecardService.getInstance().getScorecards()[Board.getInstance().getGameWeek()];
-        Prompts.publishEndOfGame(Board.getInstance().getGameWeek(), scoreCard);
+        Prompts.publishEndOfGame();
     }
 
 }

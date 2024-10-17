@@ -11,8 +11,6 @@ import lombok.NonNull;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -65,7 +63,7 @@ public class Board {
     }
 
 
-    public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) throws IOException {
+    public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek)  {
 
         //Reduce complexity of calling method by passing along null
         if (bitCard == null) {
@@ -183,7 +181,7 @@ public class Board {
     }
 
 
-    public void startDay(@NonNull ServerMove move) {
+    public void startDay(@NonNull ServerMove move) throws IllegalArgumentException{
         HumanServer serverToMove = findAndRemoveServer(move.getServerColor());
         addServer(Objects.requireNonNull(serverToMove), move.getWorkstationColor());
     }

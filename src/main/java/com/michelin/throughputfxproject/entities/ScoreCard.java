@@ -1,7 +1,6 @@
 package com.michelin.throughputfxproject.entities;
 
-import com.michelin.throughputfxproject.Board;
-import com.michelin.throughputfxproject.services.WorkstationService;
+
 import javafx.beans.property.SimpleIntegerProperty;
 import lombok.Getter;
 import lombok.Setter;

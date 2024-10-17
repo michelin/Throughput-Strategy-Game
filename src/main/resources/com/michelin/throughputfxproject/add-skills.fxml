@@ -11,8 +11,8 @@
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.michelin.throughputfxproject.controllers.SkillsController">
     <TextArea fx:id="skillAddText" wrapText="true" editable="false" focusTraversable="false" mouseTransparent="true" styleClass="read-only-textarea" stylesheets="@throughput.css"/>
-    <HBox>
-        <ComboBox fx:id="serverToAddSkills"/>
+    <HBox fx:id="comboBoxHolder">
+        <ComboBox fx:id="serverToAddSkills" />
         <ComboBox fx:id="skillsToAddToServer"/>
     </HBox>
     <Button fx:id="skillAddButton" onAction="#addSkillsToServer" text="Submit Skills"/>
