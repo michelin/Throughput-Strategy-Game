@@ -22,9 +22,9 @@ public class EstimateController {
         try {
             String startValueText = estimateResponseText.getText();
             int startValue = Integer.parseInt(startValueText);
-            ScoreCard scoreCard = ScorecardService.getInstance().getScorecards()[Board.getInstance().getGameWeek()];
+            ScoreCard scoreCard = ScorecardService.getScorecards()[Board.getGameWeek()];
             scoreCard.setEstimate(startValue);
-            ScorecardService.getInstance().getBacklog().addToBacklog(startValue);
+            ScorecardService.getBacklog().addToBacklog(startValue);
         } catch (NumberFormatException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");

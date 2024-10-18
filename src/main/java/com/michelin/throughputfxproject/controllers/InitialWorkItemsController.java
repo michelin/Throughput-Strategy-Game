@@ -24,7 +24,7 @@ public class InitialWorkItemsController {
             int initialMoveFromBacklog = Integer.parseInt(moveValueText);
             final Workstation workstationZero = WorkstationService.getWorkstation(0);
             workstationZero.addToWorkItemCount(initialMoveFromBacklog);
-            ScorecardService.getInstance().getBacklog().subtractFromBacklog(initialMoveFromBacklog);
+            ScorecardService.getBacklog().subtractFromBacklog(initialMoveFromBacklog);
         } catch (NumberFormatException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");

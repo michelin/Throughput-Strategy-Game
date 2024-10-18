@@ -31,7 +31,7 @@ public class ServerMovesController {
         Color workstationColor = workstationToMoveTo.getSelectionModel().getSelectedItem();
         ServerMove move = new ServerMove(Objects.requireNonNull(serverColor), Objects.requireNonNull(workstationColor) );
         try {
-            Board.getInstance().startDay(move);
+            Board.startDay(move);
         } catch (IllegalArgumentException e) {
             ((Stage)moveButton.getParent().getScene().getWindow()).close();
             throw new ThroughputRuntimeException(e);

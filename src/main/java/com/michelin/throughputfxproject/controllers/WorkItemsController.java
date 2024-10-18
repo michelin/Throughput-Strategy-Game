@@ -31,7 +31,7 @@ public class WorkItemsController {
            Workstation workstation =  WorkstationService.getWorkstations()[workstationPosition];
 
             if (workstationPosition == 4) {
-                ScorecardService.getInstance().getFinishedGoods().addToFinishedGoods(workstationMovesInt);
+                ScorecardService.getFinishedGoods().addToFinishedGoods(workstationMovesInt);
             } else {
                 WorkstationService.getWorkstation(workstationPosition+ 1).addToWorkItemCount(workstationMovesInt);
             }

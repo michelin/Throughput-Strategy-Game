@@ -1,7 +1,8 @@
 package com.michelin.throughputfxproject.controllers;
 
+import com.michelin.throughputfxproject.Board;
 import com.michelin.throughputfxproject.Color;
-import com.michelin.throughputfxproject.entities.Server;
+import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import com.michelin.throughputfxproject.services.ServerService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -27,8 +28,9 @@ public class SkillsController {
 
     @FXML
     protected void addSkillsToServer(ActionEvent actionEvent) {
-        Server server = ServerService.getHumanServer(serverToAddSkills.getSelectionModel().getSelectedItem());
+        HumanServer server = ServerService.getHumanServer(serverToAddSkills.getSelectionModel().getSelectedItem());
         Objects.requireNonNull(server).getSkills().add(skillsToAddToServer.getSelectionModel().getSelectedItem());
+        Board.setInTrainingServer(server);
 
         ((Stage)skillAddButton.getParent().getScene().getWindow()).close();
 

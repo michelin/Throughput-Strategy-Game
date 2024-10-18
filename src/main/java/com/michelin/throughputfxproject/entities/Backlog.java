@@ -1,5 +1,6 @@
 package com.michelin.throughputfxproject.entities;
 
+import com.michelin.throughputfxproject.Board;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,6 +18,10 @@ public class Backlog {
         if (amount < 0) throw new AssertionError();
         if (amount > backlogItemCount) throw new AssertionError();
         backlogItemCount -= amount;
+    }
+
+    public float backlogScore(){
+        return (backlogItemCount * ((float)1/(Board.FIVE_STATIONS+1)));
     }
 
     @Override

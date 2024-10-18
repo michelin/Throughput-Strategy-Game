@@ -6,54 +6,57 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane prefHeight="280.0" prefWidth="380.0" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.BITController">
-    <HBox style="-fx-background-color: transparent;">
-        <VBox layoutX="260.0" layoutY="71.0" style="-fx-background-color: transparent;">
-            <HBox style="-fx-background-color: transparent;">
-                <VBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="280.0" prefWidth="200.0" styleClass="card-box" stylesheets="@throughput.css">
-                    <Label fx:id="cardTitle" alignment="CENTER" contentDisplay="TOP" prefWidth="190.0" styleClass="card-title" stylesheets="@throughput.css" text="title">
-                  <font>
-                     <Font name="Michelin Bold" size="14.0" />
-                  </font>
-                  <padding>
-                     <Insets bottom="5.0" />
-                  </padding></Label>
-                    <Label fx:id="cardSubtitle" alignment="CENTER" contentDisplay="TOP" prefWidth="190.0" styleClass="card-subtitle" stylesheets="@throughput.css" text="subtitle">
-                  <padding>
-                     <Insets bottom="5.0" />
-                  </padding></Label>
-                    <Label fx:id="cardReason" alignment="CENTER" contentDisplay="TOP" prefWidth="190.0" styleClass="card-reason" stylesheets="@throughput.css" text="reason">
-                  <VBox.margin>
-                     <Insets bottom="10.0" />
-                  </VBox.margin></Label>
+<AnchorPane xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.BITController">
+    <HBox>
+        <VBox layoutX="260.0" layoutY="71.0">
+            <HBox prefHeight="320.0" prefWidth="370.0">
+                <VBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="320.0" prefWidth="270.0" styleClass="card-box" stylesheets="@throughput.css">
+                    <Label fx:id="cardTitle" alignment="CENTER" contentDisplay="TOP" prefHeight="75.0" prefWidth="242.0" styleClass="card-title" stylesheets="@throughput.css" text="title" textAlignment="CENTER" wrapText="true">
+                        <font>
+                            <Font name="Michelin Bold" size="14.0" />
+                        </font>
+                        <padding>
+                            <Insets bottom="5.0" />
+                        </padding>
+                    </Label>
+                    <Label fx:id="cardSubtitle" alignment="CENTER" contentDisplay="TOP" prefHeight="36.0" prefWidth="257.0" styleClass="card-subtitle" stylesheets="@throughput.css" text="subtitle" textAlignment="CENTER">
+                        <padding>
+                            <Insets bottom="5.0" />
+                        </padding>
+                    </Label>
+                    <Label fx:id="cardReason" alignment="CENTER" contentDisplay="TOP" prefHeight="25.0" prefWidth="255.0" styleClass="card-reason" stylesheets="@throughput.css" text="reason">
+                        <VBox.margin>
+                            <Insets bottom="10.0" />
+                        </VBox.margin>
+                    </Label>
                     <HBox prefWidth="190.0">
-                    <Label fx:id="cardDescriptionTitle" styleClass="card-description-title" stylesheets="@throughput.css" text="Description Title" />
-                        <Pane prefWidth="30.0" />
+                        <Label fx:id="cardDescriptionTitle" prefHeight="20.0" prefWidth="217.0" styleClass="card-description-title" stylesheets="@throughput.css" text="Description Title" />
+                        <Pane prefHeight="25.0" prefWidth="34.0" />
                         <ImageView fx:id="descriptionImage" fitHeight="25" fitWidth="25">
-                            <Image  url="file:\Users\n541342\IdeaProjects\throughput-fx-project\src\main\resources\com\michelin\throughputfxproject\cards\BIT.jpg" />
+                            <Image url="@cards/BIT.jpg" />
                             <viewport>
                                 <Rectangle2D />
                             </viewport>
                         </ImageView>
                     </HBox>
-                    <Label fx:id="cardDescription" alignment="TOP_LEFT" minHeight="80.0" prefWidth="190.0" stylesheets="@throughput.css" text="description" wrapText="true">
-                  <padding>
-                     <Insets bottom="10.0" top="5.0" />
-                  </padding></Label>
-                    <Label fx:id="cardInstructions" alignment="CENTER" contentDisplay="TOP" minHeight="40.0" prefWidth="190.0" stylesheets="@throughput.css" text="Instructions" textOverrun="CLIP" wrapText="true" />
-               <opaqueInsets>
-                  <Insets />
-               </opaqueInsets>
-               <padding>
-                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-               </padding>
+                    <Label fx:id="cardDescription" alignment="TOP_LEFT" minHeight="80.0" prefHeight="125.0" prefWidth="242.0" stylesheets="@throughput.css" text="description" wrapText="true">
+                        <padding>
+                            <Insets bottom="10.0" top="5.0" />
+                        </padding>
+                    </Label>
+                    <Label fx:id="cardInstructions" alignment="CENTER" minHeight="40.0" prefHeight="80.0" prefWidth="242.0" stylesheets="@throughput.css" text="Instructions" wrapText="true" />
+                    <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                    </padding>
                 </VBox>
-                <ImageView fx:id="cardBackImage" fitHeight="280.0" fitWidth="190.0">
-                    <Image  url="file:\Users\n541342\IdeaProjects\throughput-fx-project\src\main\resources\com\michelin\throughputfxproject\cards\BIT.jpg" />
-                    <viewport>
-                        <Rectangle2D />
-                    </viewport>
-                </ImageView>
+                <AnchorPane prefHeight="356.0" prefWidth="237.0" styleClass="card-box" stylesheets="@throughput.css">
+                    <ImageView fx:id="cardBackImage" fitHeight="333.0" fitWidth="230.0" layoutX="7.0" layoutY="7.0">
+                        <Image url="@cards/BIT.jpg" />
+                        <viewport>
+                            <Rectangle2D />
+                        </viewport>
+                    </ImageView>
+                </AnchorPane>
             </HBox>
         </VBox>
 

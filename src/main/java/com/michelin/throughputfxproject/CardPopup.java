@@ -8,6 +8,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -15,6 +17,8 @@ public class CardPopup extends Application {
     public static void run(String[] args) {
         launch(args);
     }
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(CardPopup.class.getName());
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -54,19 +58,12 @@ public class CardPopup extends Application {
         popup.setWidth(width);
         popup.setHeight(height);
 
-//        primaryStage.setTitle("Skills Add Window");
-//        primaryStage.setWidth((width*2)+50);
-//        primaryStage.setHeight(height + 50);
-//        primaryStage.show();
 
         // Show the popup
         popup.show(primaryStage);
 
         // Close the popup when it loses focus
-        popup.setOnHidden(event -> {
-            // Perform any cleanup actions here
-            System.out.println("Popup closed");
-        });
+        popup.setOnHidden(event -> LOGGER.debug("Popup closed"));
 
     }
 }

@@ -27,11 +27,10 @@ import java.util.*;
 public class CardService {
     public static final Logger LOGGER = LoggerFactory.getLogger(CardService.class.getName());
     private static final Map<String, List<Card>> decks = new HashMap<>(5);
-    private final Random random = new Random();
-    private static CardService instance;
+    private static final Random random = new Random();
 
-    private CardService() {
 
+    static{
         try {
             decks.put(Card.BOOSTER_INOCULATE_TRAP, getCards(Card.BOOSTER_INOCULATE_TRAP));
         } catch (URISyntaxException | IOException e) {
@@ -57,14 +56,13 @@ public class CardService {
         }
     }
 
-    public static CardService getInstance() {
-        if(instance == null) {
-            instance = new CardService();
-        }
-        return instance;
+    private CardService() {
+
+
     }
 
-    private List<Card> getCards(String deckName) throws URISyntaxException, IOException {
+
+    private static List<Card> getCards(String deckName) throws URISyntaxException, IOException {
         switch (deckName) {
             case Card.BOOSTER_INOCULATE_TRAP:
                 return new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/bit.csv")), BitCard.class));
@@ -79,13 +77,13 @@ public class CardService {
         }
     }
 
-    private <T extends Card> List<T> geCardsFromCsv(URL pathUrl, Class<T> clazz) throws URISyntaxException, IOException {
+    private static <T extends Card> List<T> geCardsFromCsv(URL pathUrl, Class<T> clazz) throws URISyntaxException, IOException {
         Path filePath = Paths.get(pathUrl.toURI());
         return cardMultiplier(filePath, clazz);
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Card> List<T> cardMultiplier(Path filePath, Class<T> clazz) throws IOException {
+    private static <T extends Card> List<T> cardMultiplier(Path filePath, Class<T> clazz) throws IOException {
         List<T> cards = cardBeanBuilder(filePath, clazz);
         List<T> cloneCards = new ArrayList<>(cards);
         cards.forEach(card -> {
@@ -97,7 +95,7 @@ public class CardService {
         return cloneCards;
     }
 
-    private <T extends Card> List<T> cardBeanBuilder(Path filePath, Class<T> clazz) throws IOException {
+    private static <T extends Card> List<T> cardBeanBuilder(Path filePath, Class<T> clazz) throws IOException {
         Reader reader = Files.newBufferedReader(filePath);
         CsvToBean<T> cb = new CsvToBeanBuilder<T>(reader)
                 .withType(clazz).withSeparator('|')
@@ -105,12 +103,12 @@ public class CardService {
         return cb.parse();
     }
 
-    public Card pickACard(String deckName) {
+    public static Card pickACard(String deckName) {
         List<Card> deck = getCardDeck(deckName);
         return shuffleDeck(deck).get(random.nextInt(deck.size()));
     }
 
-    private List<Card> getCardDeck(String deckName) {
+    private static List<Card> getCardDeck(String deckName) {
         List<Card> deck = decks.get(deckName);
         if (deck == null) {
             throw new IllegalArgumentException(deckName + " is not a recognized card deck");
@@ -125,7 +123,7 @@ public class CardService {
         return deck;
     }
 
-    private <T extends Card> List<T> shuffleDeck(List<T> deck) {
+    private static <T extends Card> List<T> shuffleDeck(List<T> deck) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("before shuffle {}", Arrays.toString(deck.toArray()));
         }
@@ -142,7 +140,7 @@ public class CardService {
         return deck;
     }
 
-    public Card pickACardDestructively(String deckName) {
+    public static Card pickACardDestructively(String deckName) {
         List<Card> deck = getCardDeck(deckName);
         Card nextCard = deck.get(random.nextInt(deck.size()));
         deck.remove(nextCard);

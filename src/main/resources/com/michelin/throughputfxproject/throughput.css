@@ -24,19 +24,21 @@
     -fx-font-size: 12pt;
 }
 .outer-title-box{
-    -fx-background-color: rgb(255,255,255,.5);
+    -fx-background-color: rgb(255,255,255,.1);
 }
 .header{
     -fx-font-family: Michelin-Bold, sans-serif;
     -fx-font-size: 40pt;
     -fx-font-weight: bold;
     -fx-text-alignment: center;
+    -fx-background-color:  white;
 }
 
 .sub-header{
     -fx-font-family: Michelin-Bold, sans-serif;
     -fx-font-size: 20pt;
     -fx-text-alignment: center;
+    -fx-background-color:  white;
 }
 
 .date-group{
@@ -70,7 +72,7 @@
 
 .buttons{
     -fx-font-family: Michelin-Bold, sans-serif;
-    -fx-font-size: 14pt;
+    -fx-font-size: 12pt;
     -fx-text-alignment: center;
     -fx-font-weight: bold;
 }
@@ -79,25 +81,24 @@
     -fx-border-color: black;
     -fx-border-width: 4;
     -fx-border-radius: 18 18 18 18;
-    -fx-background-color: transparent;
+    -fx-background-color: white;
 }
 .card-title{
     -fx-font-family: Michelin-Bold, sans-serif;
-    -fx-font-size: 18pt;
+    -fx-font-size: 14pt;
     -fx-font-weight: bold;
 }
 .card-subtitle{
     -fx-font-family: Michelin-Bold, sans-serif;
-    -fx-font-size: 16pt;
-    -fx-font-weight: bold;
+    -fx-font-size: 12pt;
 }
 .card-reason{
     -fx-font-family: Michelin-Bold, sans-serif;
-    -fx-font-size: 12pt;
+    -fx-font-size: 11pt;
 }
 .card-description-title{
     -fx-font-family: Michelin, sans-serif;
-    -fx-font-size: 10pt;
+    -fx-font-size: 9pt;
 }
 .card-description{
     -fx-font-family: Michelin, sans-serif;

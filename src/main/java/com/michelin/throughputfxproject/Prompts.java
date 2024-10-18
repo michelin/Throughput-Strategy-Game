@@ -1,7 +1,10 @@
 package com.michelin.throughputfxproject;
 
 import com.michelin.throughputfxproject.controllers.*;
-import com.michelin.throughputfxproject.entities.*;
+import com.michelin.throughputfxproject.entities.Card;
+import com.michelin.throughputfxproject.entities.Server;
+import com.michelin.throughputfxproject.entities.Trap;
+import com.michelin.throughputfxproject.entities.Workstation;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
 import com.michelin.throughputfxproject.entities.cards.ChanceCard;
 import com.michelin.throughputfxproject.entities.cards.ChanceRobotCard;
@@ -24,7 +27,6 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
-import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import lombok.NonNull;
@@ -35,7 +37,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
-
 
 
 public class Prompts {
@@ -51,65 +52,64 @@ public class Prompts {
     public static BitCard drawBit(@NonNull Pane container, int dieSides) throws IOException {
         //If not week 1 draw BIT card if they roll a 6
         int drawBitInt = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
-        if (drawBitInt == 6) {
+        //todo set this back to max die sides
+        if (drawBitInt > 2) {
 
-            Alert alert = new Alert(Alert.AlertType.INFORMATION,"Follow the instructions on the card." , ButtonType.OK);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Follow the instructions on the card.", ButtonType.OK);
             alert.setHeaderText("Draw a " + Card.BOOSTER_INOCULATE_TRAP + " card!");
             alert.setTitle(Card.BOOSTER_INOCULATE_TRAP);
             alert.showAndWait();
 
-            BitCard bitCard = (BitCard) CardService.getInstance().pickACardDestructively(Card.BOOSTER_INOCULATE_TRAP);
+            BitCard bitCard = (BitCard) CardService.pickACardDestructively(Card.BOOSTER_INOCULATE_TRAP);
             Objects.requireNonNull(bitCard);
 
+            Stage stage = new Stage();
             FXMLLoader loader = new FXMLLoader(Prompts.class.getResource("bit-card.fxml"));
             Parent root = loader.load();
 
-            Label labelTitle =  ((BITController)loader.getController()).getCardTitle();
+            stage.setScene(new Scene(root));
+
+            Label labelTitle = ((BITController) loader.getController()).getCardTitle();
             labelTitle.setText(bitCard.getTitle());
 
-            Label subtitleLabel =  ((BITController)loader.getController()).getCardSubtitle();
+            Label subtitleLabel = ((BITController) loader.getController()).getCardSubtitle();
             subtitleLabel.setText(bitCard.getSubtitle());
 
-            Label reasonLabel =  ((BITController)loader.getController()).getCardReason();
+            Label reasonLabel = ((BITController) loader.getController()).getCardReason();
             reasonLabel.setText(bitCard.getReason());
 
-            Label instructionLabel =  ((BITController)loader.getController()).getCardInstructions();
+            Label instructionLabel = ((BITController) loader.getController()).getCardInstructions();
             instructionLabel.setText(bitCard.getInstructions());
 
-            Label descriptionLabel =  ((BITController)loader.getController()).getCardDescription();
+            Label descriptionLabel = ((BITController) loader.getController()).getCardDescription();
             descriptionLabel.setText(bitCard.getDescription());
 
-            Label descriptionTitleLabel =  ((BITController)loader.getController()).getCardDescriptionTitle();
+            Label descriptionTitleLabel = ((BITController) loader.getController()).getCardDescriptionTitle();
             descriptionTitleLabel.setText(bitCard.getDescriptionTitle());
 
-            ImageView backImageView = ((BITController)loader.getController()).getCardBackImage();
+            ImageView backImageView = ((BITController) loader.getController()).getCardBackImage();
             Image backImage = new Image(Objects.requireNonNull(Prompts.class.getResource("cards/BIT.jpg")).openStream());
             backImageView.setImage(backImage);
             // Create an image view with the desired image
 
             String descritionImgString = bitCard.getDescriptionImg();
-            if(descritionImgString != null) {
-                ImageView descriptionImageView = ((BITController)loader.getController()).getDescriptionImage();
+            if (descritionImgString != null) {
+                ImageView descriptionImageView = ((BITController) loader.getController()).getDescriptionImage();
                 Image descriptionImg = new Image(Objects.requireNonNull(Prompts.class.getResource(descritionImgString)).openStream());
                 descriptionImageView.setImage(descriptionImg);
             }
 
             // Create a popup and add the stack pane to it
-            Popup popup = new Popup();
-            popup.getContent().add(root);
+            stage.setTitle("Booster, Inoculation, Trap");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initOwner(container.getScene().getWindow());
+            stage.showAndWait();
 
-            // Set the popup's size to match the image view
-            popup.setWidth(400);
-            popup.setHeight(300);
-
-            // Show the popup
-            popup.show(container.getScene().getWindow());
 
             //Follow the instructions on BIT card. If we get a hold card put in weekly hold or game hold.
             //Execute work item traps immediately, otherwise return traps for future execution.
             return bitCard;
             //Execute do-over hold cards -- Look for mitigating hold cards
-
         }
         return null;
     }
@@ -118,7 +118,7 @@ public class Prompts {
     public static void implementPairedProgramming(@NonNull Pane container) throws IOException {
 
         Stage stage = new Stage();
-        FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("programming.fxml"));
+        FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("implement-pairs.fxml"));
         Parent root = loader.load();
 
         String implementPairsText = "Choose which color workstation to pair. Requires a HUMAN server on the same workstation to work" +
@@ -146,7 +146,7 @@ public class Prompts {
                     "  " + trap.getEffected() + " Loses " + trap.getMitigatedDuration();
         } else {
             builder = "No Mitigation available for trap" +
-                    "  " + trap.getEffected() + "Loses " + trap.getDuration();
+                    "  " + trap.getEffected() + " Loses " + trap.getDuration();
         }
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION, builder, ButtonType.OK);
@@ -240,13 +240,15 @@ public class Prompts {
 
     }
 
-    public static void promptForWorkItemWorkstationMoves(@NonNull Pane container, @NonNull Workstation workstation, int workstationPosition) throws IOException {
+    public static void promptForWorkItemWorkstationMoves(@NonNull Pane container, int workstationPosition) throws IOException {
+
+       Workstation workstation =  WorkstationService.getWorkstation(workstationPosition);
         if (workstation.getWorkItemCount() == 0) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("No Moves");
             alert.setHeaderText("No Moves " + workstation.getColor());
             alert.setContentText(workstation.getColor() + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE);
-            alert.show();
+            alert.showAndWait();
             return;
         }
 
@@ -324,7 +326,7 @@ public class Prompts {
 
     public static boolean promptToDrawSkillsCard() throws IOException {
 
-        SkillCard skillCard = (SkillCard) CardService.getInstance().pickACard(Card.SKILLS);
+        SkillCard skillCard = (SkillCard) CardService.pickACard(Card.SKILLS);
         Alert alert = new Alert(Alert.AlertType.INFORMATION, skillCard.getInstructions(), ButtonType.YES, ButtonType.NO);
         alert.setTitle("Skills Card");
         ImageView imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/SkillTraining.jpg")).openStream()));
@@ -354,14 +356,14 @@ public class Prompts {
         TextArea node = (TextArea) root.getScene().lookup("#skillAddText");
         node.setText(builder);
 
-        ComboBox<Color> serverColorPicker = ((SkillsController)loader.getController()).getServerToAddSkills();
+        ComboBox<Color> serverColorPicker = ((SkillsController) loader.getController()).getServerToAddSkills();
         buildColorCombobox(serverColorPicker, Color.humanColorValues());
 
 
-        ComboBox<Color> skillColorPicker = ((SkillsController)loader.getController()).getSkillsToAddToServer();
+        ComboBox<Color> skillColorPicker = ((SkillsController) loader.getController()).getSkillsToAddToServer();
         buildColorCombobox(skillColorPicker, Color.humanColorValues());
 
-        stage.setTitle("Skills Add Window");
+        stage.setTitle("Add Skills to Server");
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(container.getScene().getWindow());
         stage.showAndWait();
@@ -369,22 +371,29 @@ public class Prompts {
 
     }
 
-    public static void promptToAutomateWorkstation() throws IOException {
+    public static void promptToAutomateWorkstation(@NonNull Pane container) throws IOException {
 
         Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-automation.fxml"));
         Parent root = loader.load();
 
         String builder = "Choose which color workstation to add automation " + Color.GREEN.name() + "|" + Color.ROSE.name() + "|" + Color.YELLOW.name() +
-                "Example: GREEN will will automate the GREEN workstation. The human server will remain until moved";
+                "/n Example: GREEN will will automate the GREEN workstation. The human server will remain until moved";
 
         stage.setScene(new Scene(root));
 
         TextArea node = (TextArea) root.getScene().lookup("#addAutomationText");
         node.setText(builder);
 
-        ComboBox<Color> serverWorkstationColorPicker = ((AddAutomationController)loader.getController()).getWorkstationToAddAutomation();
+        ComboBox<Color> serverWorkstationColorPicker = ((AddAutomationController) loader.getController()).getWorkstationToAddAutomation();
         buildColorCombobox(serverWorkstationColorPicker, Color.automatedColorValues());
+
+        stage.setTitle("Automate Workstation");
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(container.getScene().getWindow());
+        stage.showAndWait();
+
+
 
     }
 
@@ -404,10 +413,11 @@ public class Prompts {
             @Override
             public String toString(Color color) {
                 if (color == null) {
-                    return "NULL";
+                    return "Choose Color";
                 }
                 return color.name();
             }
+
             @Override
             public Color fromString(String s) {
                 try {
@@ -461,25 +471,25 @@ public class Prompts {
     }
 
 
-    public static boolean serverChanceCardPlay(@NonNull Server server, @NonNull Workstation workstation) throws IOException {
+    public static ChanceResult serverChanceCardPlay(@NonNull Server server, int position) throws IOException {
 
+        Workstation workstation = WorkstationService.getWorkstation(position);
         if (workstation.getWorkItemCount() == 0) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE, ButtonType.OK);
             alert.setHeaderText(workstation.getColor().name());
             alert.setTitle("Chance Card");
             alert.showAndWait();
 
-
-            return false;
+            return ChanceResult.EMPTY;
         }
 
         ChanceCard chanceCard;
         ImageView imageView;
         if (server instanceof AutomatedServer) {
-            chanceCard = (ChanceRobotCard) CardService.getInstance().pickACard(Card.AUTOMATED_CHANCE);
+            chanceCard = (ChanceRobotCard) CardService.pickACard(Card.AUTOMATED_CHANCE);
             imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/ChanceTheRobot.jpg")).openStream()));
         } else {
-            chanceCard = (ChanceCard) CardService.getInstance().pickACard(Card.CHANCE);
+            chanceCard = (ChanceCard) CardService.pickACard(Card.CHANCE);
             imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/Chance.jpg")).openStream()));
         }
         imageView.setFitHeight(50);
@@ -491,7 +501,7 @@ public class Prompts {
         alert.setGraphic(imageView);
         alert.showAndWait();
 
-        return chanceCard.isSuccess();
+        return chanceCard.isSuccess() ? ChanceResult.SUCCESS : ChanceResult.FAILED;
 
     }
 
@@ -502,18 +512,20 @@ public class Prompts {
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Team Mood");
-        alert.setContentText("Rolled for Team Mood." + "  Team Mood is " + teamMood + " and backlog has " + ScorecardService.getInstance().getBacklog().getBacklogItemCount() + " work items" + " At the prompt you can move up to " + Math.min(teamMood, ScorecardService.getInstance().getBacklog().getBacklogItemCount()) + " items into your 1st workstation");
+        alert.setHeaderText("Rolled for Team Mood");
+        alert.setContentText("Team Mood is " + teamMood + " and backlog has " + ScorecardService.getBacklog().getBacklogItemCount() + " work items" + " At the prompt you can move up to " + Math.min(teamMood, ScorecardService.getBacklog().getBacklogItemCount()) + " items into your 1st workstation");
         alert.showAndWait();
 
-        return Math.min(teamMood, ScorecardService.getInstance().getBacklog().getBacklogItemCount());
+        return Math.min(teamMood, ScorecardService.getBacklog().getBacklogItemCount());
     }
 
     public static void promptForFinishedGoodsAreNowFourPoints() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Team Mood");
-        alert.setContentText("Augmenting finished goods value to 4 for the remainder of the game");
-        alert.show();
-        ScorecardService.getInstance().getFinishedGoods().setValue(4);
+        alert.setTitle("Boost");
+        alert.setHeaderText("Augmenting finished goods");
+        alert.setContentText("Their value is 4 pts for the remainder of the game");
+        alert.showAndWait();
+        ScorecardService.getFinishedGoods().setValue(4);
     }
 
 

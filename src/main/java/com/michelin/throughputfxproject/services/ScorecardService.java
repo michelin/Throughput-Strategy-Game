@@ -9,34 +9,31 @@ import lombok.Getter;
 import java.util.Arrays;
 
 
-@Getter
+
 public class ScorecardService {
 
-    private  final Backlog backlog = new Backlog();
-    private  final FinishedGoods finishedGoods = new FinishedGoods();
-    private  final ScoreCard[] scorecards = new ScoreCard[Board.RUN_WEEKS];
-    private static ScorecardService instance = null;
+    @Getter
+    private static final Backlog backlog = new Backlog();
+    @Getter
+    private static final FinishedGoods finishedGoods = new FinishedGoods();
+    @Getter
+    private static final ScoreCard[] scorecards = new ScoreCard[Board.RUN_WEEKS];
 
-
-    private ScorecardService() {
+    static {
         for (int i = 0; i < Board.RUN_WEEKS; i++) {
             scorecards[i] = new ScoreCard(i + 1, 0, 0, 0, 0);
         }
     }
 
-    public static ScorecardService getInstance() {
-        if(instance == null){
-            instance = new ScorecardService();
-        }
-        return instance;
+    private ScorecardService() {
+
     }
 
-
-    public int getTotalScore() {
-        return Arrays.stream(scorecards).filter(scoreCard -> scoreCard.getWeek() < (Board.getInstance().getGameWeek()+1)).mapToInt(ScoreCard::getScore).sum() + currentWeekRunningScore();
+    public static int getTotalScore() {
+        return Arrays.stream(scorecards).filter(scoreCard -> scoreCard.getWeek() < (Board.getGameWeek() + 1)).mapToInt(ScoreCard::getScore).sum() + currentWeekRunningScore();
     }
 
-    public int currentWeekRunningScore(){
-        return (WorkstationService.tallyWorkInProcess()*-1) + (backlog.getBacklogItemCount()*-1) + finishedGoods.calculateScore();
+    private static int currentWeekRunningScore() {
+        return (Math.round(WorkstationService.tallyWorkInProcessScore() * -1)) + Math.round((backlog.backlogScore() * -1)) + finishedGoods.calculateScore();
     }
 }

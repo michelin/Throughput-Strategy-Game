@@ -5,8 +5,10 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import lombok.Getter;
 
+
 @Getter
 public class BITController {
+
     @FXML
     private Label cardTitle;
     @FXML
@@ -23,4 +25,6 @@ public class BITController {
     private Label cardInstructions;
     @FXML
     private ImageView cardBackImage;
+
+
 }

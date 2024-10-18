@@ -16,7 +16,7 @@ import java.util.Objects;
 
 public class WorkstationService {
     public static final Logger LOGGER = LoggerFactory.getLogger(WorkstationService.class.getName());
-    private static com.michelin.throughputfxproject.entities.Workstation[] workstations;
+    private static Workstation[] workstations;
 
     private WorkstationService() {
         super();
@@ -83,9 +83,16 @@ public class WorkstationService {
         }
         return -1;
     }
-
     public static int tallyWorkInProcess() {
-        return Arrays.stream(getWorkstations()).mapToInt(Workstation::getWorkItemCount).sum();
+        return Arrays.stream(workstations).mapToInt(Workstation::getWorkItemCount).sum();
+    }
+    public static float tallyWorkInProcessScore() {
+        float totalScore = 0;
+        for (int i = 0; i < getWorkstations().length; i++) {
+            Workstation workstation = getWorkstations()[i];
+            totalScore = totalScore + workstation.getWorkItemCount() * ((float) (i + 2) /Board.SIX_SIDES);
+        }
+        return totalScore;
     }
 
     public static Workstation[] getWorkstations() {

@@ -9,7 +9,6 @@ import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,11 +26,15 @@ public class ServerService {
     }
 
     public static Server addSkill(@NonNull HumanServer server, @NonNull Color skill) {
-
-        LOGGER.debug("Original array: {}", Arrays.toString(server.getSkills().toArray()));
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Original array: {}", Arrays.toString(server.getSkills().toArray()));
+        }
         // add skill
         server.getSkills().add(skill); // Add element to the end
-        LOGGER.debug("Resized array: {}", Arrays.toString(server.getSkills().toArray()));
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Resized array: {}", Arrays.toString(server.getSkills().toArray()));
+        }
         return server;
     }
 

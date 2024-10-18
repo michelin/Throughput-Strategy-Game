@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<HBox prefHeight="60.0" prefWidth="63.0" xmlns="http://javafx.com/javafx/11.0.14-internal">
+    <ImageView fitHeight="60.0" fitWidth="53.0"  >
+        <Image url="@servers/server_blue.jpg" />
+    </ImageView>
+    <VBox><Rectangle fill="LIME" height="20.0" width="10.0" /></VBox>
+</HBox>
+

@@ -28,33 +28,27 @@ public class Board {
     public static final String ANY_SERVER = "ANY_SERVER";
     public static final String HUMAN_SERVER = "HUMAN_SERVER";
     public static final String WEEK = "WEEK";
-    private static Board board;
 
+    //Play containers - Holders of game status
     @Getter
-    private final List<BitCard> weekHoldCards = new ArrayList<>(10);
-    private final List<BitCard> gameHoldCards = new ArrayList<>(10);
+    private static final List<BitCard> weekHoldCards = new ArrayList<>(10);
     @Getter
-    private Integer dayOfTheWeek = 0;
+    private static final List<BitCard> gameHoldCards = new ArrayList<>(10);
     @Getter
-    private Integer gameWeek = 0;
+    private static Integer dayOfTheWeek = 0;
+    @Getter
+    private static Integer gameWeek = 0;
     @Getter
     @Setter
-    private HumanServer inTrainingServer = null;
+    private static HumanServer inTrainingServer = null;
 
 
     private Board() {
 
     }
 
-    public static Board getInstance() {
-        if (board == null) {
-            board = new Board();
-        }
-        return board;
-    }
 
-
-    private void addServer(@NonNull Server serverToMove, @NonNull Color color) {
+    private static void addServer(@NonNull Server serverToMove, @NonNull Color color) {
 
         if (!serverToMove.getSkills().contains(color)) {
             throw new IllegalArgumentException("Server must match workstation or have a skill that matches workstation");
@@ -63,7 +57,7 @@ public class Board {
     }
 
 
-    public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek)  {
+    public static BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek)  {
 
         //Reduce complexity of calling method by passing along null
         if (bitCard == null) {
@@ -117,7 +111,7 @@ public class Board {
     }
 
 
-    public HumanServer findAndRemoveServer(@NonNull Color serverColor) {
+    public static HumanServer findAndRemoveServer(@NonNull Color serverColor) {
         for (Workstation workstation : WorkstationService.getWorkstations()) {
             HumanServer serverToMove = (HumanServer) workstation.getServers().stream().filter(server -> server.getColor().equals(serverColor) && server.getType().equals(Server.TYPE_HUMAN)).findAny().orElse(null);
             if (serverToMove != null && workstation.getServers().remove(serverToMove)) {
@@ -128,20 +122,20 @@ public class Board {
     }
 
 
-    public void augmentDayOfTheWeek() {
+    public static void augmentDayOfTheWeek() {
         dayOfTheWeek++;
     }
 
-    public void augmentGameWeek() {
+    public static void augmentGameWeek() {
         gameWeek++;
     }
 
 
-    public boolean isTrapMitigated(BitCard bitCard) {
+    public static boolean isTrapMitigated(BitCard bitCard) {
         return gameHoldCards.removeIf(card -> card.getId() == bitCard.getCounterCard());
     }
 
-    private void moveWorkItemsFromColorWorkstationToPrevious(BitCard bitCard) {
+    private static void moveWorkItemsFromColorWorkstationToPrevious(BitCard bitCard) {
         Color color = Color.BLUE;
         try {
             color = Color.valueOf(bitCard.getDescription());
@@ -151,7 +145,7 @@ public class Board {
         int offendingWorkstationIndex = WorkstationService.getWorkstationIndex(color);
         Workstation offendingWorkstation = WorkstationService.getWorkstation(offendingWorkstationIndex);
         if (offendingWorkstationIndex == 0) {
-            ScorecardService.getInstance().getBacklog().addToBacklog(offendingWorkstation.getWorkItemCount());
+            ScorecardService.getBacklog().addToBacklog(offendingWorkstation.getWorkItemCount());
             offendingWorkstation.setWorkItemCount(0);
         } else if (offendingWorkstationIndex < 0) {
             if (LOGGER.isWarnEnabled()) {
@@ -165,12 +159,12 @@ public class Board {
     }
 
 
-    private void returnFinishedGoodsToBacklog() {
-        ScorecardService.getInstance().getBacklog().addToBacklog(ScorecardService.getInstance().getFinishedGoods().getFinishedGoodsTally());
-        ScorecardService.getInstance().getFinishedGoods().setFinishedGoodsTally(0);
+    private static void returnFinishedGoodsToBacklog() {
+        ScorecardService.getBacklog().addToBacklog(ScorecardService.getFinishedGoods().getFinishedGoodsTally());
+        ScorecardService.getFinishedGoods().setFinishedGoodsTally(0);
     }
 
-    public void returnServerToWorkstation() {
+    public static void returnServerToWorkstation() {
         if (inTrainingServer == null) {
             return;
         }
@@ -178,10 +172,11 @@ public class Board {
         if (workstation != null) {
             workstation.getServers().add(inTrainingServer);
         }
+        inTrainingServer = null;
     }
 
 
-    public void startDay(@NonNull ServerMove move) throws IllegalArgumentException{
+    public static void startDay(@NonNull ServerMove move) throws IllegalArgumentException{
         HumanServer serverToMove = findAndRemoveServer(move.getServerColor());
         addServer(Objects.requireNonNull(serverToMove), move.getWorkstationColor());
     }
