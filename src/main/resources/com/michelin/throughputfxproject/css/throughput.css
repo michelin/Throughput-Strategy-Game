@@ -1,5 +1,5 @@
 .img-background{
-    -fx-background-image: url('images/Flow1.jpg');
+    -fx-background-image: url('../images/Flow1.jpg');
     -fx-background-size: cover;
     -fx-background-position: center;
     -fx-background-color: white;
@@ -18,33 +18,46 @@
  }
 .outer-score-box{
     -fx-background-color: rgb(255,255,255,.8);
+    -fx-padding: 10px 10px 10px 10px;
+    -fx-border-width: 2px;
+    -fx-border-color: yellow;
 }
 .score-box-label{
     -fx-font-family: Michelin, sans-serif;
-    -fx-font-size: 12pt;
+    -fx-font-size: 10pt;
 }
 .outer-title-box{
     -fx-background-color: rgb(255,255,255,.1);
 }
-.header{
-    -fx-font-family: Michelin-Bold, sans-serif;
-    -fx-font-size: 40pt;
-    -fx-font-weight: bold;
+.title-header{
+    -fx-font-family: Michelin;
+    -fx-font-size: 50pt;
+    -fx-font-weight: bolder;
+    -fx-text-fill: darkblue;
     -fx-text-alignment: center;
-    -fx-background-color:  white;
+    -fx-background-color:  rgb(255,255,255,.6);
+    -fx-label-padding: 0px 18px 0px 18px;
+    -fx-border-width: 2px;
+    -fx-border-color: yellow;
 }
 
 .sub-header{
-    -fx-font-family: Michelin-Bold, sans-serif;
-    -fx-font-size: 20pt;
+    -fx-font-family: Michelin;
+    -fx-font-size: 22pt;
+    -fx-font-weight: bold;
+    -fx-text-fill: darkblue;
     -fx-text-alignment: center;
-    -fx-background-color:  white;
+    -fx-background-color:  rgb(255,255,255,.6);
+    -fx-border-width: 2px;
+    -fx-border-color: yellow;
 }
 
 .date-group{
     -fx-background-color: white;
     -fx-padding: 10;
     /*-fx-border-radius: 5;*/
+    -fx-border-width: 2px;
+    -fx-border-color: yellow;
 }
 
 .date-box{
@@ -66,8 +79,8 @@
     -fx-border-width: 2px;
     -fx-border-color: black;
     -fx-opacity: 1;
-    -fx-font-family: Michelin, sans-serif;
-    -fx-font-size: 12pt;
+    -fx-font-family: Michelin;
+    -fx-font-size: 14pt;
 }
 
 .buttons{
@@ -90,23 +103,23 @@
 }
 .card-subtitle{
     -fx-font-family: Michelin-Bold, sans-serif;
-    -fx-font-size: 12pt;
+    -fx-font-size: 13pt;
 }
 .card-reason{
     -fx-font-family: Michelin-Bold, sans-serif;
-    -fx-font-size: 11pt;
+    -fx-font-size: 12pt;
 }
 .card-description-title{
     -fx-font-family: Michelin, sans-serif;
-    -fx-font-size: 9pt;
+    -fx-font-size: 11pt;
 }
 .card-description{
     -fx-font-family: Michelin, sans-serif;
-    -fx-font-size: 8pt;
+    -fx-font-size: 10pt;
 }
 .card-instruction{
     -fx-font-family: Michelin, sans-serif;
-    -fx-font-size: 8pt;
+    -fx-font-size: 10pt;
     -fx-font-weight: bold;
 }
 .table-row-cell:empty {
@@ -114,4 +127,26 @@
 }
 .table-row-cell:empty .table-cell {
     -fx-border-width: 0px;
+}
+
+.integer-text-field{
+    -fx-font-family: Michelin;
+    -fx-font-size: 14pt;
+    -fx-text-alignment: center;
+}
+
+.card-box-group {
+    -fx-background-color: transparent;
+}
+
+.score-table-box {
+    -fx-background-color: gray;
+    -fx-border-width: 2px;
+    -fx-border-color: yellow;
+}
+
+.board-label {
+    -fx-background-color: white;
+    -fx-font-family: Michelin;
+    -fx-font-size: 18pt;
 }

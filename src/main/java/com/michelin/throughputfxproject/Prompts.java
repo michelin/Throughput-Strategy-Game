@@ -35,8 +35,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 public class Prompts {
@@ -52,8 +53,8 @@ public class Prompts {
     public static BitCard drawBit(@NonNull Pane container, int dieSides) throws IOException {
         //If not week 1 draw BIT card if they roll a 6
         int drawBitInt = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
-        //todo set this back to max die sides
-        if (drawBitInt > 2) {
+
+        if (drawBitInt == Board.SIX_SIDES) {
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Follow the instructions on the card.", ButtonType.OK);
             alert.setHeaderText("Draw a " + Card.BOOSTER_INOCULATE_TRAP + " card!");
@@ -191,9 +192,8 @@ public class Prompts {
     public static boolean promptForServerRetry(@NonNull Server server) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "Your first try failed for Server " + server.getColor().name() + " You have a Retry card, would you like to use it? 'Y/N'", ButtonType.YES, ButtonType.NO);
         alert.setTitle("Retry");
-        Optional<ButtonType> result = alert.showAndWait();
+        ButtonType button = alert.showAndWait().orElse(null);
 
-        ButtonType button = result.orElse(null);
         return button == null || button == ButtonType.YES;
 
     }
@@ -333,9 +333,8 @@ public class Prompts {
         imageView.setFitHeight(50);
         imageView.setPreserveRatio(true);
         alert.setGraphic(imageView);
-        Optional<ButtonType> result = alert.showAndWait();
+        ButtonType button = alert.showAndWait().orElse(null);
 
-        ButtonType button = result.orElse(null);
         return button == null || button == ButtonType.YES;
     }
 
@@ -373,6 +372,15 @@ public class Prompts {
 
     public static void promptToAutomateWorkstation(@NonNull Pane container) throws IOException {
 
+        if(WorkstationService.findDeployedAutomatedServers().size()==3) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Automation");
+            alert.setHeaderText("No Robots Left!");
+            alert.setContentText("There are no workstations available to automate");
+            alert.showAndWait();
+            return;
+        }
+
         Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-automation.fxml"));
         Parent root = loader.load();
@@ -386,7 +394,9 @@ public class Prompts {
         node.setText(builder);
 
         ComboBox<Color> serverWorkstationColorPicker = ((AddAutomationController) loader.getController()).getWorkstationToAddAutomation();
-        buildColorCombobox(serverWorkstationColorPicker, Color.automatedColorValues());
+        List<Color> serverColors = WorkstationService.findDeployedAutomatedServers().stream().map(Server::getColor).collect(Collectors.toList());
+        List<Color> leftoverColors = Arrays.stream(Color.automatedColorValues()).filter(color -> !serverColors.contains(color)).collect(Collectors.toList());
+        buildColorCombobox(serverWorkstationColorPicker, leftoverColors.toArray(Color[]::new));
 
         stage.setTitle("Automate Workstation");
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -406,6 +416,7 @@ public class Prompts {
                 setText(color == null ? "" : color.name());
                 if (color != null) {
                     setBackground(new Background(new BackgroundFill(color.lookupFXColor(), null, null)));
+                    setTextFill(color.lookupFontColor());
                 }
             }
         });

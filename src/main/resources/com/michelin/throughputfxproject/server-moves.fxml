@@ -6,10 +6,11 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.geometry.Insets?>
+
 <VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.michelin.throughputfxproject.controllers.ServerMovesController">
-    <TextArea fx:id="serverMovesText" wrapText="true" editable="false" focusTraversable="false" mouseTransparent="true" styleClass="read-only-textarea" stylesheets="@throughput.css"/>
+    <TextArea fx:id="serverMovesText" wrapText="true" editable="false" focusTraversable="false" mouseTransparent="true" styleClass="read-only-textarea" stylesheets="@css/throughput.css"/>
     <HBox>
         <ComboBox fx:id="serverToMove"/>
         <ComboBox fx:id="workstationToMoveTo"/>

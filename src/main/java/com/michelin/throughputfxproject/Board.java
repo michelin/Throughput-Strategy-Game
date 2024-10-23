@@ -4,6 +4,7 @@ import com.michelin.throughputfxproject.entities.*;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import com.michelin.throughputfxproject.entities.servers.ServerMove;
+import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -57,7 +59,7 @@ public class Board {
     }
 
 
-    public static BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek)  {
+    public static BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) {
 
         //Reduce complexity of calling method by passing along null
         if (bitCard == null) {
@@ -65,9 +67,8 @@ public class Board {
         }
 
         LOGGER.debug("Executing bit actions {}", bitCard);
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("{} card: {}", Card.BOOSTER_INOCULATE_TRAP, bitCard);
-        }
+        LOGGER.debug("{} card: {}", Card.BOOSTER_INOCULATE_TRAP, bitCard);
+
         switch (bitCard.getAction()) {
             case 1:
                 weekHoldCards.add(bitCard);
@@ -140,7 +141,7 @@ public class Board {
         try {
             color = Color.valueOf(bitCard.getDescription());
         } catch (IllegalArgumentException e) {
-            LOGGER.error("Couldn't find the color {}", bitCard.getDescription(), e);
+            throw new ThroughputRuntimeException(e);
         }
         int offendingWorkstationIndex = WorkstationService.getWorkstationIndex(color);
         Workstation offendingWorkstation = WorkstationService.getWorkstation(offendingWorkstationIndex);
@@ -148,9 +149,7 @@ public class Board {
             ScorecardService.getBacklog().addToBacklog(offendingWorkstation.getWorkItemCount());
             offendingWorkstation.setWorkItemCount(0);
         } else if (offendingWorkstationIndex < 0) {
-            if (LOGGER.isWarnEnabled()) {
-                LOGGER.warn("Couldn't find workstation for color {}", color.name());
-            }
+            LOGGER.warn("Couldn't find workstation for color {}", color.name());
         } else {
             Workstation receivingWorkstation = WorkstationService.getWorkstation(offendingWorkstationIndex - 1);
             receivingWorkstation.addToWorkItemCount(offendingWorkstation.getWorkItemCount());
@@ -176,7 +175,7 @@ public class Board {
     }
 
 
-    public static void startDay(@NonNull ServerMove move) throws IllegalArgumentException{
+    public static void startDay(@NonNull ServerMove move) throws IllegalArgumentException {
         HumanServer serverToMove = findAndRemoveServer(move.getServerColor());
         addServer(Objects.requireNonNull(serverToMove), move.getWorkstationColor());
     }

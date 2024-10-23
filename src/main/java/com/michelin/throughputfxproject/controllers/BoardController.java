@@ -3,6 +3,8 @@ package com.michelin.throughputfxproject.controllers;
 import com.michelin.throughputfxproject.*;
 import com.michelin.throughputfxproject.entities.*;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
+import com.michelin.throughputfxproject.entities.servers.HumanServer;
+import com.michelin.throughputfxproject.entities.servers.PairPartner;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
@@ -23,9 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.michelin.throughputfxproject.Board.SIX_SIDES;
 
@@ -34,7 +39,9 @@ public class BoardController {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(BoardController.class.getName());
     @FXML
-    private HBox holdCardBox;
+    private Pane inTrainingBox;
+    @FXML
+    private Pane holdCardBox;
     @FXML
     private ButtonBar dailyButtonBar;
     @FXML
@@ -127,7 +134,7 @@ public class BoardController {
         updateScorecardTable();
     }
 
-    private void redrawBoard(int activeWorkstation) {
+    private void redrawBoard() {
 
         Workstation workstation0 = WorkstationService.getWorkstations()[0];
         Workstation workstation1 = WorkstationService.getWorkstations()[1];
@@ -141,6 +148,7 @@ public class BoardController {
             buildServerCards(workstation2.getServers(), servers20);
             buildServerCards(workstation3.getServers(), servers30);
             buildServerCards(workstation4.getServers(), servers40);
+            buildInTrainingCard(Board.getInTrainingServer(), inTrainingBox);
         } catch (IOException e) {
             throw new ThroughputRuntimeException(e);
         }
@@ -150,31 +158,6 @@ public class BoardController {
         workstationCount2.setText(StringUtils.leftPad(String.valueOf(workstation2.getWorkItemCount()), 3, '0'));
         workstationCount3.setText(StringUtils.leftPad(String.valueOf(workstation3.getWorkItemCount()), 3, '0'));
         workstationCount4.setText(StringUtils.leftPad(String.valueOf(workstation4.getWorkItemCount()), 3, '0'));
-
-        switch (activeWorkstation) {
-            case 0:
-                backlogCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
-                break;
-            case 1:
-                workstationCount0.setBackground(new Background(new BackgroundFill(workstation0.getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-                break;
-            case 2:
-                workstationCount1.setBackground(new Background(new BackgroundFill(workstation1.getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-                break;
-            case 3:
-                workstationCount2.setBackground(new Background(new BackgroundFill(workstation2.getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-                break;
-            case 4:
-                workstationCount3.setBackground(new Background(new BackgroundFill(workstation3.getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-                break;
-            case 5:
-                workstationCount4.setBackground(new Background(new BackgroundFill(workstation4.getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-                break;
-            case 6:
-                finishedGoodsCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
-                break;
-            default:
-        }
 
         backlogCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.getBacklog().getBacklogItemCount()), 3, '0'));
         finishedGoodsCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.getFinishedGoods().getFinishedGoodsTally()), 3, '0'));
@@ -194,25 +177,81 @@ public class BoardController {
         updateHoldCardBox();
     }
 
+
+    private void highlightActiveWorkstation(int activeWorkstation) {
+        //RESET colors
+        Background whiteBackground = new Background(new BackgroundFill(javafx.scene.paint.Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY));
+        backlogCount.setBackground(whiteBackground);
+        workstationCount0.setBackground(whiteBackground);
+        workstationCount1.setBackground(whiteBackground);
+        workstationCount2.setBackground(whiteBackground);
+        workstationCount3.setBackground(whiteBackground);
+        workstationCount4.setBackground(whiteBackground);
+        finishedGoodsCount.setBackground(whiteBackground);
+
+        workstationCount0.setTextFill(javafx.scene.paint.Color.BLACK);
+        workstationCount1.setTextFill(javafx.scene.paint.Color.BLACK);
+        workstationCount2.setTextFill(javafx.scene.paint.Color.BLACK);
+        workstationCount3.setTextFill(javafx.scene.paint.Color.BLACK);
+        workstationCount4.setTextFill(javafx.scene.paint.Color.BLACK);
+
+        switch (activeWorkstation) {
+            case 0:
+                backlogCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+                break;
+            case 1:
+                workstationCount0.setBackground(new Background(new BackgroundFill(WorkstationService.getWorkstations()[0].getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
+                workstationCount0.setTextFill(WorkstationService.getWorkstations()[0].getColor().lookupFontColor());
+                break;
+            case 2:
+                workstationCount1.setBackground(new Background(new BackgroundFill(WorkstationService.getWorkstations()[1].getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
+                workstationCount1.setTextFill(WorkstationService.getWorkstations()[1].getColor().lookupFontColor());
+                break;
+            case 3:
+                workstationCount2.setBackground(new Background(new BackgroundFill(WorkstationService.getWorkstations()[2].getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
+                workstationCount2.setTextFill(WorkstationService.getWorkstations()[2].getColor().lookupFontColor());
+                break;
+            case 4:
+                workstationCount3.setBackground(new Background(new BackgroundFill(WorkstationService.getWorkstations()[3].getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
+                workstationCount3.setTextFill(WorkstationService.getWorkstations()[3].getColor().lookupFontColor());
+                break;
+            case 5:
+                workstationCount4.setBackground(new Background(new BackgroundFill(WorkstationService.getWorkstations()[4].getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
+                workstationCount4.setTextFill(WorkstationService.getWorkstations()[4].getColor().lookupFontColor());
+                break;
+            case 6:
+                finishedGoodsCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+                break;
+            default:
+        }
+    }
+
     private void updateHoldCardBox() {
-        Board.getWeekHoldCards().forEach(card -> buildHoldCards("2nd Chance"));
-        Board.getGameHoldCards().forEach(card -> buildHoldCards(card.getInstructions()));
+        holdCardBox.getChildren().clear();
+        AtomicInteger weeklyIndex = new AtomicInteger(0);
+        Board.getWeekHoldCards().forEach((card -> buildHoldCards("2nd Chance", weeklyIndex.getAndIncrement(), 0)));
+        AtomicInteger gameIndex = new AtomicInteger(0);
+        Board.getGameHoldCards().forEach(card -> buildHoldCards(card.getInstructions(), gameIndex.getAndIncrement(), 1));
 
     }
 
-    private void buildHoldCards(String text) {
-        Rectangle rectangle = new Rectangle(110, 120, javafx.scene.paint.Color.WHITE);
+    private void buildHoldCards(String text, int column, int row) {
+
+        Rectangle rectangle = new Rectangle(110, row == 0 ? 60 : 90, javafx.scene.paint.Color.LIGHTGRAY);
         rectangle.setStroke(javafx.scene.paint.Color.YELLOW);
         rectangle.setStrokeWidth(2);
         Label label = new Label(text);
-        label.setLayoutX(40);
-        label.setLayoutY(60);
+        label.setLayoutX(5);
+        label.setLayoutY(15);
+        label.setWrapText(true);
+        label.setPrefWidth(105);
+        label.setCenterShape(true);
         AnchorPane anchorPane = new AnchorPane(rectangle, label);
         HBox.setMargin(anchorPane, new Insets(5));
-        holdCardBox.getChildren().add(anchorPane);
+        ((GridPane) holdCardBox).add(anchorPane, column, row);
     }
 
-    private void buildServerCards(List<Server> serverSet, Pane serverHolder) throws IOException {
+    private void buildServerCards(Set<Server> serverSet, Pane serverHolder) throws IOException {
         serverHolder.getChildren().clear();
         for (Server server : serverSet) {
             String serverImageFile = getImageStringForServer(server);
@@ -229,19 +268,33 @@ public class BoardController {
                     Rectangle rectangle = new Rectangle(10, ((double) 60 / skillsCount), server.getColor().lookupFXColor());
                     vBox.getChildren().add(rectangle);
                 });
-                LOGGER.info("Human server of color {}", server.getColor());
+                LOGGER.debug("Human server of color {}", server.getColor());
             } else {
-                LOGGER.info("Non Human server of color {}", server.getColor());
+                LOGGER.debug("Non Human server of color {}", server.getColor());
             }
+            vBox.setId("v_box_" + serverHolder.getId() + "_" + server.getColor().name());
 
             HBox hBox = new HBox(imageView, vBox);
             hBox.setPrefHeight(60);
             hBox.setPrefWidth(63);
+            hBox.setId("h_box_" + serverHolder.getId() + "_" + server.getColor().name());
 
             serverHolder.getChildren().add(hBox);
         }
+    }
 
+    private void buildInTrainingCard(HumanServer inTrainingServer, Pane inTrainingBox) throws IOException {
+        if (inTrainingServer == null) {
+            return;
+        }
+        inTrainingBox.getChildren().clear();
+        String serverImageFile = getImageStringForServer(inTrainingServer);
 
+        ImageView imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource(serverImageFile)).openStream()));
+        imageView.setFitHeight(100);
+        imageView.setFitWidth(100);
+        inTrainingBox.getChildren().add(imageView);
+        VBox.setMargin(inTrainingBox, new Insets(0, 0, 0, 10));
     }
 
     private static String getImageStringForServer(Server server) {
@@ -308,7 +361,7 @@ public class BoardController {
 
     @FXML
     protected void runGame(ActionEvent actionEvent) {
-        redrawBoard(0);
+        redrawBoard();
         buttonRunGame.setDisable(true);
         executeGame();
     }
@@ -326,13 +379,17 @@ public class BoardController {
         if (localBacklogCount > 0) {
             startValue = Prompts.teamMood(SIX_SIDES);
         }
+
+        highlightActiveWorkstation(0);
         Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, localBacklogCount);
+        redrawBoard();
 
         for (int i = 0; i < Board.FIVE_STATIONS; i++) {
+            highlightActiveWorkstation(i + 1);
             runWorkstationDay(i);
-            redrawBoard(i+1);
+            TimeUnit.MILLISECONDS.sleep(2000);
         }
-
+        highlightActiveWorkstation(6);
         Board.returnServerToWorkstation();
 
         Board.augmentDayOfTheWeek();
@@ -348,7 +405,6 @@ public class BoardController {
 
             Prompts.publishEndWeek();
         }
-        redrawBoard(6);
     }
 
     public void runDay(ActionEvent actionEvent) {
@@ -359,6 +415,7 @@ public class BoardController {
         runDay();
         //if it is not the last day show run day and enable server moves
         if (Board.getDayOfTheWeek() < (Board.RUN_DAYS - 1)) {
+            //re-enable run day buttons
             buttonRunDay.setDisable(false);
             buttonServerMoves.setDisable(false);
         } else {
@@ -371,6 +428,7 @@ public class BoardController {
                 Board.augmentGameWeek();
                 weeklyButtonBar.setVisible(true);
                 buttonRunWeek.setVisible(true);
+                buttonRunWeek.setDisable(false);
                 buttonAddSkills.setVisible(true);
                 buttonAddSkills.setDisable(false);
             } else {
@@ -411,14 +469,15 @@ public class BoardController {
 
         //Estimate Work Items
         Prompts.promptForWorkItemEstimates(gameDialogPane);
-        redrawBoard(0);
+        redrawBoard();
+        highlightActiveWorkstation(0);
 
         //Skills add is triggered by button push
 
         //Show buttons to run day
         dailyButtonBar.setVisible(true);
         buttonRunDay.setVisible(true);
-        buttonRunWeek.setDisable(false);
+        buttonRunDay.setDisable(false);
         if (!isVanilla()) {
             buttonServerMoves.setVisible(true);
             buttonServerMoves.setDisable(false);
@@ -434,7 +493,7 @@ public class BoardController {
     }
 
     private static boolean isVanilla() {
-        return Board.getGameWeek() < 0;
+        return Board.getGameWeek() > 0;
     }
 
     public void addSkillsToServer(ActionEvent actionEvent) {
@@ -451,17 +510,22 @@ public class BoardController {
         } catch (IOException e) {
             throw new ThroughputRuntimeException(e);
         }
+        redrawBoard();
     }
 
 
     private void runWorkstationDay(int position) throws InterruptedException, IOException {
         //For each server
-        for (Server server : Objects.requireNonNull(WorkstationService.getWorkstation(position)).getServers()) {
-            LOGGER.info("Now serving server {}", server);
+        Set<Server> servers = Objects.requireNonNull(WorkstationService.getWorkstation(position)).getServers();
+        List<Server> serverList = new ArrayList<>(servers);
+        for (Server server : serverList) {
+            LOGGER.debug("Now serving server {}", server);
+            //Don't roll for a Partner
+            if (server instanceof PairPartner) continue;
             ChanceResult result = Prompts.serverChanceCardPlay(server, position);
             switch (result) {
                 case SUCCESS:
-                    Prompts.promptForWorkItemWorkstationMoves(gameDialogPane,  position);
+                    Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, position);
                     break;
                 case FAILED:
                     if (Board.getWeekHoldCards().isEmpty()) {
@@ -474,6 +538,7 @@ public class BoardController {
                     break;
             }
             bitActionsDetermined();
+            redrawBoard();
         }
     }
 
@@ -505,7 +570,6 @@ public class BoardController {
         if (boardAction instanceof Trap) {
             activateTrap((Trap) boardAction, bitCard);
         } else if (boardAction instanceof HelpAction) {
-
             switch (((HelpAction) boardAction).getType()) {
                 case ADD_ONE:
                     Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, false);
@@ -522,9 +586,7 @@ public class BoardController {
                 case AUGMENT:
                     Prompts.promptForFinishedGoodsAreNowFourPoints();
             }
-
         }
-
     }
 
     private static void activateTrap(Trap trap, BitCard bitCard) {

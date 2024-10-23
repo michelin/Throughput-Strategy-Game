@@ -34,6 +34,22 @@ public enum Color {
             default:
                 return javafx.scene.paint.Color.WHITE;
         }
+    }
+
+        public javafx.scene.paint.Color lookupFontColor() {
+
+            switch (this) {
+                case BLUE:
+                    return javafx.scene.paint.Color.YELLOW;
+                case VIOLET:
+                case GREEN:
+                    return javafx.scene.paint.Color.WHITE;
+                case YELLOW:
+                    return javafx.scene.paint.Color.BLUE;
+                case ROSE:
+                default:
+                    return javafx.scene.paint.Color.BLACK;
+            }
 
     }
 

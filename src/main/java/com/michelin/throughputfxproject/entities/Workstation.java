@@ -5,10 +5,8 @@ import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Getter
@@ -17,7 +15,7 @@ public class Workstation {
 
     @lombok.NonNull
     private Color color;
-    private List<Server> servers = new ArrayList<>(5);
+    private Set<Server> servers = new HashSet<>(5);
     private int capacity;
     private int workItemCount;
 

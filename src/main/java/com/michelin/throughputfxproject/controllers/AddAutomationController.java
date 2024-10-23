@@ -20,7 +20,9 @@ public class AddAutomationController {
     public void addAutomation(ActionEvent actionEvent) {
 
         Color selectedColor = workstationToAddAutomation.getSelectionModel().getSelectedItem();
-        WorkstationService.automateWorkstation(selectedColor);
+        if (selectedColor != null) {
+            WorkstationService.automateWorkstation(selectedColor);
+        }
 
         ((Stage)automationButton.getParent().getScene().getWindow()).close();
     }
