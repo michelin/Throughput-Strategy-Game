@@ -11,10 +11,9 @@ import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 
@@ -26,14 +25,25 @@ public class WorkstationService {
         super();
     }
 
-    public static List<AutomatedServer> findDeployedAutomatedServers() {
-        List<AutomatedServer> automatedServers = new ArrayList<>();
-        Arrays.stream(getWorkstations()).forEach(workstation -> automatedServers.addAll(workstation.getServers().stream().filter(server -> server.getType().equals(Server.TYPE_AUTOMATED)).map(AutomatedServer.class::cast).collect(Collectors.toList())));
-        return automatedServers;
+    public static void automateWorkstation(@NonNull Color color) {
+
+        Objects.requireNonNull(getWorkstation(color)).getServers().add(Objects.requireNonNull(ServerService.getRobotServer(color)));
     }
 
-    private static Workstation getNewWorkstation(HumanServer humanServer, Color color, int capacity) {
-        return new Workstation(humanServer, capacity, color);
+    public static Workstation getWorkstation(Color color) {
+        for (Workstation workstation : getWorkstations()) {
+            if (workstation.getColor() == color) {
+                return workstation;
+            }
+        }
+        return null;
+    }
+
+    public static Workstation[] getWorkstations() {
+        if (workstations == null) {
+            createWorkstations(Board.FIVE_STATIONS, Board.SIX_SIDES);
+        }
+        return workstations;
     }
 
     private static void createWorkstations(int workstationCount, int maxCapacity) {
@@ -46,38 +56,37 @@ public class WorkstationService {
         }
 
         Workstation[] localWorkstations = new Workstation[workstationCount];
+        List<Integer> numbers = new ArrayList<>();
         for (int i = 0; i < workstationCount; i++) {
-            localWorkstations[i] = getNewWorkstation(ServerService.getHumanServer(Color.values()[i]), Color.values()[i], capacities[i].getValue());
+            numbers.add(i);
         }
+        // Shuffle the list using the Collections.shuffle() method
+        Collections.shuffle(numbers);
+        AtomicInteger index = new AtomicInteger(0);
+        numbers.forEach(workstationIndex -> localWorkstations[index.getAndIncrement()] = getNewWorkstation(ServerService.getHumanServer(Color.values()[workstationIndex]), Color.values()[workstationIndex], capacities[workstationIndex].getValue()));
         WorkstationService.workstations = localWorkstations;
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Workstations: {}", Arrays.toString(WorkstationService.workstations));
         }
     }
 
-    public static Workstation getWorkstation(Color color) {
-        for (Workstation workstation : getWorkstations()) {
-            if (workstation.getColor() == color) {
-                return workstation;
-            }
-        }
-        return null;
+    private static Workstation getNewWorkstation(HumanServer humanServer, Color color, int capacity) {
+        return new Workstation(humanServer, capacity, color);
     }
 
-    public static void automateWorkstation(@NonNull Color color) {
-
-        Objects.requireNonNull(getWorkstation(color)).getServers().add(Objects.requireNonNull(ServerService.getRobotServer(color)));
+    public static List<AutomatedServer> findDeployedAutomatedServers() {
+        List<AutomatedServer> automatedServers = new ArrayList<>();
+        Arrays.stream(getWorkstations()).forEach(workstation -> automatedServers.addAll(workstation.getServers().stream().filter(server -> server.getType().equals(Server.TYPE_AUTOMATED)).map(AutomatedServer.class::cast).collect(Collectors.toList())));
+        return automatedServers;
     }
 
-    public static void pairWorkstation(Color color) {
-        Objects.requireNonNull(getWorkstation(color)).getServers().add(ServerService.getPairPartnerInstance());
+    public static boolean findIfPairPartnerIsAlreadyAssigned() {
+        AtomicBoolean assigned = new AtomicBoolean(false);
+        Arrays.stream(getWorkstations()).forEach(workstation -> assigned.set(workstation.getServers().stream().anyMatch(server -> server.getType().equals(Server.TYPE_PARTNER))));
+        return assigned.get();
     }
 
     public static Workstation getWorkstation(int index) {
-        if (index > getWorkstations().length - 1) {
-            throw new IndexOutOfBoundsException(index + " > " + getWorkstations().length);
-        }
-
         return getWorkstations()[index];
     }
 
@@ -89,6 +98,10 @@ public class WorkstationService {
             }
         }
         return -1;
+    }
+
+    public static void pairWorkstation(Color color) {
+        Objects.requireNonNull(getWorkstation(color)).getServers().add(ServerService.getPairPartnerInstance());
     }
 
     public static void removeInTrainingServerFromWorkstation(HumanServer server) {
@@ -106,12 +119,5 @@ public class WorkstationService {
             totalScore = totalScore + workstation.getWorkItemCount() * ((float) (i + 2) / Board.SIX_SIDES);
         }
         return totalScore;
-    }
-
-    public static Workstation[] getWorkstations() {
-        if (workstations == null) {
-            createWorkstations(Board.FIVE_STATIONS, Board.SIX_SIDES);
-        }
-        return workstations;
     }
 }

@@ -2,13 +2,13 @@
     -fx-background-image: url('../images/Flow1.jpg');
     -fx-background-size: cover;
     -fx-background-position: center;
-    -fx-background-color: white;
+    -fx-background-color: lightgray;
     -fx-background-repeat: no-repeat;
     -fx-padding: 10 20 10 20;
 }
 
 .score-box{
-    -fx-background-color: white;
+    -fx-background-color:  rgb(255,255,255,.8);
     -fx-border-width: 2px;
     -fx-border-color: black;
     -fx-text-alignment: center;
@@ -53,7 +53,7 @@
 }
 
 .date-group{
-    -fx-background-color: white;
+    -fx-background-color:  rgb(255,255,255,.8);
     -fx-padding: 10;
     /*-fx-border-radius: 5;*/
     -fx-border-width: 2px;
@@ -84,8 +84,22 @@
 }
 
 .buttons{
-    -fx-font-family: Michelin-Bold, sans-serif;
+    -fx-font-family: Michelin;
     -fx-font-size: 12pt;
+    -fx-text-alignment: center;
+    -fx-font-weight: bold;
+}
+.button-lion-default {
+    -fx-background-color:
+            rgba(0,0,0,0.08),
+            linear-gradient(#5a61af, #51536d),
+            linear-gradient(#e4fbff 0%,#cee6fb 10%, #a5d3fb 50%, #88c6fb 51%, #d5faff 100%);
+    -fx-background-insets: 0 0 -1 0,0,1;
+    -fx-background-radius: 5,5,4;
+    -fx-padding: 3 30 3 30;
+    -fx-text-fill: #242d35;
+    -fx-font-family: Michelin;
+    -fx-font-size: 14px;
     -fx-text-alignment: center;
     -fx-font-weight: bold;
 }
@@ -94,33 +108,37 @@
     -fx-border-color: black;
     -fx-border-width: 4;
     -fx-border-radius: 18 18 18 18;
-    -fx-background-color: white;
 }
 .card-title{
-    -fx-font-family: Michelin-Bold, sans-serif;
+    -fx-font-family: Michelin;
     -fx-font-size: 14pt;
-    -fx-font-weight: bold;
+    -fx-font-weight: bolder;
+    -fx-padding: 0px 5px 0px 5px;
 }
 .card-subtitle{
-    -fx-font-family: Michelin-Bold, sans-serif;
+    -fx-font-family: Michelin;
     -fx-font-size: 13pt;
+    -fx-font-weight: bold;
+    -fx-padding: 0px 0px 0px 5px;
 }
 .card-reason{
-    -fx-font-family: Michelin-Bold, sans-serif;
+    -fx-font-family: Michelin;
     -fx-font-size: 12pt;
 }
 .card-description-title{
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Michelin;
     -fx-font-size: 11pt;
 }
 .card-description{
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Michelin;
     -fx-font-size: 10pt;
+    -fx-padding: 0px 5px 0px 10px;
 }
 .card-instruction{
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Michelin;
     -fx-font-size: 10pt;
     -fx-font-weight: bold;
+    -fx-padding: 10px 2px 2px 2px;
 }
 .table-row-cell:empty {
     -fx-background-color: white;
@@ -146,7 +164,67 @@
 }
 
 .board-label {
-    -fx-background-color: white;
+    -fx-background-color:  rgb(255,255,255,.6);
     -fx-font-family: Michelin;
-    -fx-font-size: 18pt;
+    -fx-font-size: 16pt;
+    -fx-font-weight: bold;
+}
+.skill-card{
+    -fx-background-image: url(../cards/SkillTraining.jpg);
+    -fx-background-color: #565550;
+    -fx-background-size: contain;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+    -fx-border-radius: 18 18 18 18;
+}
+.bit-card{
+    -fx-background-image: url(../cards/BIT.jpg);
+    -fx-background-size: contain;
+    -fx-background-color: white;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+}
+.chance-card{
+    -fx-background-image: url(../cards/Chance.jpg);
+    -fx-background-color: #367e91;
+    -fx-background-size: contain;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+    -fx-border-radius: 18 18 18 18;
+}
+.chance-robot-card{
+    -fx-background-image: url(../cards/ChanceTheRobot.jpg);
+    -fx-background-color: #00583f;
+    -fx-background-size: contain;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+}
+.die-header{
+    -fx-font-family: Michelin;
+    -fx-font-size: 13pt;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 10px 10px 10px;
+    -fx-text-alignment: center;
+}
+.die-text{
+    -fx-font-family: Michelin;
+    -fx-font-size: 10pt;
+}
+.button-info {
+    -fx-background-image: url("../icons/info.png");
+    -fx-background-size: 15 15;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position:center;
+}
+.button-rules {
+    -fx-background-image: url("../icons/rules.png");
+    -fx-background-size: 15 15;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position:center;
+}
+.info-labels{
+    -fx-font-family: Michelin;
+    -fx-font-size: 22pt;
+    -fx-font-weight: bolder;
+    -fx-text-alignment: center;
 }

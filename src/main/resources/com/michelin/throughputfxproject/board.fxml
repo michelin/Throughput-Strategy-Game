@@ -1,32 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<BorderPane prefHeight="1000.0" prefWidth="925.0" styleClass="img-background" stylesheets="@css/throughput.css"
-            xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.michelin.throughputfxproject.controllers.BoardController">
+
+<BorderPane prefHeight="1000.0" prefWidth="925.0" styleClass="img-background" stylesheets="@css/throughput.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.BoardController">
     <top>
         <VBox alignment="CENTER" styleClass="outer-title-box">
             <Label id="header" styleClass="title-header" text="Throughput">
                 <VBox.margin>
-                    <Insets bottom="20.0"/>
+                    <Insets bottom="20.0" />
                 </VBox.margin>
             </Label>
             <Label id="header1" styleClass="sub-header" text="::  A Strategy Game  ::">
                 <padding>
-                    <Insets bottom="10.0" left="35.0" right="35.0"/>
+                    <Insets bottom="10.0" left="35.0" right="35.0" />
                 </padding>
                 <VBox.margin>
-                    <Insets bottom="10.0"/>
+                    <Insets bottom="10.0" />
                 </VBox.margin>
             </Label>
-            <Button fx:id="buttonRunGame" defaultButton="true" mnemonicParsing="false" onAction="#runGame"
-                    styleClass="buttons" text="Run Game">
+            <ButtonBar fx:id="gameButtonBar" buttonMinWidth="0.0" maxWidth="600.0">
+                <buttons>
+                    <Button fx:id="buttonRunGame" defaultButton="true" mnemonicParsing="false" onAction="#runGame" styleClass="button-lion-default" text="Run Game" />
+                    <Button fx:id="buttonEndGame" mnemonicParsing="false" onAction="#endGame" prefWidth="150.0" styleClass="button-lion-default" text="End Game" textAlignment="CENTER" visible="false" />
+                    <Button maxWidth="40.0" mnemonicParsing="false" onAction="#showInfo" text="i">
+                        <tooltip>
+                            <Tooltip text="Information" />
+                        </tooltip>
+                  <styleClass>
+                     <String fx:value="button-info" />
+                     <String fx:value="button-lion-default" />
+                  </styleClass>
+                    </Button>
+                    <Button maxWidth="40.0" mnemonicParsing="false" onAction="#showRules" text="r">
+                        <tooltip>
+                            <Tooltip text="Rules" />
+                        </tooltip>
+                  <styleClass>
+                     <String fx:value="button-rules" />
+                     <String fx:value="button-lion-default" />
+                  </styleClass>
+                    </Button>
+                </buttons>
                 <VBox.margin>
-                    <Insets bottom="10.0"/>
+                    <Insets bottom="10.0" />
                 </VBox.margin>
-            </Button>
+            </ButtonBar>
         </VBox>
     </top>
     <center>
@@ -34,60 +55,60 @@
             <HBox maxHeight="50.0" prefHeight="50.0" prefWidth="600.0" styleClass="date-group">
                 <Label styleClass="date-box-label" text="Week:">
                     <padding>
-                        <Insets right="10.0"/>
+                        <Insets right="10.0" />
                     </padding>
                 </Label>
-                <Label fx:id="weekNumber" styleClass="date-box" text="2"/>
-                <Pane prefWidth="30"/>
+                <Label fx:id="weekNumber" styleClass="date-box" text="2" />
+                <Pane prefWidth="30" />
                 <Label styleClass="date-box-label" text="Day:">
                     <padding>
-                        <Insets right="10.0"/>
+                        <Insets right="10.0" />
                     </padding>
                 </Label>
-                <Label fx:id="dayNumber" styleClass="date-box" text="3"/>
-                <Pane minWidth="-Infinity" prefWidth="100.0"/>
+                <Label fx:id="dayNumber" styleClass="date-box" text="3" />
+                <Pane minWidth="-Infinity" prefWidth="100.0" />
                 <Label styleClass="date-box-label" text="Total Score:">
                     <padding>
-                        <Insets right="10.0"/>
+                        <Insets right="10.0" />
                     </padding>
                 </Label>
-                <Label fx:id="totalScore" styleClass="date-box" text="0"/>
+                <Label fx:id="totalScore" styleClass="date-box" text="0" />
             </HBox>
-            <AnchorPane fx:id="gameDialogPane">
+            <AnchorPane fx:id="gameDialogPane" prefHeight="24.0" prefWidth="685.0">
                 <ButtonBar fx:id="dailyButtonBar" visible="false" AnchorPane.topAnchor="10.0">
                     <buttons>
-                        <Button fx:id="buttonServerMoves" minWidth="275.0" mnemonicParsing="false"
-                                onAction="#serverMoves" prefWidth="300.0" styleClass="buttons" text="Server Moves"/>
-                        <Button fx:id="buttonRunDay" minWidth="150.0" mnemonicParsing="false" onAction="#runDay"
-                                prefWidth="150.0" styleClass="buttons" text="Run Day" textAlignment="CENTER"
-                                textOverrun="CLIP"/>
+                        <Button fx:id="buttonServerMoves" minWidth="275.0" mnemonicParsing="false" onAction="#serverMoves" prefWidth="300.0" styleClass="button-lion-default" text="Server Moves" />
+                        <Button fx:id="buttonRunDay" minWidth="150.0" mnemonicParsing="false" onAction="#runDay" prefWidth="150.0" styleClass="button-lion-default" text="Run Day" textAlignment="CENTER" textOverrun="CLIP" />
                     </buttons>
                 </ButtonBar>
                 <ButtonBar fx:id="weeklyButtonBar" visible="false" AnchorPane.topAnchor="20.0">
                     <buttons>
-                        <Button fx:id="buttonAddSkills" minWidth="275.0" mnemonicParsing="false"
-                                onAction="#addSkillsToServer" prefWidth="300.0" styleClass="buttons" text="Add Skill"/>
-                        <Button fx:id="buttonRunWeek" minWidth="150.0" mnemonicParsing="false" onAction="#runWeek"
-                                prefWidth="150.0" styleClass="buttons" text="Run Week" textAlignment="CENTER"
-                                textOverrun="CLIP"/>
+                        <Button fx:id="buttonAddSkills" minWidth="275.0" mnemonicParsing="false" onAction="#addSkillsToServer" prefWidth="300.0" styleClass="button-lion-default" text="Add Skill" />
+                        <Button fx:id="buttonRunWeek" minWidth="150.0" mnemonicParsing="false" onAction="#runWeek" prefWidth="150.0" styleClass="button-lion-default" text="Run Week" textAlignment="CENTER" textOverrun="CLIP" />
                     </buttons>
                 </ButtonBar>
-                <ButtonBar fx:id="gameButtonBar" prefWidth="200.0" visible="false" AnchorPane.topAnchor="20.0">
-                    <buttons>
-                        <Button fx:id="buttonEndGame" mnemonicParsing="false" onAction="#endGame" prefWidth="150.0"
-                                styleClass="buttons" text="End Game" textAlignment="CENTER" textOverrun="CLIP"/>
-                    </buttons>
-                </ButtonBar>
+                <VBox.margin>
+                    <Insets />
+                </VBox.margin>
             </AnchorPane>
             <VBox>
-                <Pane prefHeight="300.0" prefWidth="500.0"/>
-                <Label styleClass="board-label" text="Hold Cards"/>
+                <ScrollPane prefHeight="300.0" prefWidth="665.0">
+                    <TextArea fx:id="gameBoardLog" editable="false" prefHeight="300.0" prefWidth="670.0" styleClass="read-only-textarea" text="Welcome to Throughput! &#10;Select the information button above to read more about the game objectives or the rules button to learn more about the rules. &#10;Click on the Run Game button to get started." wrapText="true">
+                        <padding>
+                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                        </padding>
+                    </TextArea>
+                    <VBox.margin>
+                        <Insets bottom="20.0" left="10.0" right="10.0" top="10.0" />
+                    </VBox.margin>
+                </ScrollPane>
+                <Label styleClass="board-label" text="Hold Cards" />
                 <GridPane fx:id="holdCardBox" gridLinesVisible="true">
                     <columnConstraints>
-                        <ColumnConstraints/>
+                        <ColumnConstraints />
                     </columnConstraints>
                     <rowConstraints>
-                        <RowConstraints/>
+                        <RowConstraints />
                     </rowConstraints>
                 </GridPane>
             </VBox>
@@ -96,36 +117,36 @@
     <bottom>
         <HBox alignment="CENTER" spacing="40" styleClass="outer-score-box">
             <VBox id="backlogBox" alignment="BOTTOM_CENTER">
-                <Label fx:id="backlogCount" styleClass="score-box" text="000"/>
-                <Label styleClass="score-box-label" text="BackLog"/>
+                <Label fx:id="backlogCount" styleClass="score-box" text="000" />
+                <Label styleClass="score-box-label" text="BackLog" />
             </VBox>
 
             <VBox id="workstation0" alignment="BOTTOM_CENTER">
-                <VBox fx:id="servers00"/>
-                <Label fx:id="workstationCount0" styleClass="score-box" text="000"/>
-                <Label fx:id="workstationLabel0" styleClass="score-box-label" text="WK00"/>
+                <VBox fx:id="servers00" />
+                <Label fx:id="workstationCount0" styleClass="score-box" text="000" />
+                <Label fx:id="workstationLabel0" styleClass="score-box-label" text="WK00" />
             </VBox>
             <VBox id="workstation1" alignment="BOTTOM_CENTER">
-                <VBox fx:id="servers10"/>
-                <Label fx:id="workstationCount1" styleClass="score-box" text="000"/>
-                <Label fx:id="workstationLabel1" styleClass="score-box-label" text="WK01"/>
+                <VBox fx:id="servers10" />
+                <Label fx:id="workstationCount1" styleClass="score-box" text="000" />
+                <Label fx:id="workstationLabel1" styleClass="score-box-label" text="WK01" />
             </VBox>
             <VBox id="workstation2" alignment="BOTTOM_CENTER">
-                <VBox fx:id="servers20"/>
+                <VBox fx:id="servers20" />
                 <Label fx:id="workstationCount2" styleClass="score-box" text="000">
                 </Label>
-                <Label fx:id="workstationLabel2" styleClass="score-box-label" text="WK02"/>
+                <Label fx:id="workstationLabel2" styleClass="score-box-label" text="WK02" />
             </VBox>
             <VBox id="workstation3" alignment="BOTTOM_CENTER">
-                <VBox fx:id="servers30"/>
+                <VBox fx:id="servers30" />
                 <Label fx:id="workstationCount3" styleClass="score-box" text="000">
                 </Label>
-                <Label fx:id="workstationLabel3" styleClass="score-box-label" text="WK03"/>
+                <Label fx:id="workstationLabel3" styleClass="score-box-label" text="WK03" />
             </VBox>
             <VBox id="workstation4" alignment="BOTTOM_CENTER">
-                <VBox fx:id="servers40"/>
-                <Label fx:id="workstationCount4" styleClass="score-box" text="000"/>
-                <Label fx:id="workstationLabel4" styleClass="score-box-label" text="WK04"/>
+                <VBox fx:id="servers40" />
+                <Label fx:id="workstationCount4" styleClass="score-box" text="000" />
+                <Label fx:id="workstationLabel4" styleClass="score-box-label" text="WK04" />
             </VBox>
 
             <VBox id="finishedGoodsBox" alignment="BOTTOM_CENTER">
@@ -138,22 +159,21 @@
     </bottom>
     <right>
         <VBox>
-            <TableView fx:id="scoreTableView" layoutX="-37.0" prefHeight="180.0" prefWidth="200.0"
-                       styleClass="score-table-box" AnchorPane.rightAnchor="-18.0">
+            <TableView fx:id="scoreTableView" layoutX="-37.0" prefHeight="180.0" prefWidth="200.0" styleClass="score-table-box" AnchorPane.rightAnchor="-18.0">
                 <columns>
-                    <TableColumn prefWidth="35.0" text="Wk"/>
-                    <TableColumn prefWidth="35.0" text="Est"/>
-                    <TableColumn prefWidth="35.0" text="WIP"/>
-                    <TableColumn prefWidth="35.0" text="FG"/>
-                    <TableColumn prefWidth="35.0" text="Pts"/>
+                    <TableColumn prefWidth="35.0" text="Wk" />
+                    <TableColumn prefWidth="35.0" text="Est" />
+                    <TableColumn prefWidth="35.0" text="WIP" />
+                    <TableColumn prefWidth="35.0" text="FG" />
+                    <TableColumn prefWidth="35.0" text="Pts" />
                 </columns>
                 <rotationAxis>
-                    <Point3D/>
+                    <Point3D />
                 </rotationAxis>
             </TableView>
             <Label styleClass="board-label" text="In Training">
                 <VBox.margin>
-                    <Insets left="10.0" top="20.0"/>
+                    <Insets left="10.0" top="20.0" />
                 </VBox.margin>
             </Label>
             <Pane fx:id="inTrainingBox">

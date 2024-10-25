@@ -5,9 +5,8 @@ import com.michelin.throughputfxproject.entities.Backlog;
 import com.michelin.throughputfxproject.entities.FinishedGoods;
 import com.michelin.throughputfxproject.entities.ScoreCard;
 import lombok.Getter;
-
 import java.util.Arrays;
-
+import static com.michelin.throughputfxproject.Board.*;
 
 
 public class ScorecardService {
@@ -20,8 +19,8 @@ public class ScorecardService {
     private static final ScoreCard[] scorecards = new ScoreCard[Board.RUN_WEEKS];
 
     static {
-        for (int i = 0; i < Board.RUN_WEEKS; i++) {
-            scorecards[i] = new ScoreCard(i + 1, 0, 0, 0, 0);
+        for (int scorecardIndex = 0; scorecardIndex < Board.RUN_WEEKS; scorecardIndex++) {
+            scorecards[scorecardIndex] = new ScoreCard(scorecardIndex + 1, 0, 0, 0, 0);
         }
     }
 
@@ -35,5 +34,9 @@ public class ScorecardService {
 
     private static int currentWeekRunningScore() {
         return (Math.round(WorkstationService.tallyWorkInProcessScore() * -1)) + Math.round((backlog.backlogScore() * -1)) + finishedGoods.calculateScore();
+    }
+
+    public static ScoreCard getScorecardForCurrentWeek(){
+        return scorecards[(getGameWeek()-1)];
     }
 }

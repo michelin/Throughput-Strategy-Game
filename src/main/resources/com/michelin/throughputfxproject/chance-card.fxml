@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="480.0" prefWidth="650.0" styleClass="card-box-group" stylesheets="@css/throughput.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.ChanceController">
+    <HBox styleClass="card-box-group" onMouseClicked="#closeCardWindow">
+        <VBox layoutX="260.0" layoutY="71.0" styleClass="card-box-group">
+            <HBox prefHeight="480.0" prefWidth="650.0" styleClass="card-box-group">
+                <VBox prefHeight="480.0" prefWidth="325.0" styleClass="card-box">
+                    <Label fx:id="cardChance" alignment="CENTER" contentDisplay="TOP" prefHeight="223.0" prefWidth="320.0" styleClass="card-title" text="chance" textAlignment="CENTER" wrapText="true" />
+                    <Label fx:id="cardInstructions" alignment="CENTER" minHeight="40.0" prefHeight="243.0" prefWidth="325.0" styleClass="card-instruction" text="Instructions" wrapText="true" />
+                </VBox>
+                <Pane prefHeight="480.0" prefWidth="325.0" >
+                    <styleClass>
+                        <String fx:value="card-box" />
+                        <String fx:value="chance-card" />
+                    </styleClass>
+                </Pane>
+            </HBox>
+        </VBox>
+
+    </HBox>
+</AnchorPane>

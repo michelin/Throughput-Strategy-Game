@@ -6,10 +6,10 @@ import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import com.michelin.throughputfxproject.entities.servers.ServerMove;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.ScorecardService;
+import com.michelin.throughputfxproject.services.ServerService;
 import com.michelin.throughputfxproject.services.WorkstationService;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,21 +27,19 @@ public class Board {
     public static final String NONE = "NONE";
     public static final String DAY = "DAY";
     public static final String TEAM = "TEAM";
-    public static final String ANY_SERVER = "ANY_SERVER";
-    public static final String HUMAN_SERVER = "HUMAN_SERVER";
     public static final String WEEK = "WEEK";
-
+    private static final String ANY_SERVER = "ANY_SERVER";
+    private static final String HUMAN_SERVER = "HUMAN_SERVER";
     //Play containers - Holders of game status
     @Getter
     private static final List<BitCard> weekHoldCards = new ArrayList<>(10);
     @Getter
     private static final List<BitCard> gameHoldCards = new ArrayList<>(10);
     @Getter
-    private static Integer dayOfTheWeek = 0;
+    private static Integer dayOfTheWeek = 1;
     @Getter
-    private static Integer gameWeek = 0;
+    private static Integer gameWeek = 1;
     @Getter
-    @Setter
     private static HumanServer inTrainingServer = null;
 
 
@@ -49,15 +47,20 @@ public class Board {
 
     }
 
-
-    private static void addServer(@NonNull Server serverToMove, @NonNull Color color) {
-
-        if (!serverToMove.getSkills().contains(color)) {
-            throw new IllegalArgumentException("Server must match workstation or have a skill that matches workstation");
+    public static void augmentDayOfTheWeek() {
+        dayOfTheWeek++;
+        if (dayOfTheWeek > RUN_DAYS) {
+            resetDayOfTheWeek();
         }
-        Objects.requireNonNull(WorkstationService.getWorkstation(color)).getServers().add(serverToMove);
     }
 
+    public static void resetDayOfTheWeek() {
+        dayOfTheWeek = 1;
+    }
+
+    public static void augmentGameWeek() {
+        gameWeek++;
+    }
 
     public static BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) {
 
@@ -111,33 +114,13 @@ public class Board {
         }
     }
 
-
-    public static HumanServer findAndRemoveServer(@NonNull Color serverColor) {
-        for (Workstation workstation : WorkstationService.getWorkstations()) {
-            HumanServer serverToMove = (HumanServer) workstation.getServers().stream().filter(server -> server.getColor().equals(serverColor) && server.getType().equals(Server.TYPE_HUMAN)).findAny().orElse(null);
-            if (serverToMove != null && workstation.getServers().remove(serverToMove)) {
-                return serverToMove;
-            }
-        }
-        return null;
-    }
-
-
-    public static void augmentDayOfTheWeek() {
-        dayOfTheWeek++;
-    }
-
-    public static void augmentGameWeek() {
-        gameWeek++;
-    }
-
-
-    public static boolean isTrapMitigated(BitCard bitCard) {
-        return gameHoldCards.removeIf(card -> card.getId() == bitCard.getCounterCard());
+    private static void returnFinishedGoodsToBacklog() {
+        ScorecardService.getBacklog().addToBacklog(ScorecardService.getFinishedGoods().getFinishedGoodsTally());
+        ScorecardService.getFinishedGoods().setFinishedGoodsTally(0);
     }
 
     private static void moveWorkItemsFromColorWorkstationToPrevious(BitCard bitCard) {
-        Color color = Color.BLUE;
+        Color color;
         try {
             color = Color.valueOf(bitCard.getDescription());
         } catch (IllegalArgumentException e) {
@@ -157,10 +140,8 @@ public class Board {
         }
     }
 
-
-    private static void returnFinishedGoodsToBacklog() {
-        ScorecardService.getBacklog().addToBacklog(ScorecardService.getFinishedGoods().getFinishedGoodsTally());
-        ScorecardService.getFinishedGoods().setFinishedGoodsTally(0);
+    public static boolean isTrapMitigated(BitCard bitCard) {
+        return gameHoldCards.removeIf(card -> card.getId() == bitCard.getCounterCard());
     }
 
     public static void returnServerToWorkstation() {
@@ -168,16 +149,39 @@ public class Board {
             return;
         }
         Workstation workstation = WorkstationService.getWorkstation(inTrainingServer.getColor());
-        if (workstation != null) {
-            workstation.getServers().add(inTrainingServer);
-        }
+        if (workstation != null) workstation.getServers().add(inTrainingServer);
+
         inTrainingServer = null;
     }
 
+    public static void setInTrainingServer(@NonNull Color serverColor, @NonNull Color skillColor) {
+        HumanServer server = ServerService.getHumanServer(serverColor);
+        server.getSkills().add(skillColor);
+        WorkstationService.removeInTrainingServerFromWorkstation(server);
+        inTrainingServer = server;
+    }
 
     public static void startDay(@NonNull ServerMove move) throws IllegalArgumentException {
         HumanServer serverToMove = findAndRemoveServer(move.getServerColor());
         addServer(Objects.requireNonNull(serverToMove), move.getWorkstationColor());
+    }
+
+    public static HumanServer findAndRemoveServer(@NonNull Color serverColor) {
+        for (Workstation workstation : WorkstationService.getWorkstations()) {
+            HumanServer serverToMove = (HumanServer) workstation.getServers().stream().filter(server -> server.getColor().equals(serverColor) && server.getType().equals(Server.TYPE_HUMAN)).findAny().orElse(null);
+            if (serverToMove != null && workstation.getServers().remove(serverToMove)) {
+                return serverToMove;
+            }
+        }
+        return null;
+    }
+
+    private static void addServer(@NonNull Server serverToMove, @NonNull Color color) {
+
+        if (!serverToMove.getSkills().contains(color)) {
+            throw new IllegalArgumentException("Server must match workstation or have a skill that matches workstation");
+        }
+        Objects.requireNonNull(WorkstationService.getWorkstation(color)).getServers().add(serverToMove);
     }
 
 
