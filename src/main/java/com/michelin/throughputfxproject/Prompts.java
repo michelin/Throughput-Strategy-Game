@@ -16,16 +16,21 @@ import com.michelin.throughputfxproject.services.CardService;
 import com.michelin.throughputfxproject.services.DiceService;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import javafx.util.StringConverter;
 import lombok.NonNull;
 import org.slf4j.Logger;
@@ -42,10 +47,30 @@ import java.util.stream.Collectors;
 public class Prompts {
     public static final Logger LOGGER = LoggerFactory.getLogger(Prompts.class.getName());
     private static final String WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE = "Workstation is empty, No moves are possible";
+    public static final String THROUGHPUT = "Throughput";
+    public static final String START_THE_WEEK = "Click on Run Week to start the week";
 
 
     private Prompts() {
         super();
+    }
+
+
+    public static void promptToStartGame(@NonNull TextArea gameBoardLog) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Game Started", ButtonType.OK);
+        alert.setTitle(Prompts.THROUGHPUT);
+        alert.setHeaderText(null);
+
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
+            String gameBoardLogText = "Week: " + Board.getGameWeek() + System.lineSeparator() + START_THE_WEEK;
+            gameBoardLog.setText(gameBoardLogText);
+            alert.setResult(ButtonType.OK);
+            alert.hide();
+        }));
+        idleStage.setCycleCount(1);
+        idleStage.play();
+
+        alert.show();
     }
 
 
@@ -54,9 +79,20 @@ public class Prompts {
         int drawBitInt = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
 
         if (drawBitInt == Board.SIX_SIDES) {
-            gameBoardLog.setText("Draw a " + Card.BOOSTER_INOCULATE_TRAP + " card!" + System.lineSeparator() + "Follow the instructions on the card.");
-            gameBoardLog.getBackground().getImages().add(new BackgroundImage(new Image(Objects.requireNonNull(Prompts.class.getResource("icons/die_6.png")).openStream()), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT));
 
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("BIT");
+            alert.setGraphic(new ImageView(new Image(Objects.requireNonNull(Prompts.class.getResource("icons/die_6.png")).openStream())));
+            alert.setHeaderText(null);
+
+            Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(2), event -> {
+                gameBoardLog.setText("Draw a " + Card.BOOSTER_INOCULATE_TRAP + " card!" + System.lineSeparator() + "Follow the instructions on the card.");
+                alert.hide();
+            }));
+            idleStage.setCycleCount(1);
+            idleStage.play();
+
+            alert.showAndWait();
 
             BitCard bitCard = (BitCard) CardService.pickACardDestructively(Card.BOOSTER_INOCULATE_TRAP);
             Objects.requireNonNull(bitCard);
@@ -96,6 +132,11 @@ public class Prompts {
             stage.setTitle("Booster, Inoculation, Trap");
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.initOwner(container.getScene().getWindow());
+
+            Timeline idleStage2 = new Timeline(new KeyFrame(Duration.seconds(5), event -> stage.hide()));
+            idleStage2.setCycleCount(1);
+            idleStage2.play();
+
             stage.showAndWait();
 
             gameBoardLog.getBackground().getImages().clear();
@@ -191,7 +232,20 @@ public class Prompts {
     }
 
     public static void promptForPairRetry(@NonNull Server server, @NonNull TextArea gameBoardLog) {
-        gameBoardLog.setText("Your first try failed for Server " + server.getColor().name() + System.lineSeparator() + "Partner steps in to help with a retry");
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, String.format("Your first try failed for Server %sPartner steps in to help with a retry", server.getColor().name()), ButtonType.OK);
+        alert.setTitle("Partner");
+        alert.setHeaderText(null);
+
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(2), event -> {
+            gameBoardLog.setText("Your first try failed for Server " + server.getColor().name() + System.lineSeparator() + "Partner steps in to help with a retry");
+            alert.setResult(ButtonType.OK);
+            alert.hide();
+        }));
+        idleStage.setCycleCount(1);
+        idleStage.play();
+
+
     }
 
     public static void promptForServerMoves(@NonNull Pane container, HumanServer inTraining) throws IOException {
@@ -230,6 +284,15 @@ public class Prompts {
     public static boolean promptForServerRetry(@NonNull Server server) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "Your first try failed for Server " + server.getColor().name() + " You have a Retry card, would you like to use it? 'Y/N'", ButtonType.YES, ButtonType.NO);
         alert.setTitle("Retry");
+        alert.setHeaderText(null);
+
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
+            alert.setResult(ButtonType.YES);
+            alert.hide();
+        }));
+        idleStage.setCycleCount(1);
+        idleStage.play();
+
         ButtonType button = alert.showAndWait().orElse(null);
 
         return button == null || button == ButtonType.YES;
@@ -254,32 +317,33 @@ public class Prompts {
             return;
         }
 
-            Stage stage = new Stage();
-            Parent root = new FXMLLoader(ThroughputApplication.class.getResource("move-initial-work-item.fxml")).load();
+        Stage stage = new Stage();
+        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("move-initial-work-item.fxml")).load();
 
-            String builder = "Choose how many items to move to your 1st workstation from the backlog" + System.lineSeparator() + "At prompting please enter any number <= " + startValue + "." +
-                    System.lineSeparator() + "Example:   '" + startValue + "' will move " + startValue + " work items to the 1st workstation";
-            stage.setScene(new Scene(root));
-            TextArea node = (TextArea) root.getScene().lookup("#workItemMoveText");
-            node.setText(builder);
+        String builder = "Choose how many items to move to your 1st workstation from the backlog" + System.lineSeparator() + "At prompting please enter any number <= " + startValue + "." +
+                System.lineSeparator() + "Example:   '" + startValue + "' will move " + startValue + " work items to the 1st workstation";
+        stage.setScene(new Scene(root));
+        TextArea node = (TextArea) root.getScene().lookup("#workItemMoveText");
+        node.setText(builder);
 
-            TextField workItemResponseText = (TextField) root.getScene().lookup("#workItemMoveResponseText");
-            workItemResponseText.setText(String.valueOf(startValue));
+        TextField workItemResponseText = (TextField) root.getScene().lookup("#workItemMoveResponseText");
+        workItemResponseText.setText(String.valueOf(startValue));
 
-            stage.setTitle("Move Items");
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.initOwner(container.getScene().getWindow());
-            stage.showAndWait();
+        stage.setTitle("Move Items");
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(container.getScene().getWindow());
 
+        Button submitButton = (Button) root.getScene().lookup("#workItemMoveButton");
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(10), event -> submitButton.fire()));
+        idleStage.setCycleCount(1);
+        idleStage.play();
+
+        stage.showAndWait();
     }
 
-    public static void promptForWorkItemWorkstationMoves(@NonNull Pane container, int workstationPosition, @NonNull TextArea gameBoardLog) throws IOException {
+    public static void promptForWorkItemWorkstationMoves(@NonNull Pane container, int workstationPosition) throws IOException {
 
         Workstation workstation = WorkstationService.getWorkstation(workstationPosition);
-        if (workstation.getWorkItemCount() == 0) {
-            gameBoardLog.setText("No Moves" + System.lineSeparator() + workstation.getColor() + " " + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE);
-            return;
-        }
 
         Stage stage = new Stage();
         Parent root = new FXMLLoader(ThroughputApplication.class.getResource("move-work-item.fxml")).load();
@@ -315,6 +379,12 @@ public class Prompts {
         stage.setTitle("Move Items");
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(container.getScene().getWindow());
+
+        Button submitButton = (Button) root.getScene().lookup("#workItemMoveButton");
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(10), event -> submitButton.fire()));
+        idleStage.setCycleCount(1);
+        idleStage.play();
+
         stage.showAndWait();
     }
 
@@ -356,12 +426,11 @@ public class Prompts {
         Parent root = loader.load();
 
         Workstation workstationBlue = Objects.requireNonNull(WorkstationService.getWorkstation(Color.BLUE));
-        StringBuilder builder = getStringBuilder(timesTwo, workstationBlue);
 
         stage.setScene(new Scene(root));
 
         TextArea node = (TextArea) root.getScene().lookup("#addCapacityText");
-        node.setText(builder.toString());
+        node.setText(getWorkstationCapacityText(timesTwo, workstationBlue));
 
         ComboBox<Color> workstationToAddCapacity = ((AddedCapacityController) loader.getController()).getWorkstationToAddCapacity();
         buildColorCombobox(workstationToAddCapacity, Color.humanColorValues());
@@ -372,7 +441,7 @@ public class Prompts {
         stage.showAndWait();
     }
 
-    private static StringBuilder getStringBuilder(boolean timesTwo, Workstation workstationBlue) {
+    private static String getWorkstationCapacityText(boolean timesTwo, Workstation workstationBlue) {
         StringBuilder builder = new StringBuilder();
         if (!timesTwo) {
             builder.append("Choose which workstation to add one to its capacity");
@@ -387,7 +456,7 @@ public class Prompts {
             builder.append(" to ");
             builder.append(Math.min(workstationBlue.getCapacity() + 1, Board.SIX_SIDES));
         }
-        return builder;
+        return builder.toString();
     }
 
     public static void promptToAutomateWorkstation(@NonNull Pane container, @NonNull TextArea gameBoardLog) throws IOException {
@@ -438,12 +507,20 @@ public class Prompts {
         Button addButton = ((SkillController) loader.getController()).getSkillAddButton();
         addButton.setOnAction(event -> {
             addSkill.set(true);
-            addButton.getParent().getScene().getWindow().hide();
+            stage.hide();
         });
 
         stage.setTitle("Click to Add Skill");
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(container.getScene().getWindow());
+
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
+            addSkill.set(true);
+            stage.hide();
+        }));
+        idleStage.setCycleCount(1);
+        idleStage.play();
+
         stage.showAndWait();
 
         return addSkill.get();
@@ -459,21 +536,60 @@ public class Prompts {
         gameBoardLog.setText(gameBoardLogText);
     }
 
-    public static void publishEndWeek(TextArea gameBoardLog) {
-        String gameBoardLogText = "End of Week" + System.lineSeparator() + "Prepare for the start of the next week";
-        gameBoardLog.setText(gameBoardLogText);
+    public static void publishEndWeek() {
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "End of Week" + System.lineSeparator() + "Prepare for the start of the next week", ButtonType.OK);
+        alert.setTitle(THROUGHPUT);
+        alert.setHeaderText(null);
+
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
+            alert.setResult(ButtonType.OK);
+            alert.hide();
+        }));
+        idleStage.setCycleCount(1);
+        idleStage.play();
+
+        alert.showAndWait();
     }
 
     public static void publishStartWeek(TextArea gameBoardLog) {
-        String gameBoardLogText = "Week: " + Board.getGameWeek() + System.lineSeparator() + "Click on Run Week to start the week";
-        gameBoardLog.setText(gameBoardLogText);
+        String gameBoardLogText = "Week: " + Board.getGameWeek() + System.lineSeparator() + START_THE_WEEK;
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, START_THE_WEEK, ButtonType.OK);
+        alert.setTitle(THROUGHPUT);
+        alert.setHeaderText(null);
+
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(2), event -> {
+            gameBoardLog.setText(gameBoardLogText);
+            alert.setResult(ButtonType.OK);
+            alert.hide();
+        }));
+        idleStage.setCycleCount(1);
+        idleStage.play();
+
+        alert.showAndWait();
+
     }
 
     public static ChanceResult serverChanceCardPlay(@NonNull Pane container, @NonNull Server server, int position, @NonNull TextArea gameBoardLog) throws IOException {
 
         Workstation workstation = WorkstationService.getWorkstation(position);
         if (workstation.getWorkItemCount() == 0) {
-            gameBoardLog.setText("No Moves" + System.lineSeparator() + workstation.getColor() + " " + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE);
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE, ButtonType.OK);
+            alert.setTitle(THROUGHPUT);
+            alert.setHeaderText(null);
+
+            Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
+                gameBoardLog.setText("No Moves" + System.lineSeparator() + workstation.getColor() + " " + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE);
+                alert.setResult(ButtonType.OK);
+                alert.hide();
+            }));
+            idleStage.setCycleCount(1);
+            idleStage.play();
+
+            alert.showAndWait();
+
             return ChanceResult.EMPTY;
         }
 
@@ -498,6 +614,10 @@ public class Prompts {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(container.getScene().getWindow());
 
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(3), event -> stage.hide()));
+        idleStage.setCycleCount(1);
+        idleStage.play();
+
         stage.showAndWait();
 
         return chanceCard.isSuccess() ? ChanceResult.SUCCESS : ChanceResult.FAILED;
@@ -512,7 +632,7 @@ public class Prompts {
         stage.setTitle("Game Information");
         stage.initModality(Modality.WINDOW_MODAL);
         stage.initOwner(container.getScene().getWindow());
-        stage.showAndWait();
+        stage.show();
     }
 
     public static void showRulesCard(Pane container) throws IOException {
@@ -523,7 +643,7 @@ public class Prompts {
         stage.setTitle("Game Rules");
         stage.initModality(Modality.WINDOW_MODAL);
         stage.initOwner(container.getScene().getWindow());
-        stage.showAndWait();
+        stage.show();
     }
 
     public static int teamMood(@NonNull Pane container, int dieSides) throws IOException {
@@ -551,6 +671,11 @@ public class Prompts {
         stage.setTitle("Team Mood");
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(container.getScene().getWindow());
+
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), event -> stage.hide()));
+        idleStage.setCycleCount(1);
+        idleStage.play();
+
         stage.showAndWait();
 
         return Math.min(teamMood, ScorecardService.getBacklog().getBacklogItemCount());

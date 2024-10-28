@@ -142,9 +142,7 @@ public class CardService {
 
     public static Card pickACardDestructively(String deckName) {
         List<Card> deck = getCardDeck(deckName);
-        Card nextCard = deck.get(random.nextInt(deck.size()));
-        deck.remove(nextCard);
-        return nextCard;
+        return deck.remove(random.nextInt(deck.size()));
     }
 
 

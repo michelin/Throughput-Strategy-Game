@@ -10,7 +10,7 @@
 .score-box{
     -fx-background-color:  rgb(255,255,255,.8);
     -fx-border-width: 2px;
-    -fx-border-color: black;
+    -fx-border-color: yellow;
     -fx-text-alignment: center;
     -fx-padding: 10px 10px 10px 10px;
     -fx-font-family: Michelin, sans-serif;
@@ -77,7 +77,7 @@
 .read-only-textarea{
     -fx-background-color: white;
     -fx-border-width: 2px;
-    -fx-border-color: black;
+    -fx-border-color: yellow;
     -fx-opacity: 1;
     -fx-font-family: Michelin;
     -fx-font-size: 14pt;
@@ -105,7 +105,7 @@
 }
 
 .card-box{
-    -fx-border-color: black;
+    -fx-border-color: yellow;
     -fx-border-width: 4;
     -fx-border-radius: 18 18 18 18;
 }

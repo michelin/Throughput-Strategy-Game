@@ -1,9 +1,6 @@
 package com.michelin.throughputfxproject.controllers;
 
-import com.michelin.throughputfxproject.ChanceResult;
-import com.michelin.throughputfxproject.Color;
-import com.michelin.throughputfxproject.Prompts;
-import com.michelin.throughputfxproject.ThroughputApplication;
+import com.michelin.throughputfxproject.*;
 import com.michelin.throughputfxproject.entities.*;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
@@ -110,10 +107,10 @@ public class BoardController {
     @FXML
     private Button buttonEndGame;
 
-    private  void activateTrap(Trap trap, BitCard bitCard) {
+    private void activateTrap(Trap trap, BitCard bitCard) {
 
         boolean trapMitigated = isTrapMitigated(bitCard);
-        Prompts.promptForAppliedTrap(trap, trapMitigated,gameBoardLog);
+        Prompts.promptForAppliedTrap(trap, trapMitigated, gameBoardLog);
         if (!trapMitigated) {
             if (trap.getEffected().equals(TEAM) && trap.getDuration().equals(WEEK)) {
                 augmentGameWeek();
@@ -339,7 +336,7 @@ public class BoardController {
         if (isVanilla()) {
             return;
         }
-        BitCard bitCard = Prompts.drawBit(gameDialogPane, SIX_SIDES,gameBoardLog);
+        BitCard bitCard = Prompts.drawBit(gameDialogPane, SIX_SIDES, gameBoardLog);
         //Discover bit actions handles a null bit card
         BoardAction boardAction = discoverBitActions(bitCard, getDayOfTheWeek(), getGameWeek());
         if (boardAction == null) {
@@ -357,10 +354,10 @@ public class BoardController {
                     Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, true);
                     return;
                 case AUTOMATE:
-                    Prompts.promptToAutomateWorkstation(gameDialogPane,gameBoardLog);
+                    Prompts.promptToAutomateWorkstation(gameDialogPane, gameBoardLog);
                     return;
                 case PAIR:
-                    Prompts.implementPairedProgramming(gameDialogPane,gameBoardLog);
+                    Prompts.implementPairedProgramming(gameDialogPane, gameBoardLog);
                     return;
                 case AUGMENT:
                     Prompts.promptForFinishedGoodsAreNowFourPoints(gameBoardLog);
@@ -368,22 +365,11 @@ public class BoardController {
         }
     }
 
-    public void endGame(ActionEvent ignoredActionEvent) {
+    @FXML
+    protected void endGame(ActionEvent ignoredActionEvent) {
         Prompts.publishEndOfGame(gameBoardLog);
     }
 
-    public void executeGame() {
-
-        //Start the game by highlighting the Run Week button
-        redrawBoard();
-        buttonRunGame.setDisable(true);
-        weeklyButtonBar.setVisible(true);
-        buttonRunWeek.setVisible(true);
-        buttonRunWeek.setDisable(false);
-        buttonAddSkills.setVisible(false);
-        Prompts.publishStartWeek(gameBoardLog);
-
-    }
 
     @FXML
     protected void initialize() {
@@ -419,25 +405,28 @@ public class BoardController {
         if (retry) {
             getWeekHoldCards().remove(0);
             updateHoldCardBox();
-            ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, position,gameBoardLog);
+            ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, position, gameBoardLog);
             if (ChanceResult.SUCCESS.equals(result)) {
-                Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, position,gameBoardLog);
+                Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, position);
             }
         }
     }
 
     private void retryWithPartner(int position, Server server) throws IOException {
         //Prompt for do over
-        Prompts.promptForPairRetry(server,gameBoardLog);
-        ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, position,gameBoardLog);
+        Prompts.promptForPairRetry(server, gameBoardLog);
+        ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, position, gameBoardLog);
         if (ChanceResult.SUCCESS.equals(result)) {
-            Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, position,gameBoardLog);
+            Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, position);
         }
 
     }
 
+    @FXML
+    protected void runDay(ActionEvent actionEvent) throws InterruptedException, IOException {
 
-    private void runDay() throws IOException, InterruptedException {
+        //Run day
+
         LOGGER.debug("Run Day {}", getDayOfTheWeek());
 
         //During run day activities week activities are hidden and run day and server moves disabled
@@ -451,16 +440,14 @@ public class BoardController {
         int localBacklogCount = ScorecardService.getBacklog().getBacklogItemCount();
         int startValue = localBacklogCount > 0 ? Prompts.teamMood(gameDialogPane, SIX_SIDES) : 0;
 
-        Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, localBacklogCount,gameBoardLog);
+        Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, localBacklogCount, gameBoardLog);
         redrawBoard();
 
         for (int stationIndex = 0; stationIndex < FIVE_STATIONS; stationIndex++) {
             highlightActiveWorkstation(stationIndex);
             //go through server workstations - redraws at end of each server turn
             runWorkstationDay(stationIndex);
-            TimeUnit.MILLISECONDS.sleep(1500);
         }
-
 
         highlightActiveWorkstation(100);
 
@@ -470,45 +457,23 @@ public class BoardController {
         redrawBoard();
 
         //If not last day of the week re-enable run day buttons
-        if (getDayOfTheWeek() < RUN_DAYS) {
+        if (getDayOfTheWeek() < RUN_DAYS && getGameWeek() < RUN_WEEKS) {
             //re-enable run day buttons
             buttonRunDay.setDisable(false);
             buttonServerMoves.setDisable(false);
+            augmentDayOfTheWeek();
+            redrawBoard();
             Prompts.publishDayStart(gameBoardLog);
-        } else {
+
+        } else if (getDayOfTheWeek() >= RUN_DAYS && getGameWeek() < RUN_WEEKS) {
+            //End of week
             //hide day buttons
             dailyButtonBar.setVisible(false);
             buttonRunDay.setVisible(false);
             buttonServerMoves.setVisible(false);
-        }
+            Prompts.publishEndWeek();
 
-    }
-
-    public void runDay(ActionEvent actionEvent) throws InterruptedException {
-
-        //Run day
-        try {
-            runDay();
-        } catch (IOException e) {
-            throw new ThroughputRuntimeException(e);
-        }
-
-        //Run End of Week Activities
-        if (getDayOfTheWeek() == RUN_DAYS) {
-            if (getGameWeek() < RUN_WEEKS) {
-                weeklyButtonBar.setVisible(true);
-                buttonRunWeek.setVisible(true);
-                buttonRunWeek.setDisable(false);
-                buttonAddSkills.setVisible(true);
-                buttonAddSkills.setDisable(false);
-                augmentGameWeek();
-                redrawBoard();
-            } else {
-                //End of game
-                gameButtonBar.setVisible(true);
-                buttonEndGame.setVisible(true);
-            }
-
+            //Update Scorecard
             ScoreCard scoreCard = ScorecardService.getScorecardForCurrentWeek();
             getWeekHoldCards().clear();
             //Tally board
@@ -517,65 +482,77 @@ public class BoardController {
             scoreCard.setScore(ScorecardService.getFinishedGoods().calculateScore() - (ScorecardService.getBacklog().getBacklogItemCount() + scoreCard.getWorkInProcess()));
             //Remove finished Goods
             ScorecardService.getFinishedGoods().setFinishedGoodsTally(0);
-            Prompts.publishEndWeek(gameBoardLog);
+            //Reset day counter
             resetDayOfTheWeek();
 
-            TimeUnit.MILLISECONDS.sleep(2000);
-
+            //Make weekly buttons visible
+            weeklyButtonBar.setVisible(true);
+            buttonRunWeek.setVisible(true);
+            buttonRunWeek.setDisable(false);
+            buttonAddSkills.setVisible(true);
+            buttonAddSkills.setDisable(false);
+            augmentGameWeek();
+            redrawBoard();
             //Start Week
             Prompts.publishStartWeek(gameBoardLog);
 
         } else {
-            augmentDayOfTheWeek();
-            redrawBoard();
+            //End of game
+            gameButtonBar.setVisible(true);
+            buttonEndGame.setVisible(true);
         }
-
 
     }
 
     @FXML
     protected void runGame(ActionEvent actionEvent) {
-        String gettingStarted = "Game Starting.....";
-        gameBoardLog.setText(gettingStarted);
 
-        executeGame();
+        Prompts.promptToStartGame(gameBoardLog);
+
+        //Start the game by highlighting the Run Week button
+        redrawBoard();
+        buttonRunGame.setDisable(true);
+        weeklyButtonBar.setVisible(true);
+        buttonRunWeek.setVisible(true);
+        buttonRunWeek.setDisable(false);
+        buttonAddSkills.setVisible(false);
     }
 
-    public void runWeek(ActionEvent actionEvent)  {
+
+
+    @FXML
+    protected void runWeek(ActionEvent actionEvent) {
         try {
-            runWeek();
+            //Hide Week Buttons
+            weeklyButtonBar.setVisible(false);
+            buttonRunWeek.setVisible(false);
+            buttonAddSkills.setVisible(false);
+
+            //Estimate Work Items
+            Prompts.promptForWorkItemEstimates(gameDialogPane);
+            redrawBoard();
+            highlightActiveWorkstation(-1);
+
+            //Skills add is triggered by button push
+
+            //Show buttons to run day
+            dailyButtonBar.setVisible(true);
+            buttonRunDay.setVisible(true);
+            buttonRunDay.setDisable(false);
+            if (isVanilla()) {
+                buttonServerMoves.setVisible(false);
+                buttonServerMoves.setDisable(true);
+            } else {
+                buttonServerMoves.setVisible(true);
+                buttonServerMoves.setDisable(false);
+            }
+            Prompts.publishDayStart(gameBoardLog);
         } catch (IOException e) {
             throw new ThroughputRuntimeException(e);
         }
-        Prompts.publishDayStart(gameBoardLog);
+
     }
 
-    private void runWeek() throws IOException {
-
-        //Hide Week Buttons
-        weeklyButtonBar.setVisible(false);
-        buttonRunWeek.setVisible(false);
-        buttonAddSkills.setVisible(false);
-
-        //Estimate Work Items
-        Prompts.promptForWorkItemEstimates(gameDialogPane);
-        redrawBoard();
-        highlightActiveWorkstation(-1);
-
-        //Skills add is triggered by button push
-
-        //Show buttons to run day
-        dailyButtonBar.setVisible(true);
-        buttonRunDay.setVisible(true);
-        buttonRunDay.setDisable(false);
-        if (isVanilla()) {
-            buttonServerMoves.setVisible(false);
-            buttonServerMoves.setDisable(true);
-        } else {
-            buttonServerMoves.setVisible(true);
-            buttonServerMoves.setDisable(false);
-        }
-    }
 
     private void highlightActiveWorkstation(int activeWorkstation) {
         //RESET colors
@@ -636,10 +613,10 @@ public class BoardController {
             LOGGER.info("Now serving server {}", server);
             //Don't roll for a Partner
             if (server instanceof PairPartner) continue;
-            ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, position,gameBoardLog);
+            ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, position, gameBoardLog);
             switch (result) {
                 case SUCCESS:
-                    Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, position,gameBoardLog);
+                    Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, position);
                     break;
                 case FAILED:
                     if (!getWeekHoldCards().isEmpty()) {
@@ -647,7 +624,7 @@ public class BoardController {
                     } else if (workstation.getServers().stream().anyMatch(PairPartner.class::isInstance)) {
                         retryWithPartner(position, server);
                     } else {
-                        TimeUnit.MILLISECONDS.sleep(500);
+                        TimeUnit.MILLISECONDS.sleep(2000);
                     }
                     break;
                 case EMPTY:
