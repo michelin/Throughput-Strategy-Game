@@ -10,7 +10,10 @@
     </ImageView>
     <Label styleClass="info-labels" text="Game Play" />
     <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
-        <Image url="@images/game-play.png" />
+        <Image url="@images/game-play-1.png" />
+    </ImageView>
+    <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
+        <Image url="@images/game-play-2.png" />
     </ImageView>
     <Label styleClass="info-labels" text="Server Rules" />
     <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">

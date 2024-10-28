@@ -4,9 +4,6 @@ import com.michelin.throughputfxproject.entities.Die;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
 
@@ -17,23 +14,11 @@ public class DiceService {
         super();
     }
 
-    public static int getTotalDiceValue(@NonNull Die[] dice) {
-        return Arrays.stream(dice).mapToInt(Die::getValue).sum();
-    }
 
-    public static int[] getEachDiceValue(@NonNull Die[] dice) {
-        int[] result = new int[dice.length];
-        for (int i = 0; i < dice.length; i++) {
-            result[i] = dice[i].getValue();
-        }
-        return result;
-    }
-
-    public static Die[] rollDice(@NonNull Die[] dice) {
+    public static void rollDice(@NonNull Die[] dice) {
         for (Die currentDie : dice) {
             currentDie.setValue(rollDie(currentDie).getValue());
         }
-        return dice;
     }
 
     public static Die rollDie(@NonNull Die die) {
@@ -54,5 +39,23 @@ public class DiceService {
             result[i] = getDie(sides);
         }
         return result;
+    }
+
+    public static String getDieImage(int dieFace) {
+        switch (dieFace) {
+            case 2:
+                return "icons/die_2.png";
+            case 3:
+                return "icons/die_3.png";
+            case 4:
+                return "icons/die_4.png";
+            case 5:
+                return "icons/die_5.png";
+            case 6:
+                return "icons/die_6.png";
+            default:
+                return "icons/die_1.png";
+
+        }
     }
 }

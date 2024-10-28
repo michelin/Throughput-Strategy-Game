@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 
+@SuppressWarnings("SameParameterValue")
 public class WorkstationService {
     public static final Logger LOGGER = LoggerFactory.getLogger(WorkstationService.class.getName());
     private static Workstation[] workstations;

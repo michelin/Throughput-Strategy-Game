@@ -1,6 +1,9 @@
 package com.michelin.throughputfxproject.controllers;
 
-import com.michelin.throughputfxproject.*;
+import com.michelin.throughputfxproject.ChanceResult;
+import com.michelin.throughputfxproject.Color;
+import com.michelin.throughputfxproject.Prompts;
+import com.michelin.throughputfxproject.ThroughputApplication;
 import com.michelin.throughputfxproject.entities.*;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
@@ -8,6 +11,11 @@ import com.michelin.throughputfxproject.entities.servers.PairPartner;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -19,6 +27,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +46,11 @@ import static com.michelin.throughputfxproject.Board.*;
 public class BoardController {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(BoardController.class.getName());
+    //Timer label implementation
+    private static final Integer START_TIME = 30;
 
+    @FXML
+    private Label countdownTimer;
     @FXML
     private TextArea gameBoardLog;
     @FXML
@@ -106,6 +119,8 @@ public class BoardController {
     private Label workstationLabel4;
     @FXML
     private Button buttonEndGame;
+
+    private Timeline timeline;
 
     private void activateTrap(Trap trap, BitCard bitCard) {
 
@@ -187,11 +202,17 @@ public class BoardController {
     private void buildServerCards(Set<Server> serverSet, Pane serverHolder) throws IOException {
         serverHolder.getChildren().clear();
         for (Server server : serverSet) {
-            String serverImageFile = getImageStringForServer(server);
 
-            ImageView imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource(serverImageFile)).openStream()));
+            ImageView imageView = new ImageView(new Image(Objects.requireNonNull(Objects.requireNonNull(ThroughputApplication.class.getResource(server.getImage())).openStream())));
             imageView.setFitHeight(60);
             imageView.setFitWidth(53);
+
+            Tooltip tooltip = new Tooltip();
+            Image tooltipImage = new Image(Objects.requireNonNull(ThroughputApplication.class.getResourceAsStream(server.getBackImage())));
+            ImageView tooltipImageView = new ImageView(tooltipImage);
+            tooltipImageView.setFitHeight(60);
+            tooltipImageView.setFitWidth(60);
+            tooltip.setGraphic(tooltipImageView);
 
             //loop through skills
             VBox vBox = new VBox();
@@ -206,6 +227,7 @@ public class BoardController {
             hBox.setPrefHeight(60);
             hBox.setPrefWidth(63);
             hBox.setId("h_box_" + serverHolder.getId() + "_" + server.getColor().name());
+            Tooltip.install(hBox, tooltip);
 
             serverHolder.getChildren().add(hBox);
         }
@@ -216,22 +238,29 @@ public class BoardController {
             return;
         }
         inTrainingBox.getChildren().clear();
-        String serverImageFile = getImageStringForServer(inTrainingServer);
 
-        ImageView imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource(serverImageFile)).openStream()));
+        ImageView imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource(inTrainingServer.getImage())).openStream()));
         imageView.setFitHeight(100);
         imageView.setFitWidth(100);
+
+        Tooltip tooltip = new Tooltip();
+        Image tooltipImage = new Image(Objects.requireNonNull(ThroughputApplication.class.getResourceAsStream(inTrainingServer.getBackImage())));
+        ImageView tooltipImageView = new ImageView(tooltipImage);
+        tooltipImageView.setFitHeight(100);
+        tooltipImageView.setFitWidth(100);
+        tooltip.setGraphic(tooltipImageView);
 
         //loop through skills
         VBox vBox = new VBox();
         buildServerSkillsBox(inTrainingServer, vBox, 100.0);
-
         vBox.setId("v_box_" + inTrainingBox.getId() + "_" + inTrainingServer.getColor().name());
 
         HBox hBox = new HBox(imageView, vBox);
         hBox.setPrefHeight(100);
         hBox.setPrefWidth(90);
         hBox.setId("h_box_" + inTrainingBox.getId() + "_" + inTrainingServer.getColor().name());
+        Tooltip.install(hBox, tooltip);
+
 
         inTrainingBox.getChildren().add(hBox);
         VBox.setMargin(inTrainingBox, new Insets(0, 0, 0, 10));
@@ -270,42 +299,6 @@ public class BoardController {
 
     }
 
-    private static String getImageStringForServer(Server server) {
-        String serverImageFile;
-        switch (server.getColor()) {
-            case BLUE:
-                serverImageFile = "servers/server_blue.jpg";
-                break;
-            case GREEN:
-                if (server.getType().equals(Server.TYPE_AUTOMATED)) {
-                    serverImageFile = "servers/robot_green.jpg";
-                } else {
-                    serverImageFile = "servers/server_green.jpg";
-                }
-                break;
-            case YELLOW:
-                if (server.getType().equals(Server.TYPE_AUTOMATED)) {
-                    serverImageFile = "servers/robot_yellow.jpg";
-                } else {
-                    serverImageFile = "servers/server_yellow.jpg";
-                }
-                break;
-            case VIOLET:
-                serverImageFile = "servers/server_violet.jpg";
-                break;
-            case ROSE:
-                if (server.getType().equals(Server.TYPE_AUTOMATED)) {
-                    serverImageFile = "servers/robot_rose.jpg";
-                } else {
-                    serverImageFile = "servers/server_rose.jpg";
-                }
-                break;
-            case GRAY:
-            default:
-                serverImageFile = "servers/server_pair.jpg";
-        }
-        return serverImageFile;
-    }
 
     private void buildServerSkillsBox(Server server, VBox vBox, double boxHeight) {
         int skillsCount = server.getSkills().size();
@@ -424,9 +417,9 @@ public class BoardController {
 
     @FXML
     protected void runDay(ActionEvent actionEvent) throws InterruptedException, IOException {
-
+        //Stop timer
+        if(timeline !=null) timeline.stop();
         //Run day
-
         LOGGER.debug("Run Day {}", getDayOfTheWeek());
 
         //During run day activities week activities are hidden and run day and server moves disabled
@@ -465,13 +458,15 @@ public class BoardController {
             redrawBoard();
             Prompts.publishDayStart(gameBoardLog);
 
+            buildTimer(START_TIME);
+
         } else if (getDayOfTheWeek() >= RUN_DAYS && getGameWeek() < RUN_WEEKS) {
             //End of week
             //hide day buttons
             dailyButtonBar.setVisible(false);
             buttonRunDay.setVisible(false);
             buttonServerMoves.setVisible(false);
-            Prompts.publishEndWeek();
+            Prompts.publishEndWeek(gameBoardLog);
 
             //Update Scorecard
             ScoreCard scoreCard = ScorecardService.getScorecardForCurrentWeek();
@@ -504,6 +499,26 @@ public class BoardController {
 
     }
 
+    private void buildTimer(Integer startTime) {
+
+        countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
+        //Start timer
+        IntegerProperty timeSeconds =
+                new SimpleIntegerProperty(startTime);
+        timeline = new Timeline();
+        countdownTimer.textProperty().bind(timeSeconds.asString());
+        timeline.getKeyFrames().add(
+                new KeyFrame(Duration.seconds(startTime + 1.0),
+                        new KeyValue(timeSeconds, 0)));
+        timeline.setOnFinished(events -> {
+            countdownTimer.textProperty().unbind();
+            countdownTimer.setText("X");
+            countdownTimer.setTextFill(javafx.scene.paint.Color.RED);
+        });
+        timeline.playFromStart();
+
+    }
+
     @FXML
     protected void runGame(ActionEvent actionEvent) {
 
@@ -516,12 +531,19 @@ public class BoardController {
         buttonRunWeek.setVisible(true);
         buttonRunWeek.setDisable(false);
         buttonAddSkills.setVisible(false);
-    }
 
+
+        //Start 15 Second Timer
+        //Timer label implementation
+        buildTimer(15);
+
+    }
 
 
     @FXML
     protected void runWeek(ActionEvent actionEvent) {
+        //Stop timer
+        if(timeline !=null) timeline.stop();
         try {
             //Hide Week Buttons
             weeklyButtonBar.setVisible(false);
@@ -550,6 +572,8 @@ public class BoardController {
         } catch (IOException e) {
             throw new ThroughputRuntimeException(e);
         }
+
+        buildTimer(START_TIME);
 
     }
 

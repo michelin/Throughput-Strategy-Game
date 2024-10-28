@@ -35,7 +35,6 @@ public class CardPopup extends Application {
         imageView.setFitHeight(height);
         imageView.setPreserveRatio(false);
 
-        card.getDescriptionImg();
         VBox cardText = new VBox();
         cardText.getChildren().addAll(
                 new Label(card.getTitle()),

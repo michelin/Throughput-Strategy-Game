@@ -6,10 +6,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -28,31 +25,32 @@ public class HumanServer implements Server {
 
 
     @Override
-    public String getBehavior() {
-        return BEHAVIOR_SERVE;
+    public String getImage() {
+        String serverImageFile;
+        switch (color) {
+            case BLUE:
+                serverImageFile = "servers/server_blue.jpg";
+                break;
+            case GREEN:
+                serverImageFile = "servers/server_green.jpg";
+                break;
+            case YELLOW:
+                serverImageFile = "servers/server_yellow.jpg";
+                break;
+            case VIOLET:
+                serverImageFile = "servers/server_violet.jpg";
+                break;
+            case ROSE:
+            default:
+                serverImageFile = "servers/server_rose.jpg";
+        }
+        return serverImageFile;
     }
 
-    @Override
-    public String getSkillsString() {
-        List<String> builder = new ArrayList<>();
-        skills.forEach(skill -> {
-            if (color.equals(skill)) {
-                builder.add(skill.name());
-            } else {
-                builder.add(skill.initialWithColor());
-            }
-        });
-        return String.join(",", builder);
-    }
 
     @Override
-    public File geImage() {
-        return new File("./cards/WomanJugglingTires.jpg");
-    }
-
-    @Override
-    public File geBackImage() {
-        return new File("./cards/WomanJugglingTires.jpg");
+    public String getBackImage() {
+        return "cards/WomanJugglingTires.jpg";
     }
 
     @Override

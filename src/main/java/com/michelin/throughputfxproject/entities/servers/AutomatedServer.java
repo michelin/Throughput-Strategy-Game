@@ -5,7 +5,6 @@ import com.michelin.throughputfxproject.entities.Server;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,25 +20,33 @@ public class AutomatedServer implements Server {
         skills.add(color);
     }
 
-
     @Override
-    public String getBehavior() {
-        return BEHAVIOR_SERVE;
+    public String getImage() {
+        String serverImageFile;
+        switch (color) {
+            case GREEN:
+                serverImageFile = "servers/robot_green.jpg";
+                break;
+            case YELLOW:
+                serverImageFile = "servers/robot_yellow.jpg";
+                break;
+            case ROSE:
+            default:
+                serverImageFile = "servers/robot_rose.jpg";
+        }
+        return serverImageFile;
     }
 
     @Override
-    public String getSkillsString() {
-               return color.name();
+    public String getBackImage() {
+        return "cards/IndustrialRobot.jpg";
     }
 
     @Override
-    public File geImage() {
-        return new File("./cards/IndustrialRobot.jpg");
-    }
-
-    @Override
-    public File geBackImage() {
-        return new File("./cards/IndustrialRobot.jpg");
+    public int hashCode() {
+        int result = color.hashCode();
+        result = 31 * result + type.hashCode();
+        return result;
     }
 
     @Override
@@ -52,17 +59,8 @@ public class AutomatedServer implements Server {
     }
 
     @Override
-    public int hashCode() {
-        int result = color.hashCode();
-        result = 31 * result + type.hashCode();
-        return result;
-    }
-
-    @Override
     public String toString() {
-        return  getType() + '\'' +
-                ", name: " + color + '\'' +
-                ", skills=" + getSkills();
+        return getType() + '\'' + ", name: " + color + '\'' + ", skills=" + getSkills();
 
     }
 

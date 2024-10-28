@@ -8,11 +8,14 @@
 <BorderPane prefHeight="1000.0" prefWidth="925.0" styleClass="img-background" stylesheets="@css/throughput.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.BoardController">
     <top>
         <VBox alignment="CENTER" styleClass="outer-title-box">
-            <Label id="header" styleClass="title-header" text="Throughput">
-                <VBox.margin>
-                    <Insets bottom="20.0" />
-                </VBox.margin>
-            </Label>
+            <AnchorPane>
+                <Label id="header" layoutX="235.0" styleClass="title-header" text="Throughput">
+                    <VBox.margin>
+                        <Insets bottom="20.0" />
+                    </VBox.margin>
+                </Label>
+                <Label fx:id="countdownTimer" alignment="CENTER" contentDisplay="CENTER" prefHeight="97.0" prefWidth="130.0" styleClass="countdown-timer-label" text="0" />
+            </AnchorPane>
             <Label id="header1" styleClass="sub-header" text="::  A Strategy Game  ::">
                 <padding>
                     <Insets bottom="10.0" left="35.0" right="35.0" />
@@ -29,19 +32,19 @@
                         <tooltip>
                             <Tooltip text="Information" />
                         </tooltip>
-                  <styleClass>
-                     <String fx:value="button-info" />
-                     <String fx:value="button-lion-default" />
-                  </styleClass>
+                        <styleClass>
+                            <String fx:value="button-info" />
+                            <String fx:value="button-lion-default" />
+                        </styleClass>
                     </Button>
                     <Button maxWidth="40.0" mnemonicParsing="false" onAction="#showRules" text="r">
                         <tooltip>
                             <Tooltip text="Rules" />
                         </tooltip>
-                  <styleClass>
-                     <String fx:value="button-rules" />
-                     <String fx:value="button-lion-default" />
-                  </styleClass>
+                        <styleClass>
+                            <String fx:value="button-rules" />
+                            <String fx:value="button-lion-default" />
+                        </styleClass>
                     </Button>
                 </buttons>
                 <VBox.margin>
@@ -152,7 +155,7 @@
             <VBox id="finishedGoodsBox" alignment="BOTTOM_CENTER">
                 <Label fx:id="finishedGoodsCount" styleClass="score-box" text="000">
                 </Label>
-                <Label styleClass="score-box-label" text="Fin Goods">
+                <Label style="-fx-font-size: 9pt;" styleClass="score-box-label" text="Finished&#10;Goods">
                 </Label>
             </VBox>
         </HBox>
@@ -180,4 +183,5 @@
             </Pane>
         </VBox>
     </right>
+
 </BorderPane>

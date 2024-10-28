@@ -2,10 +2,10 @@ package com.michelin.throughputfxproject.entities;
 
 import com.michelin.throughputfxproject.Color;
 
-import java.io.File;
 import java.util.Set;
 
 
+@SuppressWarnings("SameReturnValue")
 public interface Server {
     String BEHAVIOR_SERVE = "SERVE";
     String BEHAVIOR_PAIR = "HELP";
@@ -15,10 +15,8 @@ public interface Server {
 
     Color getColor();
     String getType();
-    String getBehavior();
     Set<Color> getSkills();
-    String getSkillsString();
-    File geImage();
-    File geBackImage();
+    String getImage();
+    String getBackImage();
 
 }

@@ -7,11 +7,16 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import lombok.Getter;
 
+@Getter
 public class InitialWorkItemsController {
 
+    @FXML
+    private TextArea workItemMoveText;
     @FXML
     private Button workItemMoveButton;
     @FXML

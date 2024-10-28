@@ -83,12 +83,6 @@
     -fx-font-size: 14pt;
 }
 
-.buttons{
-    -fx-font-family: Michelin;
-    -fx-font-size: 12pt;
-    -fx-text-alignment: center;
-    -fx-font-weight: bold;
-}
 .button-lion-default {
     -fx-background-color:
             rgba(0,0,0,0.08),
@@ -139,12 +133,6 @@
     -fx-font-size: 10pt;
     -fx-font-weight: bold;
     -fx-padding: 10px 2px 2px 2px;
-}
-.table-row-cell:empty {
-    -fx-background-color: white;
-}
-.table-row-cell:empty .table-cell {
-    -fx-border-width: 0px;
 }
 
 .integer-text-field{
@@ -227,4 +215,13 @@
     -fx-font-size: 22pt;
     -fx-font-weight: bolder;
     -fx-text-alignment: center;
+}
+
+.countdown-timer-label{
+    -fx-background-color: lightgray;
+    -fx-font-family: Michelin;
+    -fx-font-size: 4em;
+    -fx-font-weight: bolder;
+    -fx-text-alignment: center;
+    -fx-text-fill: darkblue;
 }

@@ -6,21 +6,22 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import lombok.Getter;
 
 import java.util.Objects;
 
-
+@Getter
 public class SkillsController {
 
     @FXML
+    private TextArea skillAddText;
+    @FXML
     private Button skillAddButton;
     @FXML
-    @Getter
     private ComboBox<Color> serverToAddSkills;
     @FXML
-    @Getter
     private ComboBox<Color> skillsToAddToServer;
 
 

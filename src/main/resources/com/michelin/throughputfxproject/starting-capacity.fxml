@@ -5,7 +5,7 @@
 
 
 <?import javafx.scene.control.Label?>
-<VBox xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1">
+<VBox xmlns="http://javafx.com/javafx/11.0.14-internal" >
     <Label text="Initial Capacity"/>
     <HBox alignment="CENTER" prefHeight="120.0" prefWidth="700.0" spacing="10.0">
         <ImageView id="dieImage1" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">

@@ -6,11 +6,15 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import lombok.Getter;
 
 
 public class AddAutomationController {
+    @FXML
+    @Getter
+    private TextArea addAutomationText;
     @FXML
     private Button automationButton;
     @FXML

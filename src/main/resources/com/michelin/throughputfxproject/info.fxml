@@ -4,7 +4,7 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" prefHeight="800.0" prefWidth="800.0" stylesheets="@css/throughput.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1">
+<VBox alignment="CENTER" prefHeight="800.0" prefWidth="800.0" stylesheets="@css/throughput.css" xmlns="http://javafx.com/javafx/11.0.14-internal" >
     <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
         <Image url="@images/title.png" />
     </ImageView>

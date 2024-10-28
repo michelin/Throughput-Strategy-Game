@@ -9,12 +9,9 @@ public class ThroughputTests extends Application {
     private Stage stage;
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage)  {
         stage = primaryStage;
     }
 
-    @Test
-    public void testThroughput() {
-        Prompts.drawBit(stage.);
-    }
+
 }

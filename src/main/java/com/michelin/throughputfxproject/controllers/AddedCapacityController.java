@@ -14,6 +14,7 @@ import lombok.Getter;
 
 import java.util.Objects;
 
+@Getter
 public class AddedCapacityController {
 
     @FXML
@@ -21,7 +22,6 @@ public class AddedCapacityController {
     @FXML
     private Button capacityButton;
     @FXML
-    @Getter
     private ComboBox<Color> workstationToAddCapacity;
 
     public void addCapacity(ActionEvent actionEvent) {

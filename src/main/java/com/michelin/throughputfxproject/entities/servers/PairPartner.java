@@ -4,8 +4,6 @@ package com.michelin.throughputfxproject.entities.servers;
 import com.michelin.throughputfxproject.Color;
 import com.michelin.throughputfxproject.entities.Server;
 import lombok.Setter;
-
-import java.io.File;
 import java.util.Set;
 
 
@@ -23,10 +21,6 @@ public class PairPartner implements Server {
         return TYPE_PARTNER;
     }
 
-    @Override
-    public String getBehavior() {
-        return BEHAVIOR_PAIR;
-    }
 
     @Override
     public Set<Color> getSkills() {
@@ -34,17 +28,12 @@ public class PairPartner implements Server {
     }
 
     @Override
-    public String getSkillsString() {
-        return getBehavior();
+    public String getImage() {
+        return "servers/server_pair.jpg";
     }
 
     @Override
-    public File geImage() {
-        return new File("./servers/server_pair.jpg");
-    }
-
-    @Override
-    public File geBackImage() {
-        return new File("./cards/WomanJugglingTires.jpg");
+    public String getBackImage() {
+        return "cards/WomanJugglingTires.jpg";
     }
 }

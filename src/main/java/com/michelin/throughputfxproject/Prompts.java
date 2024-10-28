@@ -43,65 +43,36 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static com.michelin.throughputfxproject.services.DiceService.getDieImage;
+
 
 public class Prompts {
     public static final Logger LOGGER = LoggerFactory.getLogger(Prompts.class.getName());
-    private static final String WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE = "Workstation is empty, No moves are possible";
     public static final String THROUGHPUT = "Throughput";
     public static final String START_THE_WEEK = "Click on Run Week to start the week";
+    private static final String WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE = "Workstation is empty, No moves are possible";
 
 
     private Prompts() {
         super();
     }
 
-
-    public static void promptToStartGame(@NonNull TextArea gameBoardLog) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Game Started", ButtonType.OK);
-        alert.setTitle(Prompts.THROUGHPUT);
-        alert.setHeaderText(null);
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
-            String gameBoardLogText = "Week: " + Board.getGameWeek() + System.lineSeparator() + START_THE_WEEK;
-            gameBoardLog.setText(gameBoardLogText);
-            alert.setResult(ButtonType.OK);
-            alert.hide();
-        }));
-        idleStage.setCycleCount(1);
-        idleStage.play();
-
-        alert.show();
-    }
-
-
     public static BitCard drawBit(@NonNull Pane container, int dieSides, @NonNull TextArea gameBoardLog) throws IOException {
         //If not week 1 draw BIT card if they roll a 6
         int drawBitInt = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
 
+        String gameBoardLogText = "Draw a " + Card.BOOSTER_INOCULATE_TRAP + " card!" + System.lineSeparator() + "Follow the instructions on the card.";
+
         if (drawBitInt == Board.SIX_SIDES) {
 
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("BIT");
-            alert.setGraphic(new ImageView(new Image(Objects.requireNonNull(Prompts.class.getResource("icons/die_6.png")).openStream())));
-            alert.setHeaderText(null);
 
-            Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(2), event -> {
-                gameBoardLog.setText("Draw a " + Card.BOOSTER_INOCULATE_TRAP + " card!" + System.lineSeparator() + "Follow the instructions on the card.");
-                alert.hide();
-            }));
-            idleStage.setCycleCount(1);
-            idleStage.play();
-
-            alert.showAndWait();
+            alertWithGameBoardUpdate("BIT", gameBoardLog, gameBoardLogText, 2);
 
             BitCard bitCard = (BitCard) CardService.pickACardDestructively(Card.BOOSTER_INOCULATE_TRAP);
             Objects.requireNonNull(bitCard);
 
-            Stage stage = new Stage();
             FXMLLoader loader = new FXMLLoader(Prompts.class.getResource("bit-card.fxml"));
             Parent root = loader.load();
-
-            stage.setScene(new Scene(root));
 
             Label labelTitle = ((BITController) loader.getController()).getCardTitle();
             labelTitle.setText(bitCard.getTitle());
@@ -129,15 +100,7 @@ public class Prompts {
             }
 
             // Create a popup and add the stack pane to it
-            stage.setTitle("Booster, Inoculation, Trap");
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.initOwner(container.getScene().getWindow());
-
-            Timeline idleStage2 = new Timeline(new KeyFrame(Duration.seconds(5), event -> stage.hide()));
-            idleStage2.setCycleCount(1);
-            idleStage2.play();
-
-            stage.showAndWait();
+            createModalStage("Booster, Inoculation, Trap", container, root, 5);
 
             gameBoardLog.getBackground().getImages().clear();
             //Follow the instructions on BIT card. If we get a hold card put in weekly hold or game hold.
@@ -148,6 +111,39 @@ public class Prompts {
         return null;
     }
 
+    private static void alertWithGameBoardUpdate(String title, @NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, int timeoutDuration) {
+        Text alertText = new Text(gameBoardLogText);
+        alertText.setWrappingWidth(100);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.getDialogPane().setContent(alertText);
+        alert.getButtonTypes().set(0,ButtonType.OK);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), event -> {
+            gameBoardLog.setText(gameBoardLogText);
+            alert.setResult(ButtonType.OK);
+            alert.hide();
+        }));
+        idleStage.setCycleCount(1);
+        idleStage.play();
+
+        alert.showAndWait();
+    }
+
+    private static void createModalStage(@NonNull String title, @NonNull Pane container, @NonNull Parent root, int timeoutDuration) {
+        Stage stage = new Stage();
+        stage.setScene(new Scene(root));
+        stage.setTitle(title);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(container.getScene().getWindow());
+
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), event -> stage.hide()));
+        idleStage.setCycleCount(1);
+        idleStage.play();
+
+        stage.showAndWait();
+    }
 
     public static void implementPairedProgramming(@NonNull Pane container, @NonNull TextArea gameBoardLog) throws IOException {
 
@@ -155,31 +151,25 @@ public class Prompts {
             gameBoardLog.setText(
                     "Partner assigned already" + System.lineSeparator() +
                             "You can move the pair partner at the start of day");
-
             return;
         }
 
-        Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("implement-pairs.fxml"));
         Parent root = loader.load();
 
         String implementPairsText = "Choose which color workstation to pair. Requires a HUMAN server on the same workstation to work" +
                 System.lineSeparator() + "Pair Partner gives an additional chance for a successful day";
 
-        stage.setScene(new Scene(root));
         TextArea node = (TextArea) root.getScene().lookup("#implementPairsText");
         node.setText(implementPairsText);
 
         ComboBox<Color> serverColorPicker = ((PairingController) loader.getController()).getWorkstationToPairWith();
-        buildColorCombobox(serverColorPicker, Arrays.stream(WorkstationService.getWorkstations()).filter(Workstation::hasHumanServers).map(Workstation::getColor).toArray(Color[]::new));
+        buildColorComboBox(serverColorPicker, Arrays.stream(WorkstationService.getWorkstations()).filter(Workstation::hasHumanServers).map(Workstation::getColor).toArray(Color[]::new));
 
-        stage.setTitle("Paired Work");
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-        stage.showAndWait();
+        createModalStage("Paired Work", container, root, 10);
     }
 
-    private static void buildColorCombobox(ComboBox<Color> colorPicker, Color[] es) {
+    private static void buildColorComboBox(ComboBox<Color> colorPicker, Color[] es) {
         colorPicker.getItems().addAll(es);
         colorPicker.setCellFactory(listView -> new ListCell<>() {
             @Override
@@ -223,34 +213,21 @@ public class Prompts {
                     "  " + trap.getEffected() + " Loses " + trap.getDuration();
         }
         gameBoardLog.setText(builder);
-
     }
 
     public static void promptForFinishedGoodsAreNowFourPoints(@NonNull TextArea gameBoardLog) {
-        gameBoardLog.setText("Augmenting finished goods" + System.lineSeparator() + "Their value is 4 pts for the remainder of the game");
+        String gameBoardLogText = "Augmenting finished goods. Their value is 4 pts for the remainder of the game";
+        alertWithGameBoardUpdate( gameBoardLog, gameBoardLogText, 2);
         ScorecardService.getFinishedGoods().setValue(4);
     }
 
     public static void promptForPairRetry(@NonNull Server server, @NonNull TextArea gameBoardLog) {
-
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, String.format("Your first try failed for Server %sPartner steps in to help with a retry", server.getColor().name()), ButtonType.OK);
-        alert.setTitle("Partner");
-        alert.setHeaderText(null);
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(2), event -> {
-            gameBoardLog.setText("Your first try failed for Server " + server.getColor().name() + System.lineSeparator() + "Partner steps in to help with a retry");
-            alert.setResult(ButtonType.OK);
-            alert.hide();
-        }));
-        idleStage.setCycleCount(1);
-        idleStage.play();
-
-
+        String gameBoardLogText = "Your first try failed for Server " + server.getColor().name() + "Partner steps in to help with a retry";
+        alertWithGameBoardUpdate("Partner", gameBoardLog, gameBoardLogText, 2);
     }
 
     public static void promptForServerMoves(@NonNull Pane container, HumanServer inTraining) throws IOException {
 
-        Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(Prompts.class.getResource("server-moves.fxml"));
         Parent root = loader.load();
 
@@ -263,26 +240,26 @@ public class Prompts {
         }
         builder.append(System.lineSeparator()).append("Example BLUE>YELLOW  will move the Blue HUMAN SERVER to the Yellow Workstation");
 
-        stage.setScene(new Scene(root));
         TextArea node = (TextArea) root.getScene().lookup("#serverMovesText");
         node.setText(builder.toString());
 
-
         ComboBox<Color> serverColorPicker = ((ServerMovesController) loader.getController()).getServerToMove();
-        buildColorCombobox(serverColorPicker, Color.humanColorValues());
+        buildColorComboBox(serverColorPicker, Color.humanColorValues());
 
         ComboBox<Color> workstationColorPicker = ((ServerMovesController) loader.getController()).getWorkstationToMoveTo();
-        buildColorCombobox(workstationColorPicker, Color.humanColorValues());
+        buildColorComboBox(workstationColorPicker, Color.humanColorValues());
 
-        stage.setTitle("Server Moves");
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-        stage.showAndWait();
+        createModalStage("Server Moves", container, root, 15);
 
     }
 
     public static boolean promptForServerRetry(@NonNull Server server) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Your first try failed for Server " + server.getColor().name() + " You have a Retry card, would you like to use it? 'Y/N'", ButtonType.YES, ButtonType.NO);
+
+        Text text = new Text("Your first try failed for Server " + server.getColor().name() + " You have a Retry card, would you like to use it? 'Y/N'");
+        text.setWrappingWidth(100);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.getDialogPane().setContent(text);
+        alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
         alert.setTitle("Retry");
         alert.setHeaderText(null);
 
@@ -300,53 +277,63 @@ public class Prompts {
     }
 
     public static void promptForWorkItemEstimates(@NonNull Pane container) throws IOException {
-        Stage stage = new Stage();
-        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml")).load();
-        stage.setScene(new Scene(root));
-        stage.setTitle("Estimate your Week");
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-        stage.showAndWait();
 
+        FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
+        Parent root = loader.load();
+
+        Button submitButton = ((EstimateController) loader.getController()).getEstimateButton();
+
+        createModalStageWithButton("Estimate your Week", container, root, 15, submitButton);
     }
 
-    public static void promptForWorkItemInitialMoves(@NonNull Pane container, int startValue, int backlogCount, @NonNull TextArea gameBoardLog) throws IOException {
-
-        if (backlogCount <= 0) {
-            gameBoardLog.setText("Backlog is Empty" + System.lineSeparator() + "Team Mood is ignored");
-            return;
-        }
-
+    private static void createModalStageWithButton(@NonNull String title, @NonNull Pane container, @NonNull Parent root, int timeoutDuration, Button button) {
         Stage stage = new Stage();
-        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("move-initial-work-item.fxml")).load();
-
-        String builder = "Choose how many items to move to your 1st workstation from the backlog" + System.lineSeparator() + "At prompting please enter any number <= " + startValue + "." +
-                System.lineSeparator() + "Example:   '" + startValue + "' will move " + startValue + " work items to the 1st workstation";
         stage.setScene(new Scene(root));
-        TextArea node = (TextArea) root.getScene().lookup("#workItemMoveText");
-        node.setText(builder);
-
-        TextField workItemResponseText = (TextField) root.getScene().lookup("#workItemMoveResponseText");
-        workItemResponseText.setText(String.valueOf(startValue));
-
-        stage.setTitle("Move Items");
+        stage.setTitle(title);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(container.getScene().getWindow());
 
-        Button submitButton = (Button) root.getScene().lookup("#workItemMoveButton");
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(10), event -> submitButton.fire()));
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), event -> button.fire()));
         idleStage.setCycleCount(1);
         idleStage.play();
 
         stage.showAndWait();
     }
 
+    public static void promptForWorkItemInitialMoves(@NonNull Pane container, int startValue, int backlogCount, @NonNull TextArea gameBoardLog) throws IOException {
+
+        if (backlogCount <= 0) {
+            String gameBoardLogText = "Backlog is Empty" + System.lineSeparator() + "Team Mood is ignored";
+            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 3);
+            return;
+        }
+
+        FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("move-initial-work-item.fxml"));
+        Parent root = loader.load();
+
+        String builder = "Choose how many items to move to your 1st workstation from the backlog" + System.lineSeparator() + "At prompting please enter any number <= " + startValue + "." +
+                System.lineSeparator() + "Example:   '" + startValue + "' will move " + startValue + " work items to the 1st workstation";
+
+        TextArea node = ((InitialWorkItemsController) loader.getController()).getWorkItemMoveText();
+        node.setText(builder);
+
+        TextField workItemResponseText = ((InitialWorkItemsController) loader.getController()).getWorkItemMoveResponseText();
+        workItemResponseText.setText(String.valueOf(startValue));
+
+        Button submitButton = ((InitialWorkItemsController) loader.getController()).getWorkItemMoveButton();
+        createModalStageWithButton("Move Items", container, root, 10, submitButton);
+    }
+
+    private static void alertWithGameBoardUpdate(@NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, int timeoutDuration) {
+        alertWithGameBoardUpdate(THROUGHPUT, gameBoardLog, gameBoardLogText, timeoutDuration);
+    }
+
     public static void promptForWorkItemWorkstationMoves(@NonNull Pane container, int workstationPosition) throws IOException {
 
         Workstation workstation = WorkstationService.getWorkstation(workstationPosition);
 
-        Stage stage = new Stage();
-        Parent root = new FXMLLoader(ThroughputApplication.class.getResource("move-work-item.fxml")).load();
+        FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("move-work-item.fxml"));
+        Parent root = loader.load();
 
         StringBuilder builder = new StringBuilder();
         final int maxIntToMove = Math.min(workstation.getCapacity(), workstation.getWorkItemCount());
@@ -365,32 +352,21 @@ public class Prompts {
             builder.append("' work items to the next workstation");
         }
 
-        stage.setScene(new Scene(root));
-        TextArea node = (TextArea) root.getScene().lookup("#workItemMoveText");
+        TextArea node = ((WorkItemsController) loader.getController()).getWorkItemMoveText();
         node.setText(builder.toString());
 
-        Text workstationPositionText = (Text) root.getScene().lookup("#txtWorkstationPosition");
+        Text workstationPositionText = ((WorkItemsController) loader.getController()).getTxtWorkstationPosition();
         workstationPositionText.setText(String.valueOf(workstationPosition));
 
-        TextField workItemResponseText = (TextField) root.getScene().lookup("#workItemMoveResponseText");
+        TextField workItemResponseText = ((WorkItemsController) loader.getController()).getWorkItemMoveResponseText();
         workItemResponseText.setText(String.valueOf(maxIntToMove));
 
-
-        stage.setTitle("Move Items");
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-
-        Button submitButton = (Button) root.getScene().lookup("#workItemMoveButton");
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(10), event -> submitButton.fire()));
-        idleStage.setCycleCount(1);
-        idleStage.play();
-
-        stage.showAndWait();
+        Button submitButton = ((WorkItemsController) loader.getController()).getWorkItemMoveButton();
+        createModalStageWithButton("Move Items", container, root, 10, submitButton);
     }
 
     public static void promptToAddSkill(@NonNull Pane container) throws IOException {
 
-        Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-skills.fxml"));
         Parent root = loader.load();
 
@@ -399,46 +375,34 @@ public class Prompts {
                 " You can only assign to Human Servers!" + System.lineSeparator() +
                 " Example BLUE>YELLOW  will assign the BLUE HUMAN SERVER a YELLOW skill";
 
-        stage.setScene(new Scene(root));
-
-        TextArea node = (TextArea) root.getScene().lookup("#skillAddText");
+        TextArea node = ((SkillsController) loader.getController()).getSkillAddText();
         node.setText(builder);
 
         ComboBox<Color> serverColorPicker = ((SkillsController) loader.getController()).getServerToAddSkills();
-        buildColorCombobox(serverColorPicker, Color.humanColorValues());
-
+        buildColorComboBox(serverColorPicker, Color.humanColorValues());
 
         ComboBox<Color> skillColorPicker = ((SkillsController) loader.getController()).getSkillsToAddToServer();
-        buildColorCombobox(skillColorPicker, Color.humanColorValues());
+        buildColorComboBox(skillColorPicker, Color.humanColorValues());
 
-        stage.setTitle("Add Skills to Server");
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-        stage.showAndWait();
-
+        createModalStage("Add Skills to Server", container, root, 15);
 
     }
 
     public static void promptToAugmentWorkstationCapacity(@NonNull Pane container, boolean timesTwo) throws IOException {
 
-        Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-capacity.fxml"));
         Parent root = loader.load();
 
         Workstation workstationBlue = Objects.requireNonNull(WorkstationService.getWorkstation(Color.BLUE));
 
-        stage.setScene(new Scene(root));
-
-        TextArea node = (TextArea) root.getScene().lookup("#addCapacityText");
+        TextArea node = ((AddedCapacityController) loader.getController()).getAddCapacityText();
         node.setText(getWorkstationCapacityText(timesTwo, workstationBlue));
 
         ComboBox<Color> workstationToAddCapacity = ((AddedCapacityController) loader.getController()).getWorkstationToAddCapacity();
-        buildColorCombobox(workstationToAddCapacity, Color.humanColorValues());
+        buildColorComboBox(workstationToAddCapacity, Color.humanColorValues());
 
-        stage.setTitle("Add Capacity");
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-        stage.showAndWait();
+        createModalStage("Add Capacity", container, root, 10);
+
     }
 
     private static String getWorkstationCapacityText(boolean timesTwo, Workstation workstationBlue) {
@@ -466,37 +430,28 @@ public class Prompts {
             return;
         }
 
-        Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-automation.fxml"));
         Parent root = loader.load();
 
         String builder = "Choose which color workstation to add automation " + Color.GREEN.name() + "|" + Color.ROSE.name() + "|" + Color.YELLOW.name() +
                 "/n Example: GREEN will will automate the GREEN workstation. The human server will remain until moved";
 
-        stage.setScene(new Scene(root));
-
-        TextArea node = (TextArea) root.getScene().lookup("#addAutomationText");
+        TextArea node = ((AddAutomationController) loader.getController()).getAddAutomationText();
         node.setText(builder);
 
         ComboBox<Color> serverWorkstationColorPicker = ((AddAutomationController) loader.getController()).getWorkstationToAddAutomation();
         List<Color> serverColors = WorkstationService.findDeployedAutomatedServers().stream().map(Server::getColor).collect(Collectors.toList());
         List<Color> leftoverColors = Arrays.stream(Color.automatedColorValues()).filter(color -> !serverColors.contains(color)).collect(Collectors.toList());
-        buildColorCombobox(serverWorkstationColorPicker, leftoverColors.toArray(Color[]::new));
+        buildColorComboBox(serverWorkstationColorPicker, leftoverColors.toArray(Color[]::new));
 
-        stage.setTitle("Automate Workstation");
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-        stage.showAndWait();
-
-
+        createModalStage("Automate Workstation", container, root, 10);
     }
 
     public static boolean promptToDrawSkillsCard(@NonNull Pane container) throws IOException {
 
-        Stage stage = new Stage();
+
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("skill-card.fxml"));
         Parent root = loader.load();
-        stage.setScene(new Scene(root));
 
         SkillCard skillCard = (SkillCard) CardService.pickACard(Card.SKILLS);
         ((SkillController) loader.getController()).getCardSkill().setText(skillCard.getSkill());
@@ -507,67 +462,37 @@ public class Prompts {
         Button addButton = ((SkillController) loader.getController()).getSkillAddButton();
         addButton.setOnAction(event -> {
             addSkill.set(true);
-            stage.hide();
+            addButton.getParent().getScene().getWindow().hide();
         });
 
-        stage.setTitle("Click to Add Skill");
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
-            addSkill.set(true);
-            stage.hide();
-        }));
-        idleStage.setCycleCount(1);
-        idleStage.play();
-
-        stage.showAndWait();
+        createModalStageWithButton("Click to Add Skill", container, root, 5, addButton);
 
         return addSkill.get();
     }
 
+    public static void promptToStartGame(@NonNull TextArea gameBoardLog) {
+        String gameBoardLogText = "Week: " + Board.getGameWeek() + System.lineSeparator() +  START_THE_WEEK;
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 5);
+    }
+
     public static void publishDayStart(TextArea gameBoardLog) {
         String gameBoardLogText = "Day: " + Board.getDayOfTheWeek() + "  Week:  " + Board.getGameWeek() + System.lineSeparator() + "Click on Run Day to start the day";
-        gameBoardLog.setText(gameBoardLogText);
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 2);
     }
 
     public static void publishEndOfGame(TextArea gameBoardLog) {
-        String gameBoardLogText = "End of Game" + System.lineSeparator() + "Assess and discuss how you did";
-        gameBoardLog.setText(gameBoardLogText);
+        String gameBoardLogText = "End of Game." + System.lineSeparator() + "Assess and discuss how you did";
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 5);
     }
 
-    public static void publishEndWeek() {
-
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "End of Week" + System.lineSeparator() + "Prepare for the start of the next week", ButtonType.OK);
-        alert.setTitle(THROUGHPUT);
-        alert.setHeaderText(null);
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
-            alert.setResult(ButtonType.OK);
-            alert.hide();
-        }));
-        idleStage.setCycleCount(1);
-        idleStage.play();
-
-        alert.showAndWait();
+    public static void publishEndWeek(TextArea gameBoardLog) {
+        String gameBoardLogText = "End of Week." + System.lineSeparator() + "Prepare for the start of the next week";
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 2);
     }
 
     public static void publishStartWeek(TextArea gameBoardLog) {
-        String gameBoardLogText = "Week: " + Board.getGameWeek() + System.lineSeparator() + START_THE_WEEK;
-
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, START_THE_WEEK, ButtonType.OK);
-        alert.setTitle(THROUGHPUT);
-        alert.setHeaderText(null);
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(2), event -> {
-            gameBoardLog.setText(gameBoardLogText);
-            alert.setResult(ButtonType.OK);
-            alert.hide();
-        }));
-        idleStage.setCycleCount(1);
-        idleStage.play();
-
-        alert.showAndWait();
+        String gameBoardLogText = "Week: " + Board.getGameWeek()  + START_THE_WEEK;
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 2);
 
     }
 
@@ -575,21 +500,8 @@ public class Prompts {
 
         Workstation workstation = WorkstationService.getWorkstation(position);
         if (workstation.getWorkItemCount() == 0) {
-
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE, ButtonType.OK);
-            alert.setTitle(THROUGHPUT);
-            alert.setHeaderText(null);
-
-            Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
-                gameBoardLog.setText("No Moves" + System.lineSeparator() + workstation.getColor() + " " + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE);
-                alert.setResult(ButtonType.OK);
-                alert.hide();
-            }));
-            idleStage.setCycleCount(1);
-            idleStage.play();
-
-            alert.showAndWait();
-
+            String gameBoardLogText = "No Moves." + System.lineSeparator() + workstation.getColor() + " " + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE;
+            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 2);
             return ChanceResult.EMPTY;
         }
 
@@ -603,22 +515,12 @@ public class Prompts {
             loader = new FXMLLoader(ThroughputApplication.class.getResource("chance-card.fxml"));
         }
 
-        Stage stage = new Stage();
         Parent root = loader.load();
-        stage.setScene(new Scene(root));
 
         ((ChanceController) loader.getController()).getCardInstructions().setText(chanceCard.getInstructions());
         ((ChanceController) loader.getController()).getCardChance().setText(workstation.getColor().name() + " - " + chanceCard.getChanceText());
 
-        stage.setTitle("Chance");
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(3), event -> stage.hide()));
-        idleStage.setCycleCount(1);
-        idleStage.play();
-
-        stage.showAndWait();
+        createModalStage("Chance", container, root, 3);
 
         return chanceCard.isSuccess() ? ChanceResult.SUCCESS : ChanceResult.FAILED;
 
@@ -650,54 +552,24 @@ public class Prompts {
 
         int teamMood = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
 
-
-        Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("die-roll.fxml"));
         Parent root = loader.load();
-        stage.setScene(new Scene(root));
 
         String builder = "Team Mood is " + teamMood + " and backlog has " + ScorecardService.getBacklog().getBacklogItemCount() + " work items" + " At the prompt you can move up to " + Math.min(teamMood, ScorecardService.getBacklog().getBacklogItemCount()) + " items into your 1st workstation";
 
-        Label dieText = (Label) root.getScene().lookup("#dieText");
+        Label dieText = ((DieController) loader.getController()).getDieText();
         dieText.setText(builder);
 
-        Label dieHeaderText = (Label) root.getScene().lookup("#dieHeaderText");
+        Label dieHeaderText = ((DieController) loader.getController()).getDieHeaderText();
         dieHeaderText.setText("Rolled for Team Mood");
 
-        ImageView backImageView = (ImageView) root.getScene().lookup("#dieImage");
+        ImageView backImageView = ((DieController) loader.getController()).getDieImage();
         Image backImage = new Image(Objects.requireNonNull(Prompts.class.getResource(getDieImage(teamMood))).openStream());
         backImageView.setImage(backImage);
 
-        stage.setTitle("Team Mood");
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), event -> stage.hide()));
-        idleStage.setCycleCount(1);
-        idleStage.play();
-
-        stage.showAndWait();
+        createModalStage("Team Mood", container, root, 5);
 
         return Math.min(teamMood, ScorecardService.getBacklog().getBacklogItemCount());
     }
-
-    private static String getDieImage(int dieFace) {
-        switch (dieFace) {
-            case 2:
-                return "icons/die_2.png";
-            case 3:
-                return "icons/die_3.png";
-            case 4:
-                return "icons/die_4.png";
-            case 5:
-                return "icons/die_5.png";
-            case 6:
-                return "icons/die_6.png";
-            default:
-                return "icons/die_1.png";
-
-        }
-    }
-
 
 }

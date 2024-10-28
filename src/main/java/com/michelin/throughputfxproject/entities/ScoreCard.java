@@ -1,7 +1,5 @@
 package com.michelin.throughputfxproject.entities;
 
-
-import javafx.beans.property.SimpleIntegerProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,29 +22,5 @@ public class ScoreCard {
         this.workInProcess = wip;
 
     }
-
-
-    public SimpleIntegerProperty workInProcessProperty() {
-        return new SimpleIntegerProperty(workInProcess);
-    }
-
-    public SimpleIntegerProperty weekProperty() {
-        return new SimpleIntegerProperty(week);
-    }
-
-    public SimpleIntegerProperty scoreProperty() {
-        return new SimpleIntegerProperty(score);
-    }
-
-    public SimpleIntegerProperty finishedGoodsProperty() {
-        return new SimpleIntegerProperty(finishedGoods);
-    }
-
-    public SimpleIntegerProperty estimateProperty() {
-        return new SimpleIntegerProperty(estimate);
-    }
-
-
-
 
 }
