@@ -8,21 +8,25 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import lombok.Getter;
 
 import java.util.Objects;
 
-
+@Getter
 public class ServerMovesController {
 
     @FXML
+    private TextArea serverMovesText;
+
+    @FXML
     private Button moveButton;
+
     @FXML
-    @Getter
     private ComboBox<Color> workstationToMoveTo;
+
     @FXML
-    @Getter
     private ComboBox<Color> serverToMove;
 
     public void moveToServer(ActionEvent actionEvent) {

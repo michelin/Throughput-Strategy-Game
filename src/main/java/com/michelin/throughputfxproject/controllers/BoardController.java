@@ -23,6 +23,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -31,12 +32,8 @@ import javafx.util.Duration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -47,7 +44,7 @@ public class BoardController {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(BoardController.class.getName());
     //Timer label implementation
-    private static final Integer START_TIME = 30;
+    private static final Integer START_TIME = 60;
 
     @FXML
     private Label countdownTimer;
@@ -139,15 +136,9 @@ public class BoardController {
         }
     }
 
-    public void addSkillsToServer(ActionEvent actionEvent) {
-
-        try {
-            if (!isVanilla() && Prompts.promptToDrawSkillsCard(gameDialogPane)) {
-                Prompts.promptToAddSkill(gameDialogPane);
-            }
-        } catch (IOException e) {
-            throw new ThroughputRuntimeException(e);
-        }
+    @FXML
+    protected void addSkillsToServer(ActionEvent actionEvent) throws IOException {
+        if (!isVanilla())  Prompts.promptToDrawSkillsCard(gameDialogPane);
         buttonAddSkills.setDisable(true);
         redrawBoard();
     }
@@ -285,15 +276,16 @@ public class BoardController {
         scoreCol.setCellValueFactory(new PropertyValueFactory<>("score"));
 
         ObservableList<TableColumn<ScoreCard, ?>> columns = scoreTableView.getColumns();
-        columns.setAll(weekCol, estimatedCol, wipCol, finishedGoodsCol, scoreCol);
+        columns.setAll(Arrays.asList(weekCol, estimatedCol, wipCol, finishedGoodsCol, scoreCol));
         scoreTableView.setItems(scoreCards);
         scoreTableView.refresh();
     }
 
+    @java.lang.SuppressWarnings({"java:S1190","java:S117"})
     private void updateHoldCardBox() {
         holdCardBox.getChildren().clear();
         AtomicInteger weeklyIndex = new AtomicInteger(0);
-        getWeekHoldCards().forEach((card -> buildHoldCards("2nd Chance", weeklyIndex.getAndIncrement(), 0)));
+        getWeekHoldCards().forEach(_ -> buildHoldCards("2nd Chance", weeklyIndex.getAndIncrement(), 0));
         AtomicInteger gameIndex = new AtomicInteger(0);
         getGameHoldCards().forEach(card -> buildHoldCards(card.getInstructions(), gameIndex.getAndIncrement(), 1));
 
@@ -311,15 +303,23 @@ public class BoardController {
 
     private void buildHoldCards(String text, int column, int row) {
 
+        DropShadow ds = new DropShadow();
+        ds.setOffsetY(3.0);
+        ds.setOffsetX(3.0);
+        ds.setColor(javafx.scene.paint.Color.GRAY);
+
         Rectangle rectangle = new Rectangle(110, row == 0 ? 60 : 90, javafx.scene.paint.Color.LIGHTGRAY);
-        rectangle.setStroke(javafx.scene.paint.Color.YELLOW);
-        rectangle.setStrokeWidth(2);
+        rectangle.setStroke(javafx.scene.paint.Color.BLACK);
+        rectangle.setStrokeWidth(1);
+        rectangle.setEffect(ds);
+
         Label label = new Label(text);
         label.setLayoutX(5);
         label.setLayoutY(15);
         label.setWrapText(true);
         label.setPrefWidth(105);
         label.setCenterShape(true);
+
         AnchorPane anchorPane = new AnchorPane(rectangle, label);
         HBox.setMargin(anchorPane, new Insets(5));
         ((GridPane) holdCardBox).add(anchorPane, column, row);
@@ -332,30 +332,31 @@ public class BoardController {
         BitCard bitCard = Prompts.drawBit(gameDialogPane, SIX_SIDES, gameBoardLog);
         //Discover bit actions handles a null bit card
         BoardAction boardAction = discoverBitActions(bitCard, getDayOfTheWeek(), getGameWeek());
-        if (boardAction == null) {
-            return;
-        }
-
-        if (boardAction instanceof Trap) {
-            activateTrap((Trap) boardAction, bitCard);
-        } else if (boardAction instanceof HelpAction) {
-            switch (((HelpAction) boardAction).getType()) {
-                case ADD_ONE:
-                    Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, false);
-                    return;
-                case DOUBLE:
-                    Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, true);
-                    return;
-                case AUTOMATE:
-                    Prompts.promptToAutomateWorkstation(gameDialogPane, gameBoardLog);
-                    return;
-                case PAIR:
-                    Prompts.implementPairedProgramming(gameDialogPane, gameBoardLog);
-                    return;
-                case AUGMENT:
-                    Prompts.promptForFinishedGoodsAreNowFourPoints(gameBoardLog);
+        switch (boardAction) {
+            case Trap trap -> activateTrap(trap, bitCard);
+            case HelpAction helpAction -> {
+                switch (helpAction.getType()) {
+                    case ADD_ONE:
+                        Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, false);
+                        return;
+                    case DOUBLE:
+                        Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, true);
+                        return;
+                    case AUTOMATE:
+                        Prompts.promptToAutomateWorkstation(gameDialogPane, gameBoardLog);
+                        return;
+                    case PAIR:
+                        Prompts.implementPairedProgramming(gameDialogPane, gameBoardLog);
+                        return;
+                    case AUGMENT:
+                        Prompts.promptForFinishedGoodsAreNowFourPoints(gameBoardLog);
+                }
+            }
+            case null, default -> {
+                //do nothing
             }
         }
+
     }
 
     @FXML
@@ -392,25 +393,25 @@ public class BoardController {
         updateScorecardTable();
     }
 
-    private void retryWithCard(int position, Server server) throws IOException {
+    private void retryWithCard(Workstation workstation, int position, Server server) throws IOException {
         //Prompt for do over
         boolean retry = Prompts.promptForServerRetry(server);
         if (retry) {
-            getWeekHoldCards().remove(0);
+            getWeekHoldCards().removeFirst();
             updateHoldCardBox();
-            ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, position, gameBoardLog);
+            ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, workstation, gameBoardLog);
             if (ChanceResult.SUCCESS.equals(result)) {
-                Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, position);
+                Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
             }
         }
     }
 
-    private void retryWithPartner(int position, Server server) throws IOException {
+    private void retryWithPartner(Workstation workstation, int position, Server server) throws IOException {
         //Prompt for do over
         Prompts.promptForPairRetry(server, gameBoardLog);
-        ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, position, gameBoardLog);
+        ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, workstation, gameBoardLog);
         if (ChanceResult.SUCCESS.equals(result)) {
-            Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, position);
+            Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
         }
 
     }
@@ -418,7 +419,7 @@ public class BoardController {
     @FXML
     protected void runDay(ActionEvent actionEvent) throws InterruptedException, IOException {
         //Stop timer
-        if(timeline !=null) timeline.stop();
+        if (timeline != null) timeline.stop();
         //Run day
         LOGGER.debug("Run Day {}", getDayOfTheWeek());
 
@@ -458,9 +459,10 @@ public class BoardController {
             redrawBoard();
             Prompts.publishDayStart(gameBoardLog);
 
+            //Timer for start of day
             buildTimer(START_TIME);
 
-        } else if (getDayOfTheWeek() >= RUN_DAYS && getGameWeek() < RUN_WEEKS) {
+        } else if (getDayOfTheWeek() >= RUN_DAYS && getGameWeek() <= RUN_WEEKS) {
             //End of week
             //hide day buttons
             dailyButtonBar.setVisible(false);
@@ -491,6 +493,9 @@ public class BoardController {
             //Start Week
             Prompts.publishStartWeek(gameBoardLog);
 
+            //Timer for start of week
+            buildTimer(START_TIME*2);
+
         } else {
             //End of game
             gameButtonBar.setVisible(true);
@@ -499,6 +504,29 @@ public class BoardController {
 
     }
 
+    @FXML
+    protected void runGame(ActionEvent actionEvent) {
+
+        Prompts.publishStartWeek(gameBoardLog);
+
+        //Start the game by highlighting the Run Week button
+        redrawBoard();
+        buttonRunGame.setDisable(true);
+        weeklyButtonBar.setVisible(true);
+        buttonRunWeek.setVisible(true);
+        buttonRunWeek.setDisable(false);
+        buttonAddSkills.setVisible(false);
+        buttonAddSkills.setDisable(true);
+
+
+
+        //Start the 15-Second timer.
+        //Timer label implementation
+        buildTimer(15);
+
+    }
+
+    @java.lang.SuppressWarnings({"java:S1190","java:S117"})
     private void buildTimer(Integer startTime) {
 
         countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
@@ -510,7 +538,7 @@ public class BoardController {
         timeline.getKeyFrames().add(
                 new KeyFrame(Duration.seconds(startTime + 1.0),
                         new KeyValue(timeSeconds, 0)));
-        timeline.setOnFinished(events -> {
+        timeline.setOnFinished(_ -> {
             countdownTimer.textProperty().unbind();
             countdownTimer.setText("X");
             countdownTimer.setTextFill(javafx.scene.paint.Color.RED);
@@ -520,30 +548,9 @@ public class BoardController {
     }
 
     @FXML
-    protected void runGame(ActionEvent actionEvent) {
-
-        Prompts.promptToStartGame(gameBoardLog);
-
-        //Start the game by highlighting the Run Week button
-        redrawBoard();
-        buttonRunGame.setDisable(true);
-        weeklyButtonBar.setVisible(true);
-        buttonRunWeek.setVisible(true);
-        buttonRunWeek.setDisable(false);
-        buttonAddSkills.setVisible(false);
-
-
-        //Start 15 Second Timer
-        //Timer label implementation
-        buildTimer(15);
-
-    }
-
-
-    @FXML
     protected void runWeek(ActionEvent actionEvent) {
         //Stop timer
-        if(timeline !=null) timeline.stop();
+        if (timeline != null) timeline.stop();
         try {
             //Hide Week Buttons
             weeklyButtonBar.setVisible(false);
@@ -573,6 +580,7 @@ public class BoardController {
             throw new ThroughputRuntimeException(e);
         }
 
+        //Start timer for the day
         buildTimer(START_TIME);
 
     }
@@ -634,19 +642,19 @@ public class BoardController {
         Set<Server> servers = workstation.getServers();
         List<Server> serverList = new ArrayList<>(servers);
         for (Server server : serverList) {
-            LOGGER.info("Now serving server {}", server);
+            LOGGER.debug("Now serving server {}", server);
             //Don't roll for a Partner
             if (server instanceof PairPartner) continue;
-            ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, position, gameBoardLog);
+            ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, workstation, gameBoardLog);
             switch (result) {
                 case SUCCESS:
-                    Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, position);
+                    Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
                     break;
                 case FAILED:
                     if (!getWeekHoldCards().isEmpty()) {
-                        retryWithCard(position, server);
+                        retryWithCard(workstation, position, server);
                     } else if (workstation.getServers().stream().anyMatch(PairPartner.class::isInstance)) {
-                        retryWithPartner(position, server);
+                        retryWithPartner(workstation, position, server);
                     } else {
                         TimeUnit.MILLISECONDS.sleep(2000);
                     }
@@ -659,7 +667,8 @@ public class BoardController {
         }
     }
 
-    public void serverMoves(ActionEvent actionEvent) {
+    @FXML
+    protected void serverMoves(ActionEvent actionEvent) {
 
         try {
             Prompts.promptForServerMoves(gameDialogPane, getInTrainingServer());
@@ -669,7 +678,8 @@ public class BoardController {
         redrawBoard();
     }
 
-    public void showInfo(ActionEvent actionEvent) {
+    @FXML
+    protected void showInfo(ActionEvent actionEvent) {
         try {
             Prompts.showInfoCard(gameDialogPane);
         } catch (IOException e) {
@@ -677,7 +687,8 @@ public class BoardController {
         }
     }
 
-    public void showRules(ActionEvent actionEvent) {
+    @FXML
+    protected void showRules(ActionEvent actionEvent) {
         try {
             Prompts.showRulesCard(gameDialogPane);
         } catch (IOException e) {

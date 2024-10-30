@@ -23,9 +23,12 @@ public class EstimateController {
         try {
             String startValueText = estimateResponseText.getText();
             int startValue = Integer.parseInt(startValueText);
+
             ScoreCard scoreCard = ScorecardService.getScorecardForCurrentWeek();
             scoreCard.setEstimate(startValue);
+
             ScorecardService.getBacklog().addToBacklog(startValue);
+            estimateButton.setDisable(true);
         } catch (NumberFormatException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");

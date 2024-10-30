@@ -15,6 +15,7 @@
     -fx-padding: 10px 10px 10px 10px;
     -fx-font-family: Michelin, sans-serif;
     -fx-font-size: 18pt;
+    -fx-text-fill: darkblue;
  }
 .outer-score-box{
     -fx-background-color: rgb(255,255,255,.8);
@@ -25,37 +26,37 @@
 .score-box-label{
     -fx-font-family: Michelin, sans-serif;
     -fx-font-size: 10pt;
+    -fx-text-fill: darkblue;
 }
 .outer-title-box{
     -fx-background-color: rgb(255,255,255,.1);
+}
+.inner-title-box{
+    -fx-background-color:  rgb(255,255,255,.6);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0.0, 0.0);
 }
 .title-header{
     -fx-font-family: Michelin;
     -fx-font-size: 50pt;
     -fx-font-weight: bolder;
-    -fx-text-fill: darkblue;
+    -fx-fill: darkblue;
     -fx-text-alignment: center;
-    -fx-background-color:  rgb(255,255,255,.6);
     -fx-label-padding: 0px 18px 0px 18px;
-    -fx-border-width: 2px;
-    -fx-border-color: yellow;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0.0, 0.0);
 }
 
 .sub-header{
     -fx-font-family: Michelin;
     -fx-font-size: 22pt;
     -fx-font-weight: bold;
-    -fx-text-fill: darkblue;
+    -fx-fill: darkblue;
     -fx-text-alignment: center;
-    -fx-background-color:  rgb(255,255,255,.6);
-    -fx-border-width: 2px;
-    -fx-border-color: yellow;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0.0, 0.0);
 }
 
 .date-group{
     -fx-background-color:  rgb(255,255,255,.8);
     -fx-padding: 10;
-    /*-fx-border-radius: 5;*/
     -fx-border-width: 2px;
     -fx-border-color: yellow;
 }
@@ -67,20 +68,23 @@
     -fx-font-family: Michelin, sans-serif;
     -fx-font-weight: bold;
     -fx-font-size: 16pt;
+    -fx-text-fill: darkblue;
 }
 .date-box-label{
     -fx-font-family: Michelin, sans-serif;
     -fx-font-size: 14pt;
     -fx-font-weight: bold;
+    -fx-text-fill: darkblue;
 }
 
 .read-only-textarea{
     -fx-background-color: white;
     -fx-border-width: 2px;
-    -fx-border-color: yellow;
+    -fx-border-color: darkblue;
     -fx-opacity: 1;
     -fx-font-family: Michelin;
     -fx-font-size: 14pt;
+    -fx-text-fill: midnightblue;
 }
 
 .button-lion-default {
@@ -99,7 +103,7 @@
 }
 
 .card-box{
-    -fx-border-color: yellow;
+    -fx-border-color: black;
     -fx-border-width: 4;
     -fx-border-radius: 18 18 18 18;
 }
@@ -139,6 +143,7 @@
     -fx-font-family: Michelin;
     -fx-font-size: 14pt;
     -fx-text-alignment: center;
+    -fx-text-fill: darkblue;
 }
 
 .card-box-group {
@@ -156,6 +161,7 @@
     -fx-font-family: Michelin;
     -fx-font-size: 16pt;
     -fx-font-weight: bold;
+    -fx-text-fill: darkblue;
 }
 .skill-card{
     -fx-background-image: url(../cards/SkillTraining.jpg);
@@ -215,6 +221,7 @@
     -fx-font-size: 22pt;
     -fx-font-weight: bolder;
     -fx-text-alignment: center;
+    -fx-text-fill: darkblue;
 }
 
 .countdown-timer-label{
@@ -224,4 +231,5 @@
     -fx-font-weight: bolder;
     -fx-text-alignment: center;
     -fx-text-fill: darkblue;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0.5, 0.0, 0.0);
 }

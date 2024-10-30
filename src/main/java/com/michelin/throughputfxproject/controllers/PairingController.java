@@ -6,15 +6,18 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import lombok.Getter;
 
+@Getter
 public class PairingController {
 
     @FXML
+    private TextArea implementPairsText;
+    @FXML
     private Button pairButton;
     @FXML
-    @Getter
     private ComboBox<Color> workstationToPairWith;
 
     public void moveToServer(ActionEvent actionEvent) {

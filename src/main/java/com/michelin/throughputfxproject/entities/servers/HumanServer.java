@@ -14,7 +14,7 @@ import java.util.Set;
 public class HumanServer implements Server {
 
     private final Color color;
-    private final Set<Color> skills = new HashSet<>(5);
+    private final Set<Color> skills = HashSet.newHashSet(5);
     private String type = TYPE_HUMAN;
 
 
@@ -74,5 +74,14 @@ public class HumanServer implements Server {
         return getType() +
                 ", name: " + color +
                 ", skills=" + getSkills();
+    }
+
+    public int skillsCount(){
+        return skills.size();
+    }
+
+    public void removeSkills(){
+        skills.clear();
+        skills.add(color);
     }
 }

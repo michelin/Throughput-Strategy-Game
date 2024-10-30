@@ -9,6 +9,10 @@ module com.michelin.throughputfxproject {
     requires ch.qos.logback.core;
     requires org.slf4j;
     requires java.desktop;
+    requires org.kordamp.ikonli.core;
+    requires org.kordamp.ikonli.javafx;
+    // add icon pack modules
+    requires org.kordamp.ikonli.fontawesome5;
 
     opens com.michelin.throughputfxproject to javafx.fxml;
     exports com.michelin.throughputfxproject;
@@ -22,4 +26,5 @@ module com.michelin.throughputfxproject {
     opens com.michelin.throughputfxproject.css to javafx.fxml;
     opens com.michelin.throughputfxproject.controllers to javafx.fxml;
     opens com.michelin.throughputfxproject.control to javafx.fxml;
+
 }
