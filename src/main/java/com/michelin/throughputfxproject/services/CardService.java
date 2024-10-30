@@ -26,7 +26,7 @@ import java.util.*;
 
 public class CardService {
     public static final Logger LOGGER = LoggerFactory.getLogger(CardService.class.getName());
-    private static final Map<String, List<Card>> decks = new HashMap<>(5);
+    private static final Map<String, List<Card>> decks = HashMap.newHashMap(5);
     private static final Random random = new Random();
 
 

@@ -15,7 +15,7 @@ public class Workstation {
 
     @lombok.NonNull
     private Color color;
-    private Set<Server> servers = new HashSet<>(5);
+    private Set<Server> servers = HashSet.newHashSet(5);
     private int capacity;
     private int workItemCount;
 

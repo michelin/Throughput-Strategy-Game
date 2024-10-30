@@ -12,7 +12,7 @@ import java.util.Set;
 @Setter
 public class AutomatedServer implements Server {
     private final Color color;
-    private final Set<Color> skills = new HashSet<>(1);
+    private final Set<Color> skills = HashSet.newHashSet(1);
     private String type = TYPE_AUTOMATED;
 
     public AutomatedServer(Color color) {

@@ -10,11 +10,9 @@ import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 
 @SuppressWarnings("SameParameterValue")
@@ -77,7 +75,7 @@ public class WorkstationService {
 
     public static List<AutomatedServer> findDeployedAutomatedServers() {
         List<AutomatedServer> automatedServers = new ArrayList<>();
-        Arrays.stream(getWorkstations()).forEach(workstation -> automatedServers.addAll(workstation.getServers().stream().filter(server -> server.getType().equals(Server.TYPE_AUTOMATED)).map(AutomatedServer.class::cast).collect(Collectors.toList())));
+        Arrays.stream(getWorkstations()).forEach(workstation -> automatedServers.addAll(workstation.getServers().stream().filter(server -> server.getType().equals(Server.TYPE_AUTOMATED)).map(AutomatedServer.class::cast).toList()));
         return automatedServers;
     }
 

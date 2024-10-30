@@ -82,9 +82,7 @@ public class Board {
                 return new HelpAction(HelpAction.HelpActionType.DOUBLE);
             case 4:
                 return new HelpAction(HelpAction.HelpActionType.AUTOMATE);
-            case 5:
-            case 6:
-            case 7:
+            case 5,6,7:
                 gameHoldCards.add(bitCard);
                 return null;
             case 8:
