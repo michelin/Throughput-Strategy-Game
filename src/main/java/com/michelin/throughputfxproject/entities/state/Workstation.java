@@ -1,7 +1,8 @@
-package com.michelin.throughputfxproject.entities;
+package com.michelin.throughputfxproject.entities.state;
 
-import com.michelin.throughputfxproject.Color;
+import com.michelin.throughputfxproject.entities.Color;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
+import com.michelin.throughputfxproject.entities.servers.Server;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;

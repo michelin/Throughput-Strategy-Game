@@ -1,6 +1,5 @@
-package com.michelin.throughputfxproject.entities;
+package com.michelin.throughputfxproject.entities.state;
 
-import com.michelin.throughputfxproject.Board;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -2,7 +2,7 @@ package com.michelin.throughputfxproject.services;
 
 
 import com.michelin.throughputfxproject.ThroughputApplication;
-import com.michelin.throughputfxproject.entities.Card;
+import com.michelin.throughputfxproject.entities.cards.Card;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
 import com.michelin.throughputfxproject.entities.cards.ChanceCard;
 import com.michelin.throughputfxproject.entities.cards.ChanceRobotCard;
@@ -63,18 +63,17 @@ public class CardService {
 
 
     private static List<Card> getCards(String deckName) throws URISyntaxException, IOException {
-        switch (deckName) {
-            case Card.BOOSTER_INOCULATE_TRAP:
-                return new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/bit.csv")), BitCard.class));
-            case Card.SKILLS:
-                return new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/skills.csv")), SkillCard.class));
-            case Card.CHANCE:
-                return new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/chance.csv")), ChanceCard.class));
-            case Card.AUTOMATED_CHANCE:
-                return new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/robot_chance.csv")), ChanceRobotCard.class));
-            default:
-                return Collections.emptyList();
-        }
+        return switch (deckName) {
+            case Card.BOOSTER_INOCULATE_TRAP ->
+                    new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/bit.csv")), BitCard.class));
+            case Card.SKILLS ->
+                    new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/skills.csv")), SkillCard.class));
+            case Card.CHANCE ->
+                    new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/chance.csv")), ChanceCard.class));
+            case Card.AUTOMATED_CHANCE ->
+                    new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/robot_chance.csv")), ChanceRobotCard.class));
+            default -> Collections.emptyList();
+        };
     }
 
     private static <T extends Card> List<T> geCardsFromCsv(URL pathUrl, Class<T> clazz) throws URISyntaxException, IOException {

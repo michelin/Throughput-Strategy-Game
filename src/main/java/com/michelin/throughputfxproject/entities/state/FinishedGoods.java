@@ -1,4 +1,4 @@
-package com.michelin.throughputfxproject.entities;
+package com.michelin.throughputfxproject.entities.state;
 
 import lombok.Getter;
 import lombok.Setter;

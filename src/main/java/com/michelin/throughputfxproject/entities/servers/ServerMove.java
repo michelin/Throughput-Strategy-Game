@@ -1,6 +1,6 @@
 package com.michelin.throughputfxproject.entities.servers;
 
-import com.michelin.throughputfxproject.Color;
+import com.michelin.throughputfxproject.entities.Color;
 import lombok.Getter;
 import lombok.NonNull;
 

@@ -1,10 +1,12 @@
-package com.michelin.throughputfxproject;
+package com.michelin.throughputfxproject.controllers;
 
-import com.michelin.throughputfxproject.controllers.*;
-import com.michelin.throughputfxproject.entities.Card;
-import com.michelin.throughputfxproject.entities.Server;
-import com.michelin.throughputfxproject.entities.Trap;
-import com.michelin.throughputfxproject.entities.Workstation;
+import com.michelin.throughputfxproject.entities.state.Board;
+import com.michelin.throughputfxproject.entities.Color;
+import com.michelin.throughputfxproject.ThroughputApplication;
+import com.michelin.throughputfxproject.entities.cards.Card;
+import com.michelin.throughputfxproject.entities.servers.Server;
+import com.michelin.throughputfxproject.entities.actions.Trap;
+import com.michelin.throughputfxproject.entities.state.Workstation;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
 import com.michelin.throughputfxproject.entities.cards.ChanceCard;
 import com.michelin.throughputfxproject.entities.cards.ChanceRobotCard;
@@ -32,12 +34,11 @@ import javafx.util.StringConverter;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+
 
 import static com.michelin.throughputfxproject.services.DiceService.getDieImage;
 
@@ -53,7 +54,7 @@ public class Prompts {
         super();
     }
 
-    public static BitCard drawBit(@NonNull Pane container, int dieSides, @NonNull TextArea gameBoardLog) throws IOException {
+    protected static BitCard drawBit(@NonNull Pane container, int dieSides, @NonNull TextArea gameBoardLog) throws IOException {
         //If not week 1 draw BIT card if they roll a 6
         int drawBitInt = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
 
@@ -67,7 +68,7 @@ public class Prompts {
             BitCard bitCard = (BitCard) CardService.pickACardDestructively(Card.BOOSTER_INOCULATE_TRAP);
             Objects.requireNonNull(bitCard);
 
-            FXMLLoader loader = new FXMLLoader(Prompts.class.getResource("bit-card.fxml"));
+            FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("bit-card.fxml"));
             Parent root = loader.load();
 
             Label labelTitle = ((BITController) loader.getController()).getCardTitle();
@@ -91,7 +92,7 @@ public class Prompts {
             String descritionImgString = bitCard.getDescriptionImg();
             if (descritionImgString != null) {
                 ImageView descriptionImageView = ((BITController) loader.getController()).getDescriptionImage();
-                Image descriptionImg = new Image(Objects.requireNonNull(Prompts.class.getResource(descritionImgString)).openStream());
+                Image descriptionImg = new Image(Objects.requireNonNull(ThroughputApplication.class.getResource(descritionImgString)).openStream());
                 descriptionImageView.setImage(descriptionImg);
             }
 
@@ -107,6 +108,7 @@ public class Prompts {
         return null;
     }
 
+    @java.lang.SuppressWarnings({"java:S1190","java:S117"})
     private static void alertWithGameBoardUpdate(String title, @NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, Duration timeoutDuration) {
         Text alertText = new Text(gameBoardLogText);
         alertText.setWrappingWidth(200);
@@ -116,7 +118,7 @@ public class Prompts {
         alert.setTitle(title);
         alert.setHeaderText(null);
 
-        Timeline idleStage = new Timeline(new KeyFrame(timeoutDuration, event -> {
+        Timeline idleStage = new Timeline(new KeyFrame(timeoutDuration, _ -> {
             gameBoardLog.setText(gameBoardLogText);
             alert.setResult(ButtonType.OK);
             alert.hide();
@@ -127,6 +129,7 @@ public class Prompts {
         alert.showAndWait();
     }
 
+    @java.lang.SuppressWarnings({"java:S1190","java:S117"})
     private static void createModalStage(@NonNull String title, @NonNull Pane container, @NonNull Parent root, int timeoutDuration) {
         Stage stage = new Stage();
         stage.setScene(new Scene(root));
@@ -134,15 +137,17 @@ public class Prompts {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(container.getScene().getWindow());
 
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), event -> stage.hide()));
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> stage.hide()));
         idleStage.setCycleCount(1);
         idleStage.play();
 
-        stage.showAndWait();
+
+            stage.showAndWait();
+
     }
 
 
-    public static void implementPairedProgramming(@NonNull Pane container, @NonNull TextArea gameBoardLog) throws IOException {
+    protected static void implementPairedProgramming(@NonNull Pane container, @NonNull TextArea gameBoardLog) throws IOException {
 
         if (WorkstationService.findIfPairPartnerIsAlreadyAssigned()) {
             gameBoardLog.setText(
@@ -163,12 +168,13 @@ public class Prompts {
         ComboBox<Color> serverColorPicker = ((PairingController) loader.getController()).getWorkstationToPairWith();
         buildColorComboBox(serverColorPicker, Arrays.stream(WorkstationService.getWorkstations()).filter(Workstation::hasHumanServers).map(Workstation::getColor).toArray(Color[]::new));
 
-        createModalStage("Paired Work", container, root, 10);
+        createModalStage("Paired Work", container, root, 20);
     }
 
+    @java.lang.SuppressWarnings({"java:S1190","java:S117"})
     private static void buildColorComboBox(ComboBox<Color> colorPicker, Color[] es) {
         colorPicker.getItems().addAll(es);
-        colorPicker.setCellFactory(listView -> new ListCell<>() {
+        colorPicker.setCellFactory(_ -> new ListCell<>() {
             @Override
             public void updateItem(Color color, boolean empty) {
                 super.updateItem(color, empty);
@@ -199,20 +205,20 @@ public class Prompts {
         });
     }
 
-    public static void promptForAppliedTrap(Trap trap, boolean isMitigated, @NonNull TextArea gameBoardLog) {
+    protected static void promptForAppliedTrap(Trap trap, boolean isMitigated, @NonNull TextArea gameBoardLog) {
 
         String builder;
         if (isMitigated) {
             builder = "Applying Mitigation for trap" +
-                    "  " + trap.getEffected() + " Loses " + trap.getMitigatedDuration();
+                    "  " + trap.effected() + " Loses " + trap.mitigatedDuration();
         } else {
             builder = "No Mitigation available for trap" +
-                    "  " + trap.getEffected() + " Loses " + trap.getDuration();
+                    "  " + trap.effected() + " Loses " + trap.duration();
         }
         gameBoardLog.setText(builder);
     }
 
-    public static void promptForFinishedGoodsAreNowFourPoints(@NonNull TextArea gameBoardLog) {
+    protected static void promptForFinishedGoodsAreNowFourPoints(@NonNull TextArea gameBoardLog) {
         String gameBoardLogText = "Augmenting finished goods." + System.lineSeparator() + "Their value is 4 pts for the remainder of the game";
         alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, Duration.seconds(3));
         ScorecardService.getFinishedGoods().setValue(4);
@@ -222,14 +228,14 @@ public class Prompts {
         alertWithGameBoardUpdate(THROUGHPUT, gameBoardLog, gameBoardLogText, timeoutDuration);
     }
 
-    public static void promptForPairRetry(@NonNull Server server, @NonNull TextArea gameBoardLog) {
+    protected static void promptForPairRetry(@NonNull Server server, @NonNull TextArea gameBoardLog) {
         String gameBoardLogText = "Your first try failed for Server " + server.getColor().name() + System.lineSeparator() + "Partner steps in to help with a retry";
         alertWithGameBoardUpdate("Partner", gameBoardLog, gameBoardLogText, Duration.seconds(3));
     }
 
-    public static void promptForServerMoves(@NonNull Pane container, HumanServer inTraining) throws IOException {
+    protected static void promptForServerMoves(@NonNull Pane container, HumanServer inTraining) throws IOException {
 
-        FXMLLoader loader = new FXMLLoader(Prompts.class.getResource("server-moves.fxml"));
+        FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("server-moves.fxml"));
         Parent root = loader.load();
 
         StringBuilder builder = new StringBuilder("At prompting please enter: Server Color > Workstation Color."
@@ -256,7 +262,8 @@ public class Prompts {
 
     }
 
-    public static boolean promptForServerRetry(@NonNull Server server) {
+    @java.lang.SuppressWarnings({"java:S1190","java:S117"})
+    protected static boolean promptForServerRetry(@NonNull Server server) {
 
         Text text = new Text("Your first try failed for Server " + server.getColor().name() + System.lineSeparator() + " You have a Retry card, would you like to use it? 'Y/N'");
         text.setWrappingWidth(105);
@@ -266,7 +273,7 @@ public class Prompts {
         alert.setTitle("Retry");
         alert.setHeaderText(null);
 
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(5), _ -> {
             alert.setResult(ButtonType.YES);
             alert.hide();
         }));
@@ -279,36 +286,35 @@ public class Prompts {
 
     }
 
-    public static void promptForWorkItemEstimates(@NonNull Pane container) throws IOException {
+    protected static void promptForWorkItemEstimates(@NonNull Pane container) throws IOException {
 
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Parent root = loader.load();
 
         Button submitButton = ((EstimateController) loader.getController()).getEstimateButton();
 
-        createModalStageWithButton("Estimate your Week", container, root, 15, submitButton,true);
+        createModalStageWithButton("Estimate your Week", container, root, 15, submitButton);
     }
 
-    private static void createModalStageWithButton(@NonNull String title, @NonNull Pane container, @NonNull Parent root, int timeoutDuration, Button button, boolean wait) {
+    @java.lang.SuppressWarnings({"java:S1190","java:S117"})
+    private static void createModalStageWithButton(@NonNull String title, @NonNull Pane container, @NonNull Parent root, int timeoutDuration, Button button) {
         Stage stage = new Stage();
         stage.setScene(new Scene(root));
         stage.setTitle(title);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initOwner(container.getScene().getWindow());
 
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), event -> button.fire()));
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> button.fire()));
         idleStage.setCycleCount(1);
         idleStage.play();
 
-        if (wait) {
+
             stage.showAndWait();
-        } else {
-            stage.show();
-        }
+
 
     }
 
-    public static void promptForWorkItemInitialMoves(@NonNull Pane container, int startValue, int backlogCount, @NonNull TextArea gameBoardLog) throws IOException {
+    protected static void promptForWorkItemInitialMoves(@NonNull Pane container, int startValue, int backlogCount, @NonNull TextArea gameBoardLog) throws IOException {
 
 
         if (backlogCount <= 0) {
@@ -334,10 +340,10 @@ public class Prompts {
         workstationMaxText.setText(String.valueOf(maxIntToMove));
 
         Button submitButton = ((InitialWorkItemsController) loader.getController()).getWorkItemMoveButton();
-        createModalStageWithButton("Move Items", container, root, 10, submitButton,true);
+        createModalStageWithButton("Move Items", container, root, 10, submitButton);
     }
 
-    public static void promptForWorkItemWorkstationMoves(@NonNull Pane container, Workstation workstation, int workstationPosition) throws IOException {
+    protected static void promptForWorkItemWorkstationMoves(@NonNull Pane container, Workstation workstation, int workstationPosition) throws IOException {
 
 
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("move-work-item.fxml"));
@@ -373,10 +379,10 @@ public class Prompts {
         workItemResponseText.setText(String.valueOf(maxIntToMove));
 
         Button submitButton = ((WorkItemsController) loader.getController()).getWorkItemMoveButton();
-        createModalStageWithButton("Move Items", container, root, 10, submitButton,true);
+        createModalStageWithButton("Move Items", container, root, 10, submitButton);
     }
 
-    public static void promptToAugmentWorkstationCapacity(@NonNull Pane container, boolean timesTwo) throws IOException {
+    protected static void promptToAugmentWorkstationCapacity(@NonNull Pane container, boolean timesTwo) throws IOException {
 
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-capacity.fxml"));
         Parent root = loader.load();
@@ -411,7 +417,7 @@ public class Prompts {
         return builder.toString();
     }
 
-    public static void promptToAutomateWorkstation(@NonNull Pane container, @NonNull TextArea gameBoardLog) throws IOException {
+    protected static void promptToAutomateWorkstation(@NonNull Pane container, @NonNull TextArea gameBoardLog) throws IOException {
 
         if (WorkstationService.findDeployedAutomatedServers().size() == 3) {
             gameBoardLog.setText("No Robots Left!" + System.lineSeparator() + "There are no workstations available to automate");
@@ -436,8 +442,7 @@ public class Prompts {
     }
 
 
-    public static void promptToDrawSkillsCard(@NonNull Pane container) throws IOException {
-
+    protected static boolean promptToDrawSkillsCard(@NonNull Pane container) throws IOException {
 
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("skill-card.fxml"));
         Parent root = loader.load();
@@ -448,37 +453,12 @@ public class Prompts {
         ((SkillCardController) loader.getController()).getCardInstructionsExtended().setText(skillCard.getInstructionsExtended());
         ((SkillCardController) loader.getController()).getIsSuccessful().setText(String.valueOf(skillCard.isSuccess()));
 
-        Button changeButton = getSkillChangeButton(container, loader, skillCard);
-        createModalStageWithButton("Skills", container, root, 5, changeButton,false);
+        createModalStage("Skills", container, root, 5);
+        return skillCard.isSuccess();
     }
 
-    @java.lang.SuppressWarnings({"java:S1190","java:S117"})
-    private static Button getSkillChangeButton(Pane container, FXMLLoader loader, SkillCard skillCard) {
-        Button changeButton = ((SkillCardController) loader.getController()).getSkillChangeButton();
-        if (skillCard.isSuccess()) {
-            changeButton.setText("Add Skill");
-            changeButton.setOnAction(event -> {
-                try {
-                    promptToAddSkill(container);
-                } catch (IOException e) {
-                    throw new ThroughputRuntimeException(e);
-                }
-                changeButton.getParent().getScene().getWindow().hide();
-            });
-        } else {
-            changeButton.setText("Remove Skills");
-            changeButton.setOnAction(_ -> {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Click to remove skills", ButtonType.OK);
-                alert.setTitle("Skill");
-                alert.setHeaderText(null);
-                ServerService.removeSkillsFromMostSkilledServer();
-                changeButton.getParent().getScene().getWindow().hide();
-            });
-        }
-        return changeButton;
-    }
 
-    public static void promptToAddSkill(@NonNull Pane container) throws IOException {
+    protected static void promptToAddSkill(@NonNull Pane container) throws IOException {
 
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-skills.fxml"));
         Parent root = loader.load();
@@ -497,32 +477,40 @@ public class Prompts {
         ComboBox<Color> skillColorPicker = ((SkillsController) loader.getController()).getSkillsToAddToServer();
         buildColorComboBox(skillColorPicker, Color.humanColorValues());
 
-        createModalStage("Add Skills to Server", container, root, 20);
+        createModalStage("Add Skills to Server", container, root, 25);
 
     }
 
-    public static void publishDayStart(TextArea gameBoardLog) {
+    protected static void promptToRemoveSkill()  {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Replace skilled server", ButtonType.FINISH);
+        alert.setTitle("Skills");
+        alert.setHeaderText(null);
+        ServerService.removeSkillsFromMostSkilledServer();
+
+    }
+
+    protected static void publishDayStart(TextArea gameBoardLog) {
         String gameBoardLogText = "Day: " + Board.getDayOfTheWeek() + "  Week:  " + Board.getGameWeek() + System.lineSeparator() + "Click on Run Day to start the day";
         alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, Duration.millis(100));
     }
 
-    public static void publishEndOfGame(TextArea gameBoardLog) {
+    protected static void publishEndOfGame(TextArea gameBoardLog) {
         String gameBoardLogText = "End of Game." + System.lineSeparator() + "Assess and discuss how you did";
         alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, Duration.seconds(5));
     }
 
-    public static void publishEndWeek(TextArea gameBoardLog) {
+    protected static void publishEndWeek(TextArea gameBoardLog) {
         String gameBoardLogText = "End of Week." + System.lineSeparator() + "Prepare for the start of the next week";
         alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, Duration.seconds(3));
     }
 
-    public static void publishStartWeek(TextArea gameBoardLog) {
+    protected static void publishStartWeek(TextArea gameBoardLog) {
         String gameBoardLogText = "Week: " + Board.getGameWeek() + System.lineSeparator() + START_THE_WEEK;
         alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, Duration.millis(100));
 
     }
 
-    public static ChanceResult serverChanceCardPlay(@NonNull Pane container, @NonNull Server server, Workstation workstation, @NonNull TextArea gameBoardLog) throws IOException {
+    protected static ChanceResult serverChanceCardPlay(@NonNull Pane container, @NonNull Server server, Workstation workstation, @NonNull TextArea gameBoardLog) throws IOException {
 
         if (workstation.getWorkItemCount() == 0) {
             String gameBoardLogText = "No Moves." + System.lineSeparator() + workstation.getColor() + " " + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE;
@@ -551,7 +539,7 @@ public class Prompts {
 
     }
 
-    public static void showInfoCard(Pane container) throws IOException {
+    protected static void showInfoCard(Pane container) throws IOException {
         Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("info.fxml"));
         Parent root = loader.load();
@@ -562,7 +550,7 @@ public class Prompts {
         stage.show();
     }
 
-    public static void showRulesCard(Pane container) throws IOException {
+    protected static void showRulesCard(Pane container) throws IOException {
         Stage stage = new Stage();
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("rules.fxml"));
         Parent root = loader.load();
@@ -573,7 +561,7 @@ public class Prompts {
         stage.show();
     }
 
-    public static int teamMood(@NonNull Pane container, int dieSides) throws IOException {
+    protected static int teamMood(@NonNull Pane container, int dieSides) throws IOException {
 
         int teamMood = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
 
@@ -589,7 +577,7 @@ public class Prompts {
         dieHeaderText.setText("Rolled for Team Mood");
 
         ImageView backImageView = ((DieController) loader.getController()).getDieImage();
-        Image backImage = new Image(Objects.requireNonNull(Prompts.class.getResource(getDieImage(teamMood))).openStream());
+        Image backImage = new Image(Objects.requireNonNull(ThroughputApplication.class.getResource(getDieImage(teamMood))).openStream());
         backImageView.setImage(backImage);
 
         createModalStage("Team Mood", container, root, 5);

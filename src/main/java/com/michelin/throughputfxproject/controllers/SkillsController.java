@@ -1,7 +1,7 @@
 package com.michelin.throughputfxproject.controllers;
 
-import com.michelin.throughputfxproject.Board;
-import com.michelin.throughputfxproject.Color;
+import com.michelin.throughputfxproject.entities.state.Board;
+import com.michelin.throughputfxproject.entities.Color;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;

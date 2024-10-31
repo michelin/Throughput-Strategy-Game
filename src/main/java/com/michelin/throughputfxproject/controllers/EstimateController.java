@@ -1,6 +1,6 @@
 package com.michelin.throughputfxproject.controllers;
 
-import com.michelin.throughputfxproject.entities.ScoreCard;
+import com.michelin.throughputfxproject.entities.state.ScoreCard;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

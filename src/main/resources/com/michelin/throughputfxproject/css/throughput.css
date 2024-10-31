@@ -204,18 +204,6 @@
     -fx-font-family: Michelin;
     -fx-font-size: 10pt;
 }
-.button-info {
-    -fx-background-image: url("../icons/info.png");
-    -fx-background-size: 15 15;
-    -fx-background-repeat: no-repeat;
-    -fx-background-position:center;
-}
-.button-rules {
-    -fx-background-image: url("../icons/rules.png");
-    -fx-background-size: 15 15;
-    -fx-background-repeat: no-repeat;
-    -fx-background-position:center;
-}
 .info-labels{
     -fx-font-family: Michelin;
     -fx-font-size: 22pt;

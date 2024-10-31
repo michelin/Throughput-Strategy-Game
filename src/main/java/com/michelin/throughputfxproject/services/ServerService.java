@@ -1,6 +1,6 @@
 package com.michelin.throughputfxproject.services;
 
-import com.michelin.throughputfxproject.Color;
+import com.michelin.throughputfxproject.entities.Color;
 import com.michelin.throughputfxproject.entities.servers.AutomatedServer;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import com.michelin.throughputfxproject.entities.servers.PairPartner;

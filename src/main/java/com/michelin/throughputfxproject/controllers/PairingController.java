@@ -1,6 +1,6 @@
 package com.michelin.throughputfxproject.controllers;
 
-import com.michelin.throughputfxproject.Color;
+import com.michelin.throughputfxproject.entities.Color;
 import com.michelin.throughputfxproject.services.WorkstationService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

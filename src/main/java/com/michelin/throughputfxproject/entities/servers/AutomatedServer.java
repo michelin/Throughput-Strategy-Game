@@ -1,7 +1,6 @@
 package com.michelin.throughputfxproject.entities.servers;
 
-import com.michelin.throughputfxproject.Color;
-import com.michelin.throughputfxproject.entities.Server;
+import com.michelin.throughputfxproject.entities.Color;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,19 +21,11 @@ public class AutomatedServer implements Server {
 
     @Override
     public String getImage() {
-        String serverImageFile;
-        switch (color) {
-            case GREEN:
-                serverImageFile = "servers/robot_green.jpg";
-                break;
-            case YELLOW:
-                serverImageFile = "servers/robot_yellow.jpg";
-                break;
-            case ROSE:
-            default:
-                serverImageFile = "servers/robot_rose.jpg";
-        }
-        return serverImageFile;
+        return switch (color) {
+            case GREEN -> "servers/robot_green.jpg";
+            case YELLOW -> "servers/robot_yellow.jpg";
+            default -> "servers/robot_rose.jpg";
+        };
     }
 
     @Override

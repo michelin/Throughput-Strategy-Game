@@ -5,23 +5,21 @@
 <?import javafx.scene.layout.*?>
 
 
-<ScrollPane xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1">
-   <content>
-      <VBox alignment="CENTER" prefHeight="800.0" prefWidth="800.0" stylesheets="@css/throughput.css">
-          <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
-              <Image url="@images/title.png" />
-          </ImageView>
-          <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
-              <Image url="@images/objective.png" />
-          </ImageView>
-          <Label styleClass="info-labels" text="Servers" />
-          <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
-              <Image url="@images/servers.png" />
-          </ImageView>
-          <Label styleClass="info-labels" text="Workstations" />
-          <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
-              <Image url="@images/workstations.png" />
-          </ImageView>
-      </VBox>
-   </content>
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.14-internal" >
+    <VBox alignment="CENTER" prefHeight="800.0" prefWidth="800.0" stylesheets="@css/throughput.css">
+        <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@images/title.png"/>
+        </ImageView>
+        <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@images/objective.png"/>
+        </ImageView>
+        <Label styleClass="info-labels" text="Servers"/>
+        <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@images/servers.png"/>
+        </ImageView>
+        <Label styleClass="info-labels" text="Workstations"/>
+        <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@images/workstations.png"/>
+        </ImageView>
+    </VBox>
 </ScrollPane>

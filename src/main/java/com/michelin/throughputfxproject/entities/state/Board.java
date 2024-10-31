@@ -1,8 +1,13 @@
-package com.michelin.throughputfxproject;
+package com.michelin.throughputfxproject.entities.state;
 
-import com.michelin.throughputfxproject.entities.*;
+import com.michelin.throughputfxproject.entities.Color;
+import com.michelin.throughputfxproject.entities.actions.BoardAction;
+import com.michelin.throughputfxproject.entities.actions.HelpAction;
+import com.michelin.throughputfxproject.entities.actions.Trap;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
+import com.michelin.throughputfxproject.entities.cards.Card;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
+import com.michelin.throughputfxproject.entities.servers.Server;
 import com.michelin.throughputfxproject.entities.servers.ServerMove;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.ScorecardService;
@@ -72,44 +77,42 @@ public class Board {
         LOGGER.debug("Executing bit actions {}", bitCard);
         LOGGER.debug("{} card: {}", Card.BOOSTER_INOCULATE_TRAP, bitCard);
 
-        switch (bitCard.getAction()) {
-            case 1:
+        return switch (bitCard.getAction()) {
+            case 1 -> {
                 weekHoldCards.add(bitCard);
-                return null;
-            case 2:
-                return new HelpAction(HelpAction.HelpActionType.ADD_ONE);
-            case 3:
-                return new HelpAction(HelpAction.HelpActionType.DOUBLE);
-            case 4:
-                return new HelpAction(HelpAction.HelpActionType.AUTOMATE);
-            case 5,6,7:
+                yield null;
+            }
+            case 2 -> new HelpAction(HelpAction.HelpActionType.ADD_ONE);
+            case 3 -> new HelpAction(HelpAction.HelpActionType.DOUBLE);
+            case 4 -> new HelpAction(HelpAction.HelpActionType.AUTOMATE);
+            case 5, 6, 7 -> {
                 gameHoldCards.add(bitCard);
-                return null;
-            case 8:
-                return new HelpAction(HelpAction.HelpActionType.AUGMENT);
-            case 9:
-                return new HelpAction(HelpAction.HelpActionType.PAIR);
-            case 10:
+                yield null;
+            }
+            case 8 -> new HelpAction(HelpAction.HelpActionType.AUGMENT);
+            case 9 -> new HelpAction(HelpAction.HelpActionType.PAIR);
+            case 10 ->
                 //Team loses the day
-                return new Trap(TEAM, DAY, runWeek, runDay, NONE);
-            case 11:
+                    new Trap(TEAM, DAY, runWeek, runDay, NONE);
+            case 11 ->
                 //Skip the next server
-                return new Trap(ANY_SERVER, DAY, runWeek, runDay, NONE);
-            case 12:
+                    new Trap(ANY_SERVER, DAY, runWeek, runDay, NONE);
+            case 12 -> {
                 returnFinishedGoodsToBacklog();
-                return null;
-            case 13:
+                yield null;
+            }
+            case 13 -> {
                 moveWorkItemsFromColorWorkstationToPrevious(bitCard);
-                return null;
-            case 14:
+                yield null;
+            }
+            case 14 ->
                 //Skip the next human server
-                return new Trap(HUMAN_SERVER, DAY, runWeek, runDay, NONE);
-            case 15:
+                    new Trap(HUMAN_SERVER, DAY, runWeek, runDay, NONE);
+            case 15 ->
                 //Team loses the week
-                return new Trap(TEAM, WEEK, runWeek, runDay, DAY);
-            default:
-                return null;
-        }
+                    new Trap(TEAM, WEEK, runWeek, runDay, DAY);
+            default -> null;
+        };
     }
 
     private static void returnFinishedGoodsToBacklog() {
@@ -159,27 +162,44 @@ public class Board {
         inTrainingServer = server;
     }
 
-    public static void startDay(@NonNull ServerMove move) throws IllegalArgumentException {
-        HumanServer serverToMove = findAndRemoveServer(move.getServerColor());
-        addServer(Objects.requireNonNull(serverToMove), move.getWorkstationColor());
+    public static void startDay(@NonNull ServerMove move) {
+        HumanServer serverToMove = findServer(move.getServerColor());
+        if (addServer(Objects.requireNonNull(serverToMove), move.getWorkstationColor())) {
+            removeServer(serverToMove);
+        } else {
+            throw new ThroughputRuntimeException(new IllegalArgumentException("Server must match workstation or have a skill that matches workstation"));
+        }
+
     }
 
-    public static HumanServer findAndRemoveServer(@NonNull Color serverColor) {
+    private static HumanServer findServer(@NonNull Color serverColor) {
         for (Workstation workstation : WorkstationService.getWorkstations()) {
             HumanServer serverToMove = (HumanServer) workstation.getServers().stream().filter(server -> server.getColor().equals(serverColor) && server.getType().equals(Server.TYPE_HUMAN)).findAny().orElse(null);
-            if (serverToMove != null && workstation.getServers().remove(serverToMove)) {
+            if (serverToMove != null) {
                 return serverToMove;
             }
         }
         return null;
     }
 
-    private static void addServer(@NonNull Server serverToMove, @NonNull Color color) {
+    private static boolean addServer(@NonNull Server serverToMove, @NonNull Color color) {
 
         if (!serverToMove.getSkills().contains(color)) {
-            throw new IllegalArgumentException("Server must match workstation or have a skill that matches workstation");
+            return false;
         }
         Objects.requireNonNull(WorkstationService.getWorkstation(color)).getServers().add(serverToMove);
+        return true;
+    }
+
+    private static void removeServer(@NonNull HumanServer serverToMove) {
+        for (Workstation workstation : WorkstationService.getWorkstations()) {
+            HumanServer serverToRemove = (HumanServer) workstation.getServers().stream().filter(server -> server.equals(serverToMove)).findAny().orElse(null);
+            if (serverToRemove != null) {
+                workstation.getServers().remove(serverToMove);
+            }
+        }
+
+
     }
 
 

@@ -1,12 +1,12 @@
 package com.michelin.throughputfxproject.services;
 
-import com.michelin.throughputfxproject.Board;
-import com.michelin.throughputfxproject.entities.Backlog;
-import com.michelin.throughputfxproject.entities.FinishedGoods;
-import com.michelin.throughputfxproject.entities.ScoreCard;
+import com.michelin.throughputfxproject.entities.state.Board;
+import com.michelin.throughputfxproject.entities.state.Backlog;
+import com.michelin.throughputfxproject.entities.state.FinishedGoods;
+import com.michelin.throughputfxproject.entities.state.ScoreCard;
 import lombok.Getter;
 import java.util.Arrays;
-import static com.michelin.throughputfxproject.Board.*;
+import static com.michelin.throughputfxproject.entities.state.Board.*;
 
 
 public class ScorecardService {

@@ -1,8 +1,7 @@
 package com.michelin.throughputfxproject.entities.servers;
 
 
-import com.michelin.throughputfxproject.Color;
-import com.michelin.throughputfxproject.entities.Server;
+import com.michelin.throughputfxproject.entities.Color;
 import lombok.Setter;
 import java.util.Set;
 

@@ -1,4 +1,4 @@
-package com.michelin.throughputfxproject;
+package com.michelin.throughputfxproject.entities;
 
 public enum Color {
 
@@ -20,20 +20,14 @@ public enum Color {
 
     public javafx.scene.paint.Color lookupFXColor() {
 
-        switch (this) {
-            case BLUE:
-                return javafx.scene.paint.Color.BLUE;
-            case VIOLET:
-                return javafx.scene.paint.Color.PURPLE;
-            case YELLOW:
-                return javafx.scene.paint.Color.YELLOW;
-            case GREEN:
-                return javafx.scene.paint.Color.GREEN;
-            case ROSE:
-                return javafx.scene.paint.Color.PINK;
-            default:
-                return javafx.scene.paint.Color.WHITE;
-        }
+        return switch (this) {
+            case BLUE -> javafx.scene.paint.Color.BLUE;
+            case VIOLET -> javafx.scene.paint.Color.PURPLE;
+            case YELLOW -> javafx.scene.paint.Color.YELLOW;
+            case GREEN -> javafx.scene.paint.Color.GREEN;
+            case ROSE -> javafx.scene.paint.Color.PINK;
+            default -> javafx.scene.paint.Color.WHITE;
+        };
     }
 
         public javafx.scene.paint.Color lookupFontColor() {

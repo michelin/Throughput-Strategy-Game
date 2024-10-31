@@ -16,7 +16,8 @@ module com.michelin.throughputfxproject {
 
     opens com.michelin.throughputfxproject to javafx.fxml;
     exports com.michelin.throughputfxproject;
-    exports com.michelin.throughputfxproject.entities;
+    exports com.michelin.throughputfxproject.entities.actions;
+    exports com.michelin.throughputfxproject.entities.state;
     exports com.michelin.throughputfxproject.entities.cards;
     exports com.michelin.throughputfxproject.entities.servers;
     exports com.michelin.throughputfxproject.exceptions;
@@ -26,5 +27,8 @@ module com.michelin.throughputfxproject {
     opens com.michelin.throughputfxproject.css to javafx.fxml;
     opens com.michelin.throughputfxproject.controllers to javafx.fxml;
     opens com.michelin.throughputfxproject.control to javafx.fxml;
+    exports com.michelin.throughputfxproject.entities;
+    opens com.michelin.throughputfxproject.entities to javafx.fxml;
+    opens com.michelin.throughputfxproject.entities.state to javafx.fxml;
 
 }

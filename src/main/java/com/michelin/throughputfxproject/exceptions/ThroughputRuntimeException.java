@@ -18,6 +18,7 @@ public class ThroughputRuntimeException extends RuntimeException {
     public ThroughputRuntimeException(IllegalArgumentException e) {
         Alert alert = new Alert(Alert.AlertType.ERROR, e.getMessage(), ButtonType.CLOSE);
         alert.setTitle("Retry");
+        alert.setHeaderText(null);
         alert.show();
         LOGGER.error("IllegalArgumentException", e);
     }

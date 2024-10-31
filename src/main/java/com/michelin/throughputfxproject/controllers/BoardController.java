@@ -1,13 +1,16 @@
 package com.michelin.throughputfxproject.controllers;
 
-import com.michelin.throughputfxproject.ChanceResult;
-import com.michelin.throughputfxproject.Color;
-import com.michelin.throughputfxproject.Prompts;
+import com.michelin.throughputfxproject.entities.Color;
 import com.michelin.throughputfxproject.ThroughputApplication;
-import com.michelin.throughputfxproject.entities.*;
+import com.michelin.throughputfxproject.entities.actions.BoardAction;
+import com.michelin.throughputfxproject.entities.actions.HelpAction;
+import com.michelin.throughputfxproject.entities.actions.Trap;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import com.michelin.throughputfxproject.entities.servers.PairPartner;
+import com.michelin.throughputfxproject.entities.servers.Server;
+import com.michelin.throughputfxproject.entities.state.ScoreCard;
+import com.michelin.throughputfxproject.entities.state.Workstation;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
@@ -21,23 +24,29 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.InnerShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.michelin.throughputfxproject.Board.*;
+import static com.michelin.throughputfxproject.entities.state.Board.*;
 
 
 public class BoardController {
@@ -46,6 +55,8 @@ public class BoardController {
     //Timer label implementation
     private static final Integer START_TIME = 60;
 
+    @FXML
+    private LineChart<Integer, Integer> scoreLineChart;
     @FXML
     private Label countdownTimer;
     @FXML
@@ -124,21 +135,30 @@ public class BoardController {
         boolean trapMitigated = isTrapMitigated(bitCard);
         Prompts.promptForAppliedTrap(trap, trapMitigated, gameBoardLog);
         if (!trapMitigated) {
-            if (trap.getEffected().equals(TEAM) && trap.getDuration().equals(WEEK)) {
+            if (trap.effected().equals(TEAM) && trap.duration().equals(WEEK)) {
                 augmentGameWeek();
-            } else if (trap.getEffected().equals(TEAM) && trap.getDuration().equals(DAY)) {
+            } else if (trap.effected().equals(TEAM) && trap.duration().equals(DAY)) {
                 augmentDayOfTheWeek();
             }
         } else {
-            if (trap.getEffected().equals(TEAM) && trap.getMitigatedDuration().equals(DAY)) {
+            if (trap.effected().equals(TEAM) && trap.mitigatedDuration().equals(DAY)) {
                 augmentDayOfTheWeek();
             }
         }
     }
 
     @FXML
-    protected void addSkillsToServer(ActionEvent actionEvent) throws IOException {
-        if (!isVanilla())  Prompts.promptToDrawSkillsCard(gameDialogPane);
+    protected void addOrRemoveSkillsForServers(ActionEvent actionEvent) throws IOException {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(actionEvent.toString());
+        }
+        if (!isVanilla()) {
+            if (Prompts.promptToDrawSkillsCard(gameDialogPane)) {
+                Prompts.promptToAddSkill(gameDialogPane);
+            } else {
+                Prompts.promptToRemoveSkill();
+            }
+        }
         buttonAddSkills.setDisable(true);
         redrawBoard();
     }
@@ -187,6 +207,7 @@ public class BoardController {
         totalScore.setText(String.valueOf(ScorecardService.getTotalScore()));
 
         updateScorecardTable();
+        updateScorecardChart();
         updateHoldCardBox();
     }
 
@@ -281,7 +302,24 @@ public class BoardController {
         scoreTableView.refresh();
     }
 
-    @java.lang.SuppressWarnings({"java:S1190","java:S117"})
+    private void updateScorecardChart() {
+        scoreLineChart.getData().clear();
+
+        ScoreCard[] scorecards = ScorecardService.getScorecards();
+        //defining a series
+        XYChart.Series<Integer, Integer> series = new XYChart.Series<>();
+
+        for (int scorecardIndex = 0; scorecardIndex < scorecards.length; scorecardIndex++) {
+            //populating the series with data
+            series.getData().add(new XYChart.Data<>(scorecardIndex + 1, scorecards[scorecardIndex].getScore()));
+        }
+        scoreLineChart.setCreateSymbols(false);
+        scoreLineChart.setAnimated(false);
+        scoreLineChart.setLegendVisible(false);
+        scoreLineChart.getData().add(series);
+    }
+
+    @java.lang.SuppressWarnings({"java:S1190", "java:S117"})
     private void updateHoldCardBox() {
         holdCardBox.getChildren().clear();
         AtomicInteger weeklyIndex = new AtomicInteger(0);
@@ -303,15 +341,18 @@ public class BoardController {
 
     private void buildHoldCards(String text, int column, int row) {
 
-        DropShadow ds = new DropShadow();
-        ds.setOffsetY(3.0);
-        ds.setOffsetX(3.0);
-        ds.setColor(javafx.scene.paint.Color.GRAY);
 
-        Rectangle rectangle = new Rectangle(110, row == 0 ? 60 : 90, javafx.scene.paint.Color.LIGHTGRAY);
-        rectangle.setStroke(javafx.scene.paint.Color.BLACK);
-        rectangle.setStrokeWidth(1);
-        rectangle.setEffect(ds);
+
+        InnerShadow innerShadow = new InnerShadow();
+        innerShadow.setOffsetX(3.0);
+        innerShadow.setOffsetY(3.0);
+        innerShadow.setColor(javafx.scene.paint.Color.BLACK);
+
+
+        Rectangle rectangle = new Rectangle(110, row == 0 ? 60 : 110, javafx.scene.paint.Color.LIGHTGRAY);
+
+        rectangle.setEffect(innerShadow);
+
 
         Label label = new Label(text);
         label.setLayoutX(5);
@@ -319,12 +360,17 @@ public class BoardController {
         label.setWrapText(true);
         label.setPrefWidth(105);
         label.setCenterShape(true);
+        label.setPadding(new Insets(5,5,5,5));
+        label.setFont( Font.font("Michelin", FontWeight.BOLD, FontPosture.ITALIC,11.0));
+
 
         AnchorPane anchorPane = new AnchorPane(rectangle, label);
+
         HBox.setMargin(anchorPane, new Insets(5));
         ((GridPane) holdCardBox).add(anchorPane, column, row);
     }
 
+    @java.lang.SuppressWarnings("java:S6878")
     private void bitActionsDetermined() throws IOException {
         if (isVanilla()) {
             return;
@@ -335,21 +381,16 @@ public class BoardController {
         switch (boardAction) {
             case Trap trap -> activateTrap(trap, bitCard);
             case HelpAction helpAction -> {
-                switch (helpAction.getType()) {
-                    case ADD_ONE:
-                        Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, false);
-                        return;
-                    case DOUBLE:
-                        Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, true);
-                        return;
-                    case AUTOMATE:
-                        Prompts.promptToAutomateWorkstation(gameDialogPane, gameBoardLog);
-                        return;
-                    case PAIR:
-                        Prompts.implementPairedProgramming(gameDialogPane, gameBoardLog);
-                        return;
-                    case AUGMENT:
-                        Prompts.promptForFinishedGoodsAreNowFourPoints(gameBoardLog);
+                switch (helpAction.type()) {
+                    case ADD_ONE -> Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, false);
+
+                    case DOUBLE -> Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, true);
+
+                    case AUTOMATE -> Prompts.promptToAutomateWorkstation(gameDialogPane, gameBoardLog);
+
+                    case PAIR -> Prompts.implementPairedProgramming(gameDialogPane, gameBoardLog);
+
+                    case AUGMENT -> Prompts.promptForFinishedGoodsAreNowFourPoints(gameBoardLog);
                 }
             }
             case null, default -> {
@@ -418,6 +459,9 @@ public class BoardController {
 
     @FXML
     protected void runDay(ActionEvent actionEvent) throws InterruptedException, IOException {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(actionEvent.toString());
+        }
         //Stop timer
         if (timeline != null) timeline.stop();
         //Run day
@@ -494,7 +538,7 @@ public class BoardController {
             Prompts.publishStartWeek(gameBoardLog);
 
             //Timer for start of week
-            buildTimer(START_TIME*2);
+            buildTimer(START_TIME * 2);
 
         } else {
             //End of game
@@ -506,6 +550,9 @@ public class BoardController {
 
     @FXML
     protected void runGame(ActionEvent actionEvent) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(actionEvent.toString());
+        }
 
         Prompts.publishStartWeek(gameBoardLog);
 
@@ -519,14 +566,13 @@ public class BoardController {
         buttonAddSkills.setDisable(true);
 
 
-
         //Start the 15-Second timer.
         //Timer label implementation
         buildTimer(15);
 
     }
 
-    @java.lang.SuppressWarnings({"java:S1190","java:S117"})
+    @java.lang.SuppressWarnings({"java:S1190", "java:S117"})
     private void buildTimer(Integer startTime) {
 
         countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
@@ -549,6 +595,9 @@ public class BoardController {
 
     @FXML
     protected void runWeek(ActionEvent actionEvent) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(actionEvent.toString());
+        }
         //Stop timer
         if (timeline != null) timeline.stop();
         try {
@@ -669,6 +718,9 @@ public class BoardController {
 
     @FXML
     protected void serverMoves(ActionEvent actionEvent) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(actionEvent.toString());
+        }
 
         try {
             Prompts.promptForServerMoves(gameDialogPane, getInTrainingServer());
@@ -680,6 +732,9 @@ public class BoardController {
 
     @FXML
     protected void showInfo(ActionEvent actionEvent) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(actionEvent.toString());
+        }
         try {
             Prompts.showInfoCard(gameDialogPane);
         } catch (IOException e) {
@@ -689,6 +744,9 @@ public class BoardController {
 
     @FXML
     protected void showRules(ActionEvent actionEvent) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(actionEvent.toString());
+        }
         try {
             Prompts.showRulesCard(gameDialogPane);
         } catch (IOException e) {

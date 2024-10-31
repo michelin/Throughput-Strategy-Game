@@ -112,7 +112,7 @@
                 </ButtonBar>
                 <ButtonBar fx:id="weeklyButtonBar" visible="false" AnchorPane.topAnchor="20.0">
                     <buttons>
-                        <Button fx:id="buttonAddSkills" minWidth="275.0" mnemonicParsing="false" onAction="#addSkillsToServer" prefWidth="300.0" styleClass="button-lion-default" text="Add Skill" />
+                        <Button fx:id="buttonAddSkills" minWidth="275.0" mnemonicParsing="false" onAction="#addOrRemoveSkillsForServers" prefWidth="300.0" styleClass="button-lion-default" text="Add Skill" />
                         <Button fx:id="buttonRunWeek" minWidth="150.0" mnemonicParsing="false" onAction="#runWeek" prefWidth="150.0" styleClass="button-lion-default" text="Run Week" textAlignment="CENTER" textOverrun="CLIP">
                             <graphic>
                                 <FontIcon iconColor="midnightblue" iconLiteral="far-calendar-alt" />
@@ -136,7 +136,7 @@
                     </VBox.margin>
                 </ScrollPane>
                 <Label styleClass="board-label" text="Hold Cards" />
-                <GridPane fx:id="holdCardBox" gridLinesVisible="true">
+                <GridPane hgap="5.0" vgap="5.0" fx:id="holdCardBox" gridLinesVisible="true">
                     <columnConstraints>
                         <ColumnConstraints />
                     </columnConstraints>
@@ -220,7 +220,7 @@
                     <Point3D />
                 </rotationAxis>
             </TableView>
-            <LineChart maxHeight="200.0" maxWidth="210.0">
+            <LineChart fx:id="scoreLineChart" maxHeight="200.0" maxWidth="210.0">
                 <xAxis>
                     <NumberAxis minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
                 </xAxis>

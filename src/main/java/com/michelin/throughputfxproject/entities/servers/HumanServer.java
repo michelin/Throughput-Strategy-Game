@@ -1,7 +1,6 @@
 package com.michelin.throughputfxproject.entities.servers;
 
-import com.michelin.throughputfxproject.Color;
-import com.michelin.throughputfxproject.entities.Server;
+import com.michelin.throughputfxproject.entities.Color;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -26,25 +25,13 @@ public class HumanServer implements Server {
 
     @Override
     public String getImage() {
-        String serverImageFile;
-        switch (color) {
-            case BLUE:
-                serverImageFile = "servers/server_blue.jpg";
-                break;
-            case GREEN:
-                serverImageFile = "servers/server_green.jpg";
-                break;
-            case YELLOW:
-                serverImageFile = "servers/server_yellow.jpg";
-                break;
-            case VIOLET:
-                serverImageFile = "servers/server_violet.jpg";
-                break;
-            case ROSE:
-            default:
-                serverImageFile = "servers/server_rose.jpg";
-        }
-        return serverImageFile;
+        return switch (color) {
+            case BLUE -> "servers/server_blue.jpg";
+            case GREEN -> "servers/server_green.jpg";
+            case YELLOW -> "servers/server_yellow.jpg";
+            case VIOLET -> "servers/server_violet.jpg";
+            default -> "servers/server_rose.jpg";
+        };
     }
 
 

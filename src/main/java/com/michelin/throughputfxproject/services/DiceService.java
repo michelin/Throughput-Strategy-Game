@@ -1,6 +1,6 @@
 package com.michelin.throughputfxproject.services;
 
-import com.michelin.throughputfxproject.entities.Die;
+import com.michelin.throughputfxproject.entities.state.Die;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,20 +42,13 @@ public class DiceService {
     }
 
     public static String getDieImage(int dieFace) {
-        switch (dieFace) {
-            case 2:
-                return "icons/die_2.png";
-            case 3:
-                return "icons/die_3.png";
-            case 4:
-                return "icons/die_4.png";
-            case 5:
-                return "icons/die_5.png";
-            case 6:
-                return "icons/die_6.png";
-            default:
-                return "icons/die_1.png";
-
-        }
+        return switch (dieFace) {
+            case 2 -> "icons/die_2.png";
+            case 3 -> "icons/die_3.png";
+            case 4 -> "icons/die_4.png";
+            case 5 -> "icons/die_5.png";
+            case 6 -> "icons/die_6.png";
+            default -> "icons/die_1.png";
+        };
     }
 }

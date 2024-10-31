@@ -1,10 +1,10 @@
 package com.michelin.throughputfxproject.services;
 
-import com.michelin.throughputfxproject.Board;
-import com.michelin.throughputfxproject.Color;
-import com.michelin.throughputfxproject.entities.Die;
-import com.michelin.throughputfxproject.entities.Server;
-import com.michelin.throughputfxproject.entities.Workstation;
+import com.michelin.throughputfxproject.entities.state.Board;
+import com.michelin.throughputfxproject.entities.Color;
+import com.michelin.throughputfxproject.entities.state.Die;
+import com.michelin.throughputfxproject.entities.servers.Server;
+import com.michelin.throughputfxproject.entities.state.Workstation;
 import com.michelin.throughputfxproject.entities.servers.AutomatedServer;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import lombok.NonNull;
