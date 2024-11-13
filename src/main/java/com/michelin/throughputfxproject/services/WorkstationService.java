@@ -107,6 +107,7 @@ public class WorkstationService {
     @SuppressWarnings("unchecked")
     public static void reloadWorkstations(Map<String, Object> workstationServiceJson) {
         List<Object> workstationsJson = (List<Object>) workstationServiceJson.get("workstations");
+        workstations = new Workstation[workstationsJson.size()];
         AtomicInteger index = new AtomicInteger(0);
         workstationsJson.forEach(workstation -> {
             //rebuild workstation

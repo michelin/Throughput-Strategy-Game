@@ -363,7 +363,7 @@ public class BoardController {
         innerShadow.setColor(javafx.scene.paint.Color.BLACK);
 
 
-        Rectangle rectangle = new Rectangle(110, row == 0 ? 60 : 110, javafx.scene.paint.Color.web("#e4fbff"));
+        Rectangle rectangle = new Rectangle(110, row == 0 ? 60 : 110, javafx.scene.paint.Color.rgb(228, 251, 255));
         rectangle.setEffect(innerShadow);
 
         Label label = new Label(text);
@@ -410,8 +410,9 @@ public class BoardController {
 
     }
 
+    @java.lang.SuppressWarnings("java:S6878")
     @FXML
-    protected void doRunTurn(ActionEvent actionEvent) throws IOException {
+    protected void doRunTurn(ActionEvent actionEvent) throws IOException, InterruptedException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(actionEvent.toString());
         }
@@ -423,6 +424,9 @@ public class BoardController {
         //During run activities period activities are hidden and run and server moves disabled
         buttonRunTurn.setDisable(true);
         buttonServerMoves.setDisable(true);
+        buttonSaveGame.setDisable(true);
+        buttonEndGame.setDisable(true);
+
 
         highlightActiveWorkstation(-1);
 
@@ -440,6 +444,9 @@ public class BoardController {
             runWorkstations(stationIndex);
         }
 
+        //Re-enable save after workstations finish
+        buttonSaveGame.setDisable(false);
+        buttonEndGame.setDisable(false);
         if (Board.getInstance().getCurrentRunTurn() == Board.getInstance().getRunTurns()) {
             //hide run buttons
             turnButtonBar.setVisible(false);
@@ -460,9 +467,6 @@ public class BoardController {
         if (Board.getInstance().gameIsOver()) {
             //Draw chart
             updateScorecardChart();
-            //End of game
-            gameButtonBar.setVisible(true);
-            buttonEndGame.setVisible(true);
             redrawBoard();
             return;
         }
@@ -508,6 +512,60 @@ public class BoardController {
     protected void endGame(ActionEvent ignoredActionEvent) {
         Prompts.publishEndOfGame(gameBoardLog);
         buttonEndGame.setDisable(true);
+        Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, "Save Game?", ButtonType.YES, ButtonType.NO);
+        confirmationAlert.setTitle("Throughput");
+        confirmationAlert.showAndWait().ifPresent(answer -> {
+            if (answer.equals(ButtonType.YES)) saveGame(ignoredActionEvent);
+        });
+
+    }
+
+    @FXML
+    protected void saveGame(ActionEvent actionEvent) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(actionEvent.toString());
+        }
+
+        String stateOfTheGame = Board.getInstance().toJSON();
+        LOGGER.debug(stateOfTheGame);
+        try {
+            // Get the resources directory within the project structure
+            String resourcesPath = getProjectResourcesPath();
+
+            // Create the resources directory if it doesn't exist
+            File resourcesDirectory = new File(resourcesPath + "/savedGames");
+            if (!resourcesDirectory.exists() && !resourcesDirectory.mkdirs())
+                throw new IllegalStateException("Cannot create directory for saved games");
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+            JsonNode node = objectMapper.readTree(stateOfTheGame);
+
+            // Create the file path
+            String filePath = resourcesPath + "/savedGames/" + "game_" + System.currentTimeMillis() + ".json";
+            LOGGER.debug("Data saved to: {}", filePath);
+            objectMapper.writer().withDefaultPrettyPrinter().writeValue(new File(filePath), node);
+
+            Prompts.alertWithoutBoardUpdate("Game Saved", filePath, 10);
+
+        } catch (IOException e) {
+            throw new ThroughputRuntimeException(e);
+        }
+
+    }
+
+    private String getProjectResourcesPath() {
+        // Get the absolute path of the current class file
+        String currentClassPath = ThroughputApplication.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+
+        // Remove the "file:" prefix and the class file name from the path
+        String currentClassDirectory = currentClassPath.replaceFirst("file:", "").replaceFirst(ThroughputApplication.class.getSimpleName() + ".class", "");
+
+        // Remove any trailing slashes or backslashes
+        currentClassDirectory = currentClassDirectory.replaceAll("[/\\\\]$", "");
+
+        // Construct the path to the resources directory
+        return currentClassDirectory + "/main/resources";
     }
 
     @FXML
@@ -554,32 +612,45 @@ public class BoardController {
         try {
             // Read the JSON data from the file and deserialize it
             String jsonData = new String(Files.readAllBytes(gameFile.toPath()));
-            TypeReference<HashMap<String, Object>> typeRef= new TypeReference<>() {};
-            HashMap<String, Object> parsedJson = objectMapper.readValue(jsonData,typeRef);
-            if(LOGGER.isDebugEnabled()) parsedJson.forEach((k, v) -> LOGGER.debug("{} : {}", k, v));
+            TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {
+            };
+            HashMap<String, Object> parsedJson = objectMapper.readValue(jsonData, typeRef);
+            if (LOGGER.isDebugEnabled()) parsedJson.forEach((k, v) -> LOGGER.debug("{} : {}", k, v));
             Board.reloadInstance(parsedJson);
 
         } catch (IOException e) {
             throw new ThroughputRuntimeException(e);
         }
 
+        buttonSaveGame.setDisable(false);
+        buttonLoadGame.setDisable(true);
+        buttonRunGame.setDisable(true);
+        buttonEndGame.setDisable(false);
+
+        redrawBoard();
+        //If day = 1 rerun the period
+        if (Board.getInstance().getCurrentRunTurn() == 1) {
+            periodButtonBar.setVisible(true);
+            buttonRunPeriod.setVisible(true);
+            buttonAddSkills.setVisible(isVanilla());
+        } else {
+            //Do run period stuff, but don't ask for estimates or add skills
+            periodButtonBar.setVisible(false);
+            buttonRunPeriod.setVisible(false);
+            buttonAddSkills.setVisible(false);
+
+            //Show buttons to run turn
+            turnButtonBar.setVisible(true);
+            buttonRunTurn.setVisible(true);
+            buttonRunTurn.setDisable(false);
+            buttonServerMoves.setVisible(true);
+            buttonServerMoves.setDisable(isVanilla());
+            Prompts.publishTurnStart(gameBoardLog, Board.getInstance().getCurrentPeriod(), Board.getInstance().getCurrentRunTurn());
+
+        }
+
 
     }
-
-    private String getProjectResourcesPath() {
-        // Get the absolute path of the current class file
-        String currentClassPath = ThroughputApplication.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-
-        // Remove the "file:" prefix and the class file name from the path
-        String currentClassDirectory = currentClassPath.replaceFirst("file:", "").replaceFirst(ThroughputApplication.class.getSimpleName() + ".class", "");
-
-        // Remove any trailing slashes or backslashes
-        currentClassDirectory = currentClassDirectory.replaceAll("[/\\\\]$", "");
-
-        // Construct the path to the resources directory
-        return currentClassDirectory + "/main/resources";
-    }
-
 
     private void retryWithCard(Workstation workstation, int position, Server server) throws IOException {
         //Prompt for do over
@@ -623,6 +694,7 @@ public class BoardController {
 
         buttonSaveGame.setDisable(false);
         buttonLoadGame.setDisable(true);
+        buttonEndGame.setDisable(false);
 
         //Start the 15-Second timer.
         //Timer label implementation
@@ -634,13 +706,10 @@ public class BoardController {
 
         countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
         //Start timer
-        IntegerProperty timeSeconds =
-                new SimpleIntegerProperty(startTime);
+        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime);
         timeline = new Timeline();
         countdownTimer.textProperty().bind(timeSeconds.asString());
-        timeline.getKeyFrames().add(
-                new KeyFrame(Duration.seconds(startTime + 1.0),
-                        new KeyValue(timeSeconds, 0)));
+        timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(startTime + 1.0), new KeyValue(timeSeconds, 0)));
         timeline.setOnFinished(_ -> {
             countdownTimer.textProperty().unbind();
             countdownTimer.setText("X");
@@ -736,13 +805,14 @@ public class BoardController {
         }
     }
 
-    private void runWorkstations(int position) throws IOException {
+    private void runWorkstations(int position) throws IOException, InterruptedException {
         //For each server
         Workstation workstation = WorkstationService.getWorkstation(position);
         Objects.requireNonNull(workstation);
 
         //Check if skip workstation has been triggered
         if (!workstation.isActive()) {
+            Thread.sleep(5000);
             workstation.setActive(true);
             redrawBoard();
             return;
@@ -772,37 +842,6 @@ public class BoardController {
             bitActionsDetermined(position);
             redrawBoard();
         }
-    }
-
-    @FXML
-    protected void saveGame(ActionEvent actionEvent) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(actionEvent.toString());
-        }
-
-        String stateOfTheGame = Board.getInstance().toJSON();
-        LOGGER.info(stateOfTheGame);
-        try {
-            // Get the resources directory within the project structure
-            String resourcesPath = getProjectResourcesPath();
-
-            // Create the resources directory if it doesn't exist
-            File resourcesDirectory = new File(resourcesPath + "/savedGames");
-            if (!resourcesDirectory.exists()) resourcesDirectory.mkdirs();
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-            JsonNode node = objectMapper.readTree(stateOfTheGame);
-
-            // Create the file path
-            String filePath = resourcesPath + "/savedGames/" + "game_" + System.currentTimeMillis() + ".json";
-            LOGGER.info("Data saved to: {}", filePath);
-            objectMapper.writer().withDefaultPrettyPrinter().writeValue(new File(filePath), node);
-
-        } catch (IOException e) {
-            throw new ThroughputRuntimeException(e);
-        }
-
     }
 
     @FXML

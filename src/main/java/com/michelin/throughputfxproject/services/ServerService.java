@@ -51,6 +51,9 @@ public class ServerService {
 
     @SuppressWarnings("unchecked")
     public static Server recreateServerFromMap(Map<String, Object> serverMap) {
+
+        if (serverMap == null)    return null;
+
         Color serverColor = Color.valueOf((String) serverMap.get("color"));
         String serverType = (String) serverMap.get("type");
         List<String> skillsJson = (List<String>)serverMap.get("skills");

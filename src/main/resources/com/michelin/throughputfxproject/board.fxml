@@ -42,7 +42,7 @@
                             <FontIcon iconColor="midnightblue" iconLiteral="fas-running" />
                         </graphic>
                     </Button>
-                    <Button fx:id="buttonEndGame" mnemonicParsing="false" onAction="#endGame" prefWidth="150.0" styleClass="button-lion-default" text="End Game" textAlignment="CENTER" visible="false" />
+                    <Button fx:id="buttonEndGame" mnemonicParsing="false" onAction="#endGame" prefWidth="150.0" styleClass="button-lion-default" text="End Game" textAlignment="CENTER"  disable="true"/>
                     <Button maxWidth="40.0" mnemonicParsing="false" onAction="#showInfo">
                         <tooltip>
                             <Tooltip text="Information" />

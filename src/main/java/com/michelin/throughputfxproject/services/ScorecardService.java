@@ -1,6 +1,5 @@
 package com.michelin.throughputfxproject.services;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.michelin.throughputfxproject.entities.state.Backlog;
 import com.michelin.throughputfxproject.entities.state.Board;
 import com.michelin.throughputfxproject.entities.state.FinishedGoods;
@@ -60,6 +59,11 @@ public class ScorecardService {
             Integer workInProcess = (Integer)((Map<String, Object>)scorecard).get("workInProcess");
             scorecards[period-1] = new ScoreCard( period,  score,  finishedGoods,  estimate,  workInProcess);
         });
+
+        backlog.setBacklogItemCount((Integer) ((Map<String, Object>)scorecardServiceJson.get("backlog")).get("backlogItemCount"));
+        var finishedGoodsMap = (Map<String, Object>) scorecardServiceJson.get("finishedGoods");
+        finishedGoods.setFinishedGoodsTally((Integer)finishedGoodsMap.get("finishedGoodsTally"));
+        finishedGoods.setValue((Integer)finishedGoodsMap.get("currentValue"));
     }
 
     public static String toJSON() {

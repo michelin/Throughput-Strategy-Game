@@ -66,7 +66,7 @@ public class Prompts {
         if (drawBitInt >= numberRequiredForSuccess) {
 
 
-            alertWithGameBoardUpdate("BIT", gameBoardLog, gameBoardLogText, Duration.seconds(3));
+            alertWithGameBoardUpdate("BIT", gameBoardLog, gameBoardLogText, 3000);
 
             BitCard bitCard = CardService.pickACardDestructively();
             Objects.requireNonNull(bitCard);
@@ -112,17 +112,11 @@ public class Prompts {
     }
 
     @SuppressWarnings({"java:S1190", "java:S117"})
-    private static void alertWithGameBoardUpdate(String title, @NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, Duration timeoutDuration) {
+    private static void alertWithGameBoardUpdate(String title, @NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, int timeoutDurationMillis) {
 
-        Text alertText = new Text(gameBoardLogText);
-        alertText.setWrappingWidth(200);
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.getDialogPane().setContent(alertText);
-        alert.getButtonTypes().set(0, ButtonType.OK);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
+        Alert alert = makeAlert(title, gameBoardLogText);
 
-        Timeline idleStage = new Timeline(new KeyFrame(timeoutDuration, _ -> {
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.millis(timeoutDurationMillis), _ -> {
             gameBoardLog.setText(gameBoardLogText);
             alert.setResult(ButtonType.OK);
             alert.hide();
@@ -134,23 +128,29 @@ public class Prompts {
 
     }
 
-    @SuppressWarnings({"java:S1190", "java:S117"})
-    private static void createModalStage(@NonNull String title, @NonNull Pane container, @NonNull Parent root, int timeoutDuration) {
+    public static void alertWithoutBoardUpdate(@NonNull String title, @NonNull String text, int timeoutDurationMillis){
 
-        Stage stage = new Stage();
-        stage.setScene(new Scene(root));
-        stage.setTitle(title);
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-        setModalPosition(stage);
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> stage.hide()));
+        Alert alert = makeAlert(title, text);
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.millis(timeoutDurationMillis), _ -> {
+            alert.hide();
+        }));
         idleStage.setCycleCount(1);
         idleStage.playFromStart();
 
-        stage.showAndWait();
-
+        alert.showAndWait();
     }
+
+    private static Alert makeAlert(@NonNull String title, @NonNull String text) {
+        Text alertText = new Text(text);
+        alertText.setWrappingWidth(200);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.getDialogPane().setContent(alertText);
+        alert.getButtonTypes().set(0, ButtonType.OK);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        return alert;
+    }
+
 
     private static void setModalPosition(Window modalWindow) {
         Screen screen = Screen.getPrimary();
@@ -253,11 +253,11 @@ public class Prompts {
         LOGGER.debug("promptForFinishedGoodsAreNowFourPoints");
 
         String gameBoardLogText = "Augmenting finished goods." + System.lineSeparator() + "Their value is 4 pts for the remainder of the game";
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, Duration.seconds(10));
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 10000);
         ScorecardService.getFinishedGoods().setValue(4);
     }
 
-    private static void alertWithGameBoardUpdate(@NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, Duration timeoutDuration) {
+    private static void alertWithGameBoardUpdate(@NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, int timeoutDuration) {
         alertWithGameBoardUpdate(THROUGHPUT, gameBoardLog, gameBoardLogText, timeoutDuration);
     }
 
@@ -265,7 +265,7 @@ public class Prompts {
         LOGGER.debug("promptForPairRetry");
 
         String gameBoardLogText = "Your first try failed for Server " + server.getColor().name() + System.lineSeparator() + "Partner steps in to help with a retry";
-        alertWithGameBoardUpdate("Partner", gameBoardLog, gameBoardLogText, Duration.seconds(10));
+        alertWithGameBoardUpdate("Partner", gameBoardLog, gameBoardLogText, 10000);
     }
 
     protected static void promptForServerMoves(@NonNull Pane container, HumanServer inTraining, BoardController boardController) throws IOException {
@@ -338,13 +338,7 @@ public class Prompts {
     @SuppressWarnings({"java:S1190", "java:S117"})
     private static void createModalStageWithButton(@NonNull String title, @NonNull Pane container, @NonNull Parent root, int timeoutDuration, Button button) {
 
-
-        Stage stage = new Stage();
-        stage.setScene(new Scene(root));
-        stage.setTitle(title);
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-        setModalPosition(stage);
+        Stage stage = createModalStageWithoutAction(title, container, root);
 
         Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> button.fire()));
         idleStage.setCycleCount(1);
@@ -352,6 +346,29 @@ public class Prompts {
 
         stage.showAndWait();
 
+    }
+
+    private static Stage createModalStageWithoutAction(@NonNull String title, @NonNull Pane container, @NonNull Parent root) {
+        Stage stage = new Stage();
+        stage.setScene(new Scene(root));
+        stage.setTitle(title);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(container.getScene().getWindow());
+        stage.setResizable(false);
+        setModalPosition(stage);
+        return stage;
+    }
+
+    @SuppressWarnings({"java:S1190", "java:S117"})
+    private static void createModalStage(@NonNull String title, @NonNull Pane container, @NonNull Parent root, int timeoutDuration) {
+
+        Stage stage = createModalStageWithoutAction(title, container, root);
+
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> stage.hide()));
+        idleStage.setCycleCount(1);
+        idleStage.playFromStart();
+
+        stage.showAndWait();
 
     }
 
@@ -360,7 +377,7 @@ public class Prompts {
 
         if (backlogCount <= 0) {
             String gameBoardLogText = "Backlog is Empty" + System.lineSeparator() + System.lineSeparator() + "No moves possible";
-            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, Duration.seconds(10));
+            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 10000);
             return;
         }
 
@@ -585,30 +602,30 @@ public class Prompts {
 
     protected static void publishEndOfGame(TextArea gameBoardLog) {
         String gameBoardLogText = "End of Game." + System.lineSeparator() + "Assess and discuss how you did";
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, Duration.seconds(15));
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 15000);
     }
 
     protected static void publishEndPeriod(TextArea gameBoardLog) {
         String gameBoardLogText = "End of Week." + System.lineSeparator() + "Prepare for the start of the next week";
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, Duration.seconds(10));
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 10000);
     }
 
     protected static void publishStartPeriod(TextArea gameBoardLog, int period) {
         String gameBoardLogText = "Week: " + period + System.lineSeparator() + START_THE_WEEK;
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, Duration.millis(100));
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 100);
 
     }
 
     protected static void publishTurnStart(TextArea gameBoardLog, int period, int turn) {
         String gameBoardLogText = "Day: " + turn + "  Week:  " + period + System.lineSeparator() + "Click on Run Day to start the day";
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, Duration.millis(100));
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 100);
     }
 
     protected static ChanceResult serverChanceCardPlay(@NonNull Pane container, @NonNull Server server, Workstation workstation, @NonNull TextArea gameBoardLog) throws IOException {
 
         if (workstation.getWorkItemCount() == 0) {
             String gameBoardLogText = "No Moves." + System.lineSeparator() + workstation.getColor() + " " + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE;
-            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, Duration.seconds(12));
+            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 12000);
             return ChanceResult.EMPTY;
         }
 

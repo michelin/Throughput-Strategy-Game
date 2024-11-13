@@ -35,7 +35,7 @@ public class ScoreCard implements Savable {
         String json;
         try {
             json = ow.writeValueAsString(this);
-            LOGGER.info("Scorecard {}", json);
+            LOGGER.debug("Scorecard {}", json);
         } catch (JsonProcessingException e) {
             throw new ThroughputRuntimeException(e);
         }
