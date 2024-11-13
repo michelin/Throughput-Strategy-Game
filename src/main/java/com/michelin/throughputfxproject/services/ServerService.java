@@ -4,12 +4,12 @@ import com.michelin.throughputfxproject.entities.Color;
 import com.michelin.throughputfxproject.entities.servers.AutomatedServer;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import com.michelin.throughputfxproject.entities.servers.PairPartner;
+import com.michelin.throughputfxproject.entities.servers.Server;
+import com.michelin.throughputfxproject.entities.state.Board;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 
 public class ServerService {
@@ -23,13 +23,6 @@ public class ServerService {
         super();
     }
 
-    public static void removeSkillsFromMostSkilledServer(){
-        HumanServer mostSkilled = humanServers.stream().max(Comparator.comparingInt(HumanServer::skillsCount)).orElse(null);
-        if(mostSkilled != null && mostSkilled.skillsCount() > 1) {
-            mostSkilled.removeSkills();
-        }
-    }
-
     public static HumanServer getHumanServer(Color color) {
         for (HumanServer humanServer : humanServers) {
             if (humanServer.getColor().equals(color)) {
@@ -39,6 +32,10 @@ public class ServerService {
         HumanServer humanServer = new HumanServer(color);
         humanServers.add(new HumanServer(color));
         return humanServer;
+    }
+
+    public static PairPartner getPairPartnerInstance() {
+        return pairPartner;
     }
 
     public static AutomatedServer getRobotServer(Color color) {
@@ -52,8 +49,40 @@ public class ServerService {
         return automatedServer;
     }
 
-    public static PairPartner getPairPartnerInstance() {
-        return pairPartner;
+    @SuppressWarnings("unchecked")
+    public static Server recreateServerFromMap(Map<String, Object> serverMap) {
+        Color serverColor = Color.valueOf((String) serverMap.get("color"));
+        String serverType = (String) serverMap.get("type");
+        List<String> skillsJson = (List<String>)serverMap.get("skills");
+        List<Color> skillsColors = skillsJson.stream().map(Color::valueOf).toList();
+        return ServerService.recreateServer(serverColor, serverType, skillsColors);
+    }
+
+    public static Server recreateServer(Color color, String type, List<Color> skills) {
+        Server server = null;
+        switch (type) {
+            case Server.TYPE_HUMAN -> {
+                server = new HumanServer(color, skills);
+                humanServers.add((HumanServer) server);
+            }
+            case Server.TYPE_AUTOMATED -> {
+                server = new AutomatedServer(color);
+                automatedServers.add((AutomatedServer) server);
+            }
+            case Server.TYPE_PARTNER -> server = pairPartner;
+            default -> {
+                //do nothing
+            }
+        }
+        return server;
+    }
+
+    public static void removeSkillsFromMostSkilledServer() {
+        HumanServer mostSkilled = humanServers.stream().max(Comparator.comparingInt(HumanServer::skillsCount)).orElse(null);
+        if (mostSkilled != null && mostSkilled.skillsCount() > 1) {
+            mostSkilled.removeSkills();
+            Board.getInstance().returnServerToOriginalWorkstation(mostSkilled);
+        }
     }
 
 }

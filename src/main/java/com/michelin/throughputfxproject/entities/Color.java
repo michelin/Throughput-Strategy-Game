@@ -1,21 +1,17 @@
 package com.michelin.throughputfxproject.entities;
 
-public enum Color {
+import com.michelin.throughputfxproject.entities.state.Savable;
 
-    BLUE, ROSE, GREEN, VIOLET, YELLOW, GRAY;
+public enum Color implements Savable {
 
-
-    public String initialWithColor() {
-        return String.valueOf(this.name().charAt(0));
-
-    }
+    BLUE, ROSE, GREEN, VIOLET, YELLOW, RED, CYAN, ORANGE, BROWN, BLACK, GRAY;
 
     public static Color[] automatedColorValues() {
-        return new Color[]{ROSE, GREEN,  YELLOW};
+        return new Color[]{ROSE, GREEN, YELLOW};
     }
 
     public static Color[] humanColorValues() {
-        return new Color[]{BLUE, ROSE, GREEN, VIOLET, YELLOW};
+        return new Color[]{BLUE, ROSE, GREEN, VIOLET, YELLOW,RED, CYAN, ORANGE, BROWN, BLACK};
     }
 
     public javafx.scene.paint.Color lookupFXColor() {
@@ -26,19 +22,26 @@ public enum Color {
             case YELLOW -> javafx.scene.paint.Color.YELLOW;
             case GREEN -> javafx.scene.paint.Color.GREEN;
             case ROSE -> javafx.scene.paint.Color.PINK;
-            default -> javafx.scene.paint.Color.WHITE;
+            case RED -> javafx.scene.paint.Color.RED;
+            case CYAN -> javafx.scene.paint.Color.CYAN;
+            case ORANGE -> javafx.scene.paint.Color.ORANGE;
+            case BROWN -> javafx.scene.paint.Color.BROWN;
+            case BLACK -> javafx.scene.paint.Color.BLACK;
+            case GRAY -> javafx.scene.paint.Color.GRAY;
         };
     }
 
-        public javafx.scene.paint.Color lookupFontColor() {
-
-            return switch (this) {
-                case BLUE -> javafx.scene.paint.Color.YELLOW;
-                case VIOLET, GREEN -> javafx.scene.paint.Color.WHITE;
-                case YELLOW -> javafx.scene.paint.Color.BLUE;
-                default -> javafx.scene.paint.Color.BLACK;
-            };
-
+    public javafx.scene.paint.Color lookupFontColor() {
+        return switch (this) {
+            case BLUE,RED -> javafx.scene.paint.Color.YELLOW;
+            case VIOLET,GREEN,BROWN,BLACK-> javafx.scene.paint.Color.WHITE;
+            case YELLOW,ORANGE -> javafx.scene.paint.Color.BLUE;
+            default -> javafx.scene.paint.Color.BLACK;
+        };
     }
 
+    @Override
+    public String toJSON() {
+        return "\"" + this.name() + "\"";
+    }
 }

@@ -35,4 +35,9 @@ public class PairPartner implements Server {
     public String getBackImage() {
         return "cards/WomanJugglingTires.jpg";
     }
+
+    @Override
+    public String toJSON() {
+        return "\"server\":{\"type\": \"" + getType()  + "\"}";
+    }
 }

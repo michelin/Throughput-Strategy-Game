@@ -1,17 +1,26 @@
 package com.michelin.throughputfxproject.entities.servers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.michelin.throughputfxproject.entities.Color;
+import com.michelin.throughputfxproject.entities.state.Board;
+import com.michelin.throughputfxproject.entities.state.Savable;
+import com.michelin.throughputfxproject.entities.state.Workstation;
+import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
 public class HumanServer implements Server {
 
+    public static final Logger LOGGER = LoggerFactory.getLogger(HumanServer.class.getName());
     private final Color color;
     private final Set<Color> skills = HashSet.newHashSet(5);
     private String type = TYPE_HUMAN;
@@ -20,6 +29,12 @@ public class HumanServer implements Server {
     public HumanServer(@NonNull Color color) {
         this.color = color;
         skills.add(color);
+    }
+
+    public HumanServer(@NonNull Color color, Collection<Color> skills) {
+        this.color = color;
+        this.skills.clear();
+        this.skills.addAll(skills);
     }
 
 
@@ -71,4 +86,18 @@ public class HumanServer implements Server {
         skills.clear();
         skills.add(color);
     }
+
+    @Override
+    public String toJSON() {
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String json;
+        try {
+            json = ow.writeValueAsString(this);
+            LOGGER.info("Human Server {}", json);
+        } catch (JsonProcessingException e) {
+            throw new ThroughputRuntimeException(e);
+        }
+        return json;
+    }
+
 }

@@ -20,7 +20,8 @@ public class PairingController {
     @FXML
     private ComboBox<Color> workstationToPairWith;
 
-    public void moveToServer(ActionEvent actionEvent) {
+    @FXML
+    protected void moveToServer(ActionEvent actionEvent) {
 
         Color workstationColor = workstationToPairWith.getSelectionModel().getSelectedItem();
         WorkstationService.pairWorkstation(workstationColor);

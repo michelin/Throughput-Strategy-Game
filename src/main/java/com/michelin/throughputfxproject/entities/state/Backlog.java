@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Backlog {
+public class Backlog implements Savable {
     private int backlogItemCount;
 
     public void addToBacklog(int amount) {
@@ -19,12 +19,18 @@ public class Backlog {
         backlogItemCount -= amount;
     }
 
-    public float backlogScore(){
-        return (backlogItemCount * ((float)1/(Board.FIVE_STATIONS+1)));
+    public float backlogScore(int stationCount){
+        return (backlogItemCount * ((float)1/(stationCount+1)));
     }
 
     @Override
     public String toString() {
         return "Backlog: " + backlogItemCount;
+    }
+
+    public String toJSON(){
+        return "\"backlog\":{" +
+                "\"backlogItemCount\":" + backlogItemCount +
+                "}";
     }
 }

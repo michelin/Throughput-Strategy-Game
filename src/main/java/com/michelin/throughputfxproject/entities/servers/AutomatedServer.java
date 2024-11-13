@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -32,6 +33,12 @@ public class AutomatedServer implements Server {
     public String getBackImage() {
         return "cards/IndustrialRobot.jpg";
     }
+
+    @Override
+    public String toJSON() {
+        return "\"server\":{\"color\":" + getColor().name() + ",\"type\":\"" + getType()  + "\"}";
+    }
+
 
     @Override
     public int hashCode() {

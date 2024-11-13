@@ -32,7 +32,7 @@ public class SkillsController {
         Objects.requireNonNull(serverToAdd);
         Color skillsToAdd = skillsToAddToServer.getSelectionModel().getSelectedItem();
         Objects.requireNonNull(skillsToAdd);
-        Board.setInTrainingServer(serverToAdd, skillsToAdd);
+        Board.getInstance().putServerInTraining(serverToAdd, skillsToAdd);
 
         ((Stage)skillAddButton.getParent().getScene().getWindow()).close();
 

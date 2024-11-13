@@ -1,11 +1,9 @@
 package com.michelin.throughputfxproject.exceptions;
 
-
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 
 public class ThroughputRuntimeException extends RuntimeException {
@@ -22,4 +20,6 @@ public class ThroughputRuntimeException extends RuntimeException {
         alert.show();
         LOGGER.error("IllegalArgumentException", e);
     }
+
+
 }

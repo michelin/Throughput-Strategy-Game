@@ -814,7 +814,7 @@
                         "t7": "<p> Team must lose a day (before breach) in order for this card to be used. </p>",
                         "t1": "<p>End to End encrypt your PII and other sensitive data</p>"
                     },
-                    "_cardNickName": "encrpt",
+                    "_cardNickName": "encrypt",
                     "cardTTSDescription": "",
                     "_copies": 2,
                     "_cardIndex": 10,
@@ -1075,7 +1075,7 @@
                     "rowHeight": 60,
                     "data": {
                         "t7": "<p> </p>",
-                        "t2": "<p>Antipattern</p>",
+                        "t2": "<p>Anti-pattern</p>",
                         "t5": "<p> </p>",
                         "s0": "",
                         "s1": "{color:rgba(236, 32, 41, 1)}",
@@ -1199,7 +1199,7 @@
                         "s4": "",
                         "s1": "{color:rgba(236, 32, 41, 1)}",
                         "t4": "<p>Human server on your lowest capacity workstation lose a day.</p>",
-                        "t2": "<p>Antipattern</p>",
+                        "t2": "<p>Anti-pattern</p>",
                         "t3": "<p> </p>",
                         "i6": " ",
                         "i0": "",

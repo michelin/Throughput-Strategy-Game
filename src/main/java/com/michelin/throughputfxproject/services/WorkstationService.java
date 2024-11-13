@@ -1,18 +1,20 @@
 package com.michelin.throughputfxproject.services;
 
-import com.michelin.throughputfxproject.entities.state.Board;
 import com.michelin.throughputfxproject.entities.Color;
-import com.michelin.throughputfxproject.entities.state.Die;
-import com.michelin.throughputfxproject.entities.servers.Server;
-import com.michelin.throughputfxproject.entities.state.Workstation;
 import com.michelin.throughputfxproject.entities.servers.AutomatedServer;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
+import com.michelin.throughputfxproject.entities.servers.Server;
+import com.michelin.throughputfxproject.entities.state.Board;
+import com.michelin.throughputfxproject.entities.state.Die;
+import com.michelin.throughputfxproject.entities.state.Workstation;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 
 @SuppressWarnings("SameParameterValue")
@@ -40,7 +42,7 @@ public class WorkstationService {
 
     public static Workstation[] getWorkstations() {
         if (workstations == null) {
-            createWorkstations(Board.FIVE_STATIONS, Board.SIX_SIDES);
+            createWorkstations(Board.getInstance().getStationCount(), Board.getInstance().getDieFaces());
         }
         return workstations;
     }
@@ -56,9 +58,8 @@ public class WorkstationService {
 
         Workstation[] localWorkstations = new Workstation[workstationCount];
         List<Integer> numbers = new ArrayList<>();
-        for (int i = 0; i < workstationCount; i++) {
-            numbers.add(i);
-        }
+        IntStream.range(0, workstationCount).forEach(numbers::add);
+
         // Shuffle the list using the Collections.shuffle() method
         Collections.shuffle(numbers);
         AtomicInteger index = new AtomicInteger(0);
@@ -103,7 +104,26 @@ public class WorkstationService {
         Objects.requireNonNull(getWorkstation(color)).getServers().add(ServerService.getPairPartnerInstance());
     }
 
-    public static void removeInTrainingServerFromWorkstation(HumanServer server) {
+    @SuppressWarnings("unchecked")
+    public static void reloadWorkstations(Map<String, Object> workstationServiceJson) {
+        List<Object> workstationsJson = (List<Object>) workstationServiceJson.get("workstations");
+        AtomicInteger index = new AtomicInteger(0);
+        workstationsJson.forEach(workstation -> {
+            //rebuild workstation
+            Color color = Color.valueOf((String) ((Map<String, Object>) workstation).get("color"));
+            Integer capacity = (Integer) ((Map<String, Object>) workstation).get("capacity");
+            Integer workItemCount = (Integer) ((Map<String, Object>) workstation).get("workItemCount");
+            Boolean active = (Boolean) ((Map<String, Object>) workstation).get("active");
+            //Rebuild servers
+            List<Object> serversJson = (List<Object>) ((Map<String, Object>) workstation).get("servers");
+            List<Server> newServers = new ArrayList<>();
+            serversJson.forEach(serverMap -> newServers.add(ServerService.recreateServerFromMap((Map<String, Object>) serverMap)));
+            int ndx = index.getAndIncrement();
+            workstations[ndx] = new Workstation(newServers,capacity, color,  workItemCount, active);
+        });
+    }
+
+    public static void removeHumanServerFromWorkstation(HumanServer server) {
         Arrays.stream(getWorkstations()).filter(workstation -> workstation.getServers().contains(server)).forEach(workstation -> workstation.getServers().remove(server));
     }
 
@@ -115,8 +135,15 @@ public class WorkstationService {
         float totalScore = 0;
         for (int i = 0; i < getWorkstations().length; i++) {
             Workstation workstation = getWorkstations()[i];
-            totalScore = totalScore + workstation.getWorkItemCount() * ((float) (i + 2) / Board.SIX_SIDES);
+            totalScore = totalScore + workstation.getWorkItemCount() * ((float) (i + 2) / Board.getInstance().getDieFaces());
         }
         return totalScore;
+    }
+
+    public static String toJSON() {
+
+        List<String> stringList = Arrays.stream(getWorkstations()).map(Workstation::toJSON).toList();
+        return "\"workstationService\": {\"workstations\": [" + String.join(",", stringList) + "]}";
+
     }
 }

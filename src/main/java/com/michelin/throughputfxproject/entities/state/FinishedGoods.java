@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class FinishedGoods {
+public class FinishedGoods implements Savable {
     private int finishedGoodsTally;
     private int value = 3;
 
@@ -20,6 +20,12 @@ public class FinishedGoods {
         return finishedGoodsTally * value;
     }
 
+    public String toJSON(){
+        return "\"finishedGoods\":{" +
+                "\"finishedGoodsTally\":" + finishedGoodsTally +
+                ",\"currentValue\":" + value +
+                "}";
+    }
 
     @Override
     public String toString() {

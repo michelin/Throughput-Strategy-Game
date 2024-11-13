@@ -10,64 +10,124 @@ import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import com.michelin.throughputfxproject.entities.servers.Server;
 import com.michelin.throughputfxproject.entities.servers.ServerMove;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
+import com.michelin.throughputfxproject.services.CardService;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.ServerService;
 import com.michelin.throughputfxproject.services.WorkstationService;
-import lombok.Getter;
-import lombok.NonNull;
+import lombok.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 
-public class Board {
+@Getter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class Board implements Savable {
+
     public static final Logger LOGGER = LoggerFactory.getLogger(Board.class.getName());
-    public static final int SIX_SIDES = 6;
-    public static final int FIVE_STATIONS = 5;
-    public static final int RUN_WEEKS = 5;
-    public static final int RUN_DAYS = 5;
+
     public static final String NONE = "NONE";
-    public static final String DAY = "DAY";
+    public static final String RUN = "RUN";
     public static final String TEAM = "TEAM";
-    public static final String WEEK = "WEEK";
-    private static final String ANY_SERVER = "ANY_SERVER";
+    public static final String PERIOD = "PERIOD";
+    public static final String ANY_SERVER = "ANY_SERVER";
     private static final String HUMAN_SERVER = "HUMAN_SERVER";
+    private static Board instance;
     //Play containers - Holders of game status
-    @Getter
-    private static final List<BitCard> weekHoldCards = new ArrayList<>(10);
-    @Getter
-    private static final List<BitCard> gameHoldCards = new ArrayList<>(10);
-    @Getter
-    private static Integer dayOfTheWeek = 1;
-    @Getter
-    private static Integer gameWeek = 1;
-    @Getter
-    private static HumanServer inTrainingServer = null;
+    private final List<BitCard> periodHoldCards;
+    private final List<BitCard> gameHoldCards;
+    private final int dieFaces;
+    private final int stationCount;
+    private final int runPeriods;
+    private final int runTurns;
+    private Integer currentRunTurn = 1;
+    private Integer currentPeriod = 1;
+    private HumanServer inTrainingServer = null;
 
 
-    private Board() {
+    private Board(int dieFaces, int stationCount, int runPeriods, int runTurns) {
+        this.dieFaces = dieFaces;
+        this.stationCount = stationCount;
+        this.runPeriods = runPeriods;
+        this.runTurns = runTurns;
+        this.periodHoldCards = new ArrayList<>(10);
+        this.gameHoldCards = new ArrayList<>(10);
+    }
+
+
+    public static Board getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("Board has not been initialized");
+        }
+        return instance;
+    }
+
+    public static void initializeInstance(int dieFaces, int stationCount, int runPeriods, int runTurns) {
+        if (instance != null) {
+            return;
+        }
+        instance = new Board(dieFaces, stationCount, runPeriods, runTurns);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void reloadInstance(Map<String, Object> reloadGameJson) {
+        var reDieFaces = (Integer) reloadGameJson.get("dieFaces");
+        var reStationCount = (Integer) reloadGameJson.get("stationCount");
+        var reRunPeriods = (Integer) reloadGameJson.get("runPeriods");
+        var reRunTurns = (Integer) reloadGameJson.get("runTurns");
+        var reInTrainingServer = (HumanServer) ServerService.recreateServerFromMap((Map<String, Object>) reloadGameJson.get("inTrainingServer"));
+        var reCurrentRunTurn = (Integer) reloadGameJson.get("currentRunTurn");
+        var reCurrentPeriod = (Integer) reloadGameJson.get("currentPeriod");
+
+        var periodHoldCards= CardService.reloadHoldCards((List<Object>) reloadGameJson.get("periodHoldCards"));
+        var gameHoldCards= CardService.reloadHoldCards( (List<Object>) reloadGameJson.get("gameHoldCards"));
+
+
+        //Reload services
+        WorkstationService.reloadWorkstations((Map<String,Object>) reloadGameJson.get("workstationService"));
+        ScorecardService.reloadScorecards((Map<String,Object>) reloadGameJson.get("scorecardService"));
+        CardService.reloadCards((List<Object>) reloadGameJson.get("bitDeck"));
+
+        //Reload board
+        instance = new Board(periodHoldCards, gameHoldCards, reDieFaces, reStationCount, reRunPeriods, reRunTurns,reCurrentRunTurn,reCurrentPeriod,reInTrainingServer);
 
     }
 
-    public static void augmentDayOfTheWeek() {
-        dayOfTheWeek++;
-        if (dayOfTheWeek > RUN_DAYS) {
-            resetDayOfTheWeek();
+    public void augmentRunTurn(int turns) {
+        for (int ndx = 0; ndx < turns; ndx++) {
+            augmentRunTurn();
         }
     }
 
-    public static void resetDayOfTheWeek() {
-        dayOfTheWeek = 1;
+    public void augmentRunTurn() {
+        currentRunTurn++;
+        if (currentRunTurn > runTurns) {
+            this.getPeriodHoldCards().clear();
+
+            //Update Scorecard
+            ScoreCard scoreCard = ScorecardService.getScorecardForCurrentWeek();
+            scoreCard.setWorkInProcess(WorkstationService.tallyWorkInProcess());
+            scoreCard.setFinishedGoods(ScorecardService.getFinishedGoods().getFinishedGoodsTally());
+            scoreCard.setScore(ScorecardService.currentWeekRunningScore());
+            //Remove finished Goods
+            ScorecardService.getFinishedGoods().setFinishedGoodsTally(0);
+
+            augmentRunPeriod();
+            resetRunTurns();
+        }
     }
 
-    public static void augmentGameWeek() {
-        gameWeek++;
+    private void augmentRunPeriod() {
+        currentPeriod++;
     }
 
-    public static BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) {
+    public void resetRunTurns() {
+
+        currentRunTurn = 1;
+    }
+
+    public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) {
 
         //Reduce complexity of calling method by passing along null
         if (bitCard == null) {
@@ -79,7 +139,7 @@ public class Board {
 
         return switch (bitCard.getAction()) {
             case 1 -> {
-                weekHoldCards.add(bitCard);
+                periodHoldCards.add(bitCard);
                 yield null;
             }
             case 2 -> new HelpAction(HelpAction.HelpActionType.ADD_ONE);
@@ -93,10 +153,10 @@ public class Board {
             case 9 -> new HelpAction(HelpAction.HelpActionType.PAIR);
             case 10 ->
                 //Team loses the day
-                    new Trap(TEAM, DAY, runWeek, runDay, NONE);
+                    new Trap(TEAM, RUN, runWeek, runDay, NONE);
             case 11 ->
-                //Skip the next server
-                    new Trap(ANY_SERVER, DAY, runWeek, runDay, NONE);
+                //Skip the next workstation
+                    new Trap(ANY_SERVER, RUN, runWeek, runDay, NONE);
             case 12 -> {
                 returnFinishedGoodsToBacklog();
                 yield null;
@@ -107,20 +167,20 @@ public class Board {
             }
             case 14 ->
                 //Skip the next human server
-                    new Trap(HUMAN_SERVER, DAY, runWeek, runDay, NONE);
+                    new Trap(HUMAN_SERVER, RUN, runWeek, runDay, NONE);
             case 15 ->
-                //Team loses the week
-                    new Trap(TEAM, WEEK, runWeek, runDay, DAY);
+                //Team loses the period
+                    new Trap(TEAM, PERIOD, runWeek, runDay, RUN);
             default -> null;
         };
     }
 
-    private static void returnFinishedGoodsToBacklog() {
+    private void returnFinishedGoodsToBacklog() {
         ScorecardService.getBacklog().addToBacklog(ScorecardService.getFinishedGoods().getFinishedGoodsTally());
         ScorecardService.getFinishedGoods().setFinishedGoodsTally(0);
     }
 
-    private static void moveWorkItemsFromColorWorkstationToPrevious(BitCard bitCard) {
+    private void moveWorkItemsFromColorWorkstationToPrevious(BitCard bitCard) {
         Color color;
         try {
             color = Color.valueOf(bitCard.getDescription());
@@ -141,11 +201,15 @@ public class Board {
         }
     }
 
-    public static boolean isTrapMitigated(BitCard bitCard) {
+    public boolean gameIsOver() {
+        return currentPeriod > runPeriods;
+    }
+
+    public boolean isTrapMitigated(BitCard bitCard) {
         return gameHoldCards.removeIf(card -> card.getId() == bitCard.getCounterCard());
     }
 
-    public static void returnServerToWorkstation() {
+    public void returnServerToOriginalWorkstation() {
         if (inTrainingServer == null) {
             return;
         }
@@ -155,52 +219,67 @@ public class Board {
         inTrainingServer = null;
     }
 
-    public static void setInTrainingServer(@NonNull Color serverColor, @NonNull Color skillColor) {
+    public void returnServerToOriginalWorkstation(HumanServer humanServer) {
+        WorkstationService.removeHumanServerFromWorkstation(humanServer);
+        Workstation workstation = WorkstationService.getWorkstation(humanServer.getColor());
+        if (workstation != null) workstation.getServers().add(humanServer);
+
+    }
+
+    public void putServerInTraining(@NonNull Color serverColor, @NonNull Color skillColor) {
         HumanServer server = ServerService.getHumanServer(serverColor);
         server.getSkills().add(skillColor);
-        WorkstationService.removeInTrainingServerFromWorkstation(server);
+        WorkstationService.removeHumanServerFromWorkstation(server);
         inTrainingServer = server;
     }
 
-    public static void startDay(@NonNull ServerMove move) {
-        HumanServer serverToMove = findServer(move.getServerColor());
-        if (addServer(Objects.requireNonNull(serverToMove), move.getWorkstationColor())) {
-            removeServer(serverToMove);
-        } else {
-            throw new ThroughputRuntimeException(new IllegalArgumentException("Server must match workstation or have a skill that matches workstation"));
-        }
+    public void startDay(@NonNull ServerMove move) {
+        Color workstationColor = move.workstationColor();
+        Color serverColor = move.serverColor();
+        for (Workstation serversCurrentWorkstation : WorkstationService.getWorkstations()) {
+            HumanServer serverToMove = (HumanServer) serversCurrentWorkstation.getServers().stream().filter(server -> server.getColor().equals(serverColor) && server.getType().equals(Server.TYPE_HUMAN)).findAny().orElse(null);
+            //Test if serverToMove is null and continue
+            if (serverToMove == null) continue;
 
-    }
-
-    private static HumanServer findServer(@NonNull Color serverColor) {
-        for (Workstation workstation : WorkstationService.getWorkstations()) {
-            HumanServer serverToMove = (HumanServer) workstation.getServers().stream().filter(server -> server.getColor().equals(serverColor) && server.getType().equals(Server.TYPE_HUMAN)).findAny().orElse(null);
-            if (serverToMove != null) {
-                return serverToMove;
+            if (!serverToMove.getSkills().contains(workstationColor)) {
+                throw new ThroughputRuntimeException(new IllegalArgumentException("Server must match workstation or have a skill that matches workstation"));
+            } else {
+                Workstation moveToWorkstation = WorkstationService.getWorkstation(workstationColor);
+                Objects.requireNonNull(moveToWorkstation).getServers().add(serverToMove);
+                serversCurrentWorkstation.getServers().remove(serverToMove);
+                return;
             }
         }
-        return null;
     }
 
-    private static boolean addServer(@NonNull Server serverToMove, @NonNull Color color) {
-
-        if (!serverToMove.getSkills().contains(color)) {
-            return false;
-        }
-        Objects.requireNonNull(WorkstationService.getWorkstation(color)).getServers().add(serverToMove);
-        return true;
+    public String toJSON() {
+        return "{" +
+                "\"dieFaces\":" + dieFaces +
+                ",\"stationCount\":" + stationCount +
+                ",\"runPeriods\":" + runPeriods +
+                ",\"runTurns\":" + runTurns +
+                ",\"currentRunTurn\":" + currentRunTurn +
+                ",\"currentPeriod\":" + currentPeriod +
+                ",\"inTrainingServer\":" + inTrainingServer +
+                ",\"periodHoldCards\":" + collectionToJson(Collections.unmodifiableCollection(periodHoldCards)) +
+                ",\"gameHoldCards\":" + collectionToJson(Collections.unmodifiableCollection(gameHoldCards)) +
+                "," +
+                WorkstationService.toJSON() +
+                "," +
+                ScorecardService.toJSON() +
+                "," +
+                CardService.toJSON() +
+                "}";
     }
 
-    private static void removeServer(@NonNull HumanServer serverToMove) {
-        for (Workstation workstation : WorkstationService.getWorkstations()) {
-            HumanServer serverToRemove = (HumanServer) workstation.getServers().stream().filter(server -> server.equals(serverToMove)).findAny().orElse(null);
-            if (serverToRemove != null) {
-                workstation.getServers().remove(serverToMove);
-            }
-        }
-
-
+    public String collectionToJson(Collection<Savable> collection) {
+        var json = new StringBuilder();
+        json.append("[");
+        List<String> stringList = collection.stream().map(Savable::toJSON).toList();
+        json.append(String.join(",", stringList));
+        json.append("]");
+        return json.toString();
     }
-
-
 }
+
+

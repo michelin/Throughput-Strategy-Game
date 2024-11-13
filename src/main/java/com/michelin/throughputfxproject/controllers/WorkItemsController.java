@@ -32,7 +32,8 @@ public class WorkItemsController {
 
 
 
-    public void moveWorkItems(ActionEvent actionEvent) {
+    @FXML
+    protected void moveWorkItems(ActionEvent actionEvent) {
         workItemMoveButton.setDisable(true);
         try {
             String maxValueText = txtWorkstationMax.getText();

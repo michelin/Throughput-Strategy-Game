@@ -1,5 +1,6 @@
 package com.michelin.throughputfxproject.entities.cards;
 
+import com.michelin.throughputfxproject.entities.state.Savable;
 import com.opencsv.bean.CsvBindByName;
 import lombok.*;
 
@@ -10,7 +11,7 @@ import java.io.File;
 @NoArgsConstructor
 @Getter
 @Setter
-public class BitCard implements Card {
+public class BitCard implements Card, Savable {
 
     @CsvBindByName(column = "id")
     private int id;
@@ -50,6 +51,10 @@ public class BitCard implements Card {
     @Override
     public String getType() {
         return Card.BOOSTER_INOCULATE_TRAP;
+    }
+
+    public String toJSON() {
+        return String.valueOf(getId());
     }
 
 

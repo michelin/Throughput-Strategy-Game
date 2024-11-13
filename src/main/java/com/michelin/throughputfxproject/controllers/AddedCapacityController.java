@@ -27,6 +27,7 @@ public class AddedCapacityController {
     @FXML
     private ComboBox<Color> workstationToAddCapacity;
 
+
     public void addCapacity(ActionEvent actionEvent) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(actionEvent.toString());
@@ -35,9 +36,9 @@ public class AddedCapacityController {
         Workstation workstation = WorkstationService.getWorkstation(workstationToAddCapacity.getSelectionModel().getSelectedItem());
         Objects.requireNonNull(workstation);
         if (addCapacityText.getText().contains("double")) {
-            workstation.setCapacity(Math.min(Board.SIX_SIDES, (workstation.getCapacity() * 2)));
+            workstation.setCapacity(Math.min( Board.getInstance().getDieFaces(), (workstation.getCapacity() * 2)));
         } else {
-            workstation.setCapacity(Math.min(Board.SIX_SIDES, (workstation.getCapacity() + 1)));
+            workstation.setCapacity(Math.min( Board.getInstance().getDieFaces(), (workstation.getCapacity() + 1)));
         }
 
         ((Stage) capacityButton.getParent().getScene().getWindow()).close();

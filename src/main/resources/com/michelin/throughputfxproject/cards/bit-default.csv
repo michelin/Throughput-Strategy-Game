@@ -14,9 +14,9 @@ copies|title|title_style|subtitle|subtitle_style|reason|instructions|description
 1|Functional Metrics are put in place and used regularly||Observability|| |Finished goods are now worth 4.||||8|Booster||13
 2|Team implements Paired Programming||Team Topology||After initial placement it can only be moved at the start of a week.|Place Pair Partner card alongside a human server. ||| Grants the station it’s assigned to one extra chance at work each day until end of game.|9|Booster||14
 1|Too many status meetings|"{color:rgba(236, 32, 41, 1)}"|Anti-pattern|"{color:rgba(236, 32, 41, 1)}"| |Team loses a day.||||10|Trap||15
-1|Bad Multitasking overloads a server|"{color:rgba(236, 32, 41, 1)}"|Anti-pattern|"{color:rgba(236, 32, 41, 1)}"| |Human server on your lowest capacity workstation lose a day.||||11|Trap||16
+1|Bad Multitasking overloads a server|"{color:rgba(236, 32, 41, 1)}"|Anti-pattern|"{color:rgba(236, 32, 41, 1)}"| |Next server loses their turn.||||11|Trap||16
 1|Ransomware Attack!|"{color:rgba(236, 32, 41, 1)}"|Security|"{color:rgba(236, 32, 41, 1)}"| |Team loses a day.||||10|Trap|12|17
-1|Missing full-kit check causes you to miss a required approval.|"{color:rgba(236, 32, 41, 1)}"|Full Kit|"{color:rgba(236, 32, 41, 1)}"||Next server loses a day.||||11|Trap||19
+1|Missing full-kit check causes you to miss a required approval.|"{color:rgba(236, 32, 41, 1)}"|Full Kit|"{color:rgba(236, 32, 41, 1)}"||Next server loses their turn.||||11|Trap||19
 1|Defective product is found by a customer.|"{color:rgba(236, 32, 41, 1)}"|Quality|"{color:rgba(236, 32, 41, 1)}"| |Return all finished goods to the backlog.||||12|Trap||20
 1|Defective work items|"{color:rgba(236, 32, 41, 1)}"|Quality|"{color:rgba(236, 32, 41, 1)}"||Move work items from the color printed on this card back to the previous container.||blocks/block_rose.jpg|ROSE|13|Trap||21
 1|Defective work items|"{color:rgba(236, 32, 41, 1)}"|Quality|"{color:rgba(236, 32, 41, 1)}"||Move work items from the color printed on this card back to the previous container.||blocks/block_blue.jpg|BLUE|13|Trap||22

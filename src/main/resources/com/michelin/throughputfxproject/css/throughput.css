@@ -78,10 +78,9 @@
 }
 
 .read-only-textarea{
-    -fx-background-color: white;
-    -fx-border-width: 2px;
-    -fx-border-color: darkblue;
-    -fx-opacity: 1;
+    -fx-background-color: #e4fbff;
+    -fx-border-width: 1px;
+    -fx-border-color: yellow;
     -fx-font-family: Michelin;
     -fx-font-size: 14pt;
     -fx-text-fill: midnightblue;
@@ -97,7 +96,7 @@
     -fx-padding: 3 30 3 30;
     -fx-text-fill: #242d35;
     -fx-font-family: Michelin;
-    -fx-font-size: 14px;
+    -fx-font-size: 18px;
     -fx-text-alignment: center;
     -fx-font-weight: bold;
 }

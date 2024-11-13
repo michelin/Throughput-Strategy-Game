@@ -1,9 +1,11 @@
 package com.michelin.throughputfxproject.entities.cards;
 
 
+import com.michelin.throughputfxproject.entities.state.Savable;
+
 import java.io.File;
 
-public interface Card {
+public interface Card  {
     String BOOSTER_INOCULATE_TRAP = "BoosterInoculationTrap";
     String SKILLS = "SKILLS";
     String CHANCE = "CHANCE";

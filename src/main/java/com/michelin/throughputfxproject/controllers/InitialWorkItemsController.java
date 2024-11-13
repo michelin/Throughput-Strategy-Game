@@ -29,7 +29,8 @@ public class InitialWorkItemsController {
     @FXML
     private TextField workItemMoveResponseText;
 
-    public void moveInitialWorkItems(ActionEvent actionEvent) {
+    @FXML
+    protected void moveInitialWorkItems(ActionEvent actionEvent) {
         workItemMoveButton.setDisable(true);
         try {
             String maxValueText = txtWorkstationMax.getText();

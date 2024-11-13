@@ -1,12 +1,13 @@
 package com.michelin.throughputfxproject.entities.servers;
 
 import com.michelin.throughputfxproject.entities.Color;
+import com.michelin.throughputfxproject.entities.state.Savable;
 
 import java.util.Set;
 
 
 @SuppressWarnings("SameReturnValue")
-public interface Server {
+public interface Server extends Savable {
     String BEHAVIOR_SERVE = "SERVE";
     String BEHAVIOR_PAIR = "HELP";
     String TYPE_AUTOMATED = "AUTOMATED";
@@ -18,5 +19,5 @@ public interface Server {
     Set<Color> getSkills();
     String getImage();
     String getBackImage();
-
+    String toJSON();
 }
