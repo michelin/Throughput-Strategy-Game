@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.14-internal" >
+    <VBox alignment="CENTER" prefHeight="800.0" prefWidth="800.0" stylesheets="@css/throughput.css">
+        <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@images/title.png"/>
+        </ImageView>
+        <Label styleClass="info-labels" text="Game Play"/>
+        <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@images/game-play-1.png"/>
+        </ImageView>
+        <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@images/game-play-2.png"/>
+        </ImageView>
+        <Label styleClass="info-labels" text="Server Rules"/>
+        <ImageView fitWidth="750.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@images/server-rules.png"/>
+        </ImageView>
+    </VBox>
+</ScrollPane>

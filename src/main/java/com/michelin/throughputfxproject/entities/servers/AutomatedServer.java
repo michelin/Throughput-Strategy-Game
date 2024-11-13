@@ -1,19 +1,18 @@
 package com.michelin.throughputfxproject.entities.servers;
 
-import com.michelin.throughputfxproject.Color;
-import com.michelin.throughputfxproject.entities.Server;
+import com.michelin.throughputfxproject.entities.Color;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.File;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
 @Setter
 public class AutomatedServer implements Server {
     private final Color color;
-    private final Set<Color> skills = new HashSet<>(1);
+    private final Set<Color> skills = HashSet.newHashSet(1);
     private String type = TYPE_AUTOMATED;
 
     public AutomatedServer(Color color) {
@@ -21,25 +20,31 @@ public class AutomatedServer implements Server {
         skills.add(color);
     }
 
-
     @Override
-    public String getBehavior() {
-        return BEHAVIOR_SERVE;
+    public String getImage() {
+        return switch (color) {
+            case GREEN -> "servers/robot_green.jpg";
+            case YELLOW -> "servers/robot_yellow.jpg";
+            default -> "servers/robot_rose.jpg";
+        };
     }
 
     @Override
-    public String getSkillsString() {
-               return color.name();
+    public String getBackImage() {
+        return "cards/IndustrialRobot.jpg";
     }
 
     @Override
-    public File geImage() {
-        return new File("./cards/IndustrialRobot.jpg");
+    public String toJSON() {
+        return "\"server\":{\"color\":" + getColor().name() + ",\"type\":\"" + getType()  + "\"}";
     }
 
+
     @Override
-    public File geBackImage() {
-        return new File("./cards/IndustrialRobot.jpg");
+    public int hashCode() {
+        int result = color.hashCode();
+        result = 31 * result + type.hashCode();
+        return result;
     }
 
     @Override
@@ -52,17 +57,8 @@ public class AutomatedServer implements Server {
     }
 
     @Override
-    public int hashCode() {
-        int result = color.hashCode();
-        result = 31 * result + type.hashCode();
-        return result;
-    }
-
-    @Override
     public String toString() {
-        return  getType() + '\'' +
-                ", name: " + color + '\'' +
-                ", skills=" + getSkills();
+        return getType() + '\'' + ", name: " + color + '\'' + ", skills=" + getSkills();
 
     }
 

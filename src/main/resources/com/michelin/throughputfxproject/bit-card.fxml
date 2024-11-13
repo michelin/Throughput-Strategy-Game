@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="480.0" prefWidth="650.0" styleClass="card-box-group" stylesheets="@css/throughput.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.BITController">
+    <HBox styleClass="card-box-group" onMouseClicked="#closeCardWindow">
+        <VBox layoutX="260.0" layoutY="71.0" styleClass="card-box-group">
+            <HBox prefHeight="480.0" prefWidth="650.0" styleClass="card-box-group">
+                <VBox prefHeight="480.0" prefWidth="325.0" styleClass="card-box">
+                    <Label fx:id="cardTitle" alignment="CENTER" contentDisplay="TOP" prefHeight="74.0" prefWidth="320.0" styleClass="card-title" text="title" textAlignment="CENTER" wrapText="true" />
+                    <Label fx:id="cardSubtitle" alignment="CENTER" contentDisplay="TOP" prefHeight="35.0" prefWidth="320.0" styleClass="card-subtitle" text="subtitle" textAlignment="CENTER" />
+                    <Label fx:id="cardReason" alignment="TOP_LEFT" contentDisplay="TOP" prefHeight="64.0" prefWidth="320.0" styleClass="card-reason" text="reason" wrapText="true">
+                        <VBox.margin>
+                            <Insets bottom="10.0" />
+                        </VBox.margin>
+                    </Label>
+                    <HBox prefWidth="190.0">
+                        <Label fx:id="cardDescriptionTitle" prefHeight="20.0" prefWidth="217.0" styleClass="card-description-title" text="Description Title" />
+                        <Pane prefHeight="25.0" prefWidth="34.0" />
+                        <ImageView fx:id="descriptionImage" fitHeight="25" fitWidth="25">
+                            <Image url="@cards/BIT.jpg" />
+                            <viewport>
+                                <Rectangle2D />
+                            </viewport>
+                        </ImageView>
+                    </HBox>
+                    <Label fx:id="cardDescription" alignment="TOP_LEFT" minHeight="80.0" prefHeight="190.0" prefWidth="325.0" styleClass="card-description" text="description" wrapText="true" />
+                    <Label fx:id="cardInstructions" alignment="CENTER" minHeight="40.0" prefHeight="78.0" prefWidth="325.0" styleClass="card-instruction" text="Instructions" wrapText="true" />
+                </VBox>
+                <Pane prefHeight="480.0" prefWidth="327.0">
+                    <styleClass>
+                        <String fx:value="card-box" />
+                        <String fx:value="bit-card" />
+                    </styleClass>
+                </Pane>
+            </HBox>
+        </VBox>
+    </HBox>
+</AnchorPane>

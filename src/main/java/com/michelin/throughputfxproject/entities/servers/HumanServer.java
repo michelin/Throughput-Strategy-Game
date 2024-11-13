@@ -1,23 +1,28 @@
 package com.michelin.throughputfxproject.entities.servers;
 
-import com.michelin.throughputfxproject.Color;
-import com.michelin.throughputfxproject.entities.Server;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.michelin.throughputfxproject.entities.Color;
+import com.michelin.throughputfxproject.entities.state.Board;
+import com.michelin.throughputfxproject.entities.state.Savable;
+import com.michelin.throughputfxproject.entities.state.Workstation;
+import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
 public class HumanServer implements Server {
 
+    public static final Logger LOGGER = LoggerFactory.getLogger(HumanServer.class.getName());
     private final Color color;
-    private final Set<Color> skills = new HashSet<>(5);
+    private final Set<Color> skills = HashSet.newHashSet(5);
     private String type = TYPE_HUMAN;
 
 
@@ -26,33 +31,28 @@ public class HumanServer implements Server {
         skills.add(color);
     }
 
-
-    @Override
-    public String getBehavior() {
-        return BEHAVIOR_SERVE;
+    public HumanServer(@NonNull Color color, Collection<Color> skills) {
+        this.color = color;
+        this.skills.clear();
+        this.skills.addAll(skills);
     }
 
-    @Override
-    public String getSkillsString() {
-        List<String> builder = new ArrayList<>();
-        skills.forEach(skill -> {
-            if (color.equals(skill)) {
-                builder.add(skill.nameWithColor());
-            } else {
-                builder.add(skill.initialWithColor());
-            }
-        });
-        return String.join(",", builder);
-    }
 
     @Override
-    public File geImage() {
-        return new File("./cards/WomanJugglingTires.jpg");
+    public String getImage() {
+        return switch (color) {
+            case BLUE -> "servers/server_blue.jpg";
+            case GREEN -> "servers/server_green.jpg";
+            case YELLOW -> "servers/server_yellow.jpg";
+            case VIOLET -> "servers/server_violet.jpg";
+            default -> "servers/server_rose.jpg";
+        };
     }
 
+
     @Override
-    public File geBackImage() {
-        return new File("./cards/WomanJugglingTires.jpg");
+    public String getBackImage() {
+        return "cards/WomanJugglingTires.jpg";
     }
 
     @Override
@@ -77,4 +77,27 @@ public class HumanServer implements Server {
                 ", name: " + color +
                 ", skills=" + getSkills();
     }
+
+    public int skillsCount(){
+        return skills.size();
+    }
+
+    public void removeSkills(){
+        skills.clear();
+        skills.add(color);
+    }
+
+    @Override
+    public String toJSON() {
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String json;
+        try {
+            json = ow.writeValueAsString(this);
+            LOGGER.info("Human Server {}", json);
+        } catch (JsonProcessingException e) {
+            throw new ThroughputRuntimeException(e);
+        }
+        return json;
+    }
+
 }

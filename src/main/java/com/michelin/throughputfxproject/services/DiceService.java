@@ -1,12 +1,9 @@
 package com.michelin.throughputfxproject.services;
 
-import com.michelin.throughputfxproject.entities.Die;
+import com.michelin.throughputfxproject.entities.state.Die;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
 
@@ -17,23 +14,11 @@ public class DiceService {
         super();
     }
 
-    public static int getTotalDiceValue(@NonNull Die[] dice) {
-        return Arrays.stream(dice).mapToInt(Die::getValue).sum();
-    }
 
-    public static int[] getEachDiceValue(@NonNull Die[] dice) {
-        int[] result = new int[dice.length];
-        for (int i = 0; i < dice.length; i++) {
-            result[i] = dice[i].getValue();
-        }
-        return result;
-    }
-
-    public static Die[] rollDice(@NonNull Die[] dice) {
+    public static void rollDice(@NonNull Die[] dice) {
         for (Die currentDie : dice) {
             currentDie.setValue(rollDie(currentDie).getValue());
         }
-        return dice;
     }
 
     public static Die rollDie(@NonNull Die die) {
@@ -54,5 +39,16 @@ public class DiceService {
             result[i] = getDie(sides);
         }
         return result;
+    }
+
+    public static String getDieImage(int dieFace) {
+        return switch (dieFace) {
+            case 2 -> "icons/die_2.png";
+            case 3 -> "icons/die_3.png";
+            case 4 -> "icons/die_4.png";
+            case 5 -> "icons/die_5.png";
+            case 6 -> "icons/die_6.png";
+            default -> "icons/die_1.png";
+        };
     }
 }

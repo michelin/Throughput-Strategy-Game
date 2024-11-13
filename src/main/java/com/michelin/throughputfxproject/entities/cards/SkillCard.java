@@ -1,6 +1,5 @@
 package com.michelin.throughputfxproject.entities.cards;
 
-import com.michelin.throughputfxproject.entities.Card;
 import com.opencsv.bean.CsvBindByName;
 import lombok.*;
 

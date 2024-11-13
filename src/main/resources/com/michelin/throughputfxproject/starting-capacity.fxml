@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+
+<?import javafx.scene.control.Label?>
+<VBox xmlns="http://javafx.com/javafx/11.0.14-internal" >
+    <Label text="Initial Capacity"/>
+    <HBox alignment="CENTER" prefHeight="120.0" prefWidth="700.0" spacing="10.0">
+        <ImageView id="dieImage1" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@icons/die_1.png"/>
+        </ImageView>
+        <ImageView id="dieImage2" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@icons/die_2.png"/>
+        </ImageView>
+        <ImageView id="dieImage3" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@icons/die_3.png"/>
+        </ImageView>
+        <ImageView id="dieImage4" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@icons/die_4.png"/>
+        </ImageView>
+        <ImageView id="dieImage5" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@icons/die_5.png"/>
+        </ImageView>
+        <ImageView id="dieImage6" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@icons/die_6.png"/>
+        </ImageView>
+    </HBox>
+</VBox>

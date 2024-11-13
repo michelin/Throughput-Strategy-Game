@@ -1,6 +1,5 @@
 package com.michelin.throughputfxproject.entities.cards;
 
-import com.michelin.throughputfxproject.entities.Card;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 

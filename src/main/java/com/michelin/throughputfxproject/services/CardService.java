@@ -2,17 +2,12 @@ package com.michelin.throughputfxproject.services;
 
 
 import com.michelin.throughputfxproject.ThroughputApplication;
-import com.michelin.throughputfxproject.entities.Card;
-import com.michelin.throughputfxproject.entities.cards.BitCard;
-import com.michelin.throughputfxproject.entities.cards.ChanceCard;
-import com.michelin.throughputfxproject.entities.cards.ChanceRobotCard;
-import com.michelin.throughputfxproject.entities.cards.SkillCard;
+import com.michelin.throughputfxproject.entities.cards.*;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import java.io.IOException;
 import java.io.Reader;
@@ -26,12 +21,11 @@ import java.util.*;
 
 public class CardService {
     public static final Logger LOGGER = LoggerFactory.getLogger(CardService.class.getName());
-    private static final Map<String, List<Card>> decks = new HashMap<>(5);
-    private final Random random = new Random();
-    private static CardService instance;
+    private static final Map<String, List<Card>> decks = HashMap.newHashMap(5);
+    private static final Random random = new Random();
 
-    private CardService() {
 
+    static {
         try {
             decks.put(Card.BOOSTER_INOCULATE_TRAP, getCards(Card.BOOSTER_INOCULATE_TRAP));
         } catch (URISyntaxException | IOException e) {
@@ -57,57 +51,16 @@ public class CardService {
         }
     }
 
-    public static CardService getInstance() {
-        return instance;
+    private CardService() {
+        //Private constructor
     }
 
-    private List<Card> getCards(String deckName) throws URISyntaxException, IOException {
-        switch (deckName) {
-            case Card.BOOSTER_INOCULATE_TRAP:
-                return new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/bit.csv")), BitCard.class));
-            case Card.SKILLS:
-                return new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/skills.csv")), SkillCard.class));
-            case Card.CHANCE:
-                return new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/chance.csv")), ChanceCard.class));
-            case Card.AUTOMATED_CHANCE:
-                return new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/robot_chance.csv")), ChanceRobotCard.class));
-            default:
-                return Collections.emptyList();
-        }
-    }
-
-    private <T extends Card> List<T> geCardsFromCsv(URL pathUrl, Class<T> clazz) throws URISyntaxException, IOException {
-        Path filePath = Paths.get(pathUrl.toURI());
-        return cardMultiplier(filePath, clazz);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends Card> List<T> cardMultiplier(Path filePath, Class<T> clazz) throws IOException {
-        List<T> cards = cardBeanBuilder(filePath, clazz);
-        List<T> cloneCards = new ArrayList<>(cards);
-        cards.forEach(card -> {
-            for (int i = 0; i < card.getCopies() - 1; i++) {
-                Card clone = card.typedClone();
-                cloneCards.add((T) clone);
-            }
-        });
-        return cloneCards;
-    }
-
-    private <T extends Card> List<T> cardBeanBuilder(Path filePath, Class<T> clazz) throws IOException {
-        Reader reader = Files.newBufferedReader(filePath);
-        CsvToBean<T> cb = new CsvToBeanBuilder<T>(reader)
-                .withType(clazz).withSeparator('|')
-                .build();
-        return cb.parse();
-    }
-
-    public Card pickACard(String deckName) {
+    public static Card pickACard(String deckName) {
         List<Card> deck = getCardDeck(deckName);
         return shuffleDeck(deck).get(random.nextInt(deck.size()));
     }
 
-    private List<Card> getCardDeck(String deckName) {
+    private static List<Card> getCardDeck(String deckName) {
         List<Card> deck = decks.get(deckName);
         if (deck == null) {
             throw new IllegalArgumentException(deckName + " is not a recognized card deck");
@@ -122,7 +75,7 @@ public class CardService {
         return deck;
     }
 
-    private <T extends Card> List<T> shuffleDeck(List<T> deck) {
+    private static <T extends Card> List<T> shuffleDeck(List<T> deck) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("before shuffle {}", Arrays.toString(deck.toArray()));
         }
@@ -139,11 +92,86 @@ public class CardService {
         return deck;
     }
 
-    public Card pickACardDestructively(String deckName) {
-        List<Card> deck = getCardDeck(deckName);
-        Card nextCard = deck.get(random.nextInt(deck.size()));
-        deck.remove(nextCard);
-        return nextCard;
+    private static List<Card> getCards(String deckName) throws URISyntaxException, IOException {
+        return switch (deckName) {
+            case Card.BOOSTER_INOCULATE_TRAP ->
+                    new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/bit-" + System.getProperty("run.topic", "default") + ".csv")), BitCard.class));
+            case Card.SKILLS ->
+                    new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/skills.csv")), SkillCard.class));
+            case Card.CHANCE ->
+                    new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/chance.csv")), ChanceCard.class));
+            case Card.AUTOMATED_CHANCE ->
+                    new ArrayList<>(geCardsFromCsv(Objects.requireNonNull(ThroughputApplication.class.getResource("cards/robot_chance.csv")), ChanceRobotCard.class));
+            default -> Collections.emptyList();
+        };
+    }
+
+    private static <T extends Card> List<T> geCardsFromCsv(URL pathUrl, Class<T> clazz) throws URISyntaxException, IOException {
+        Path filePath = Paths.get(pathUrl.toURI());
+        return cardMultiplier(filePath, clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Card> List<T> cardMultiplier(Path filePath, Class<T> clazz) throws IOException {
+        List<T> cards = cardBeanBuilder(filePath, clazz);
+        List<T> cloneCards = new ArrayList<>(cards);
+        cards.forEach(card -> {
+            for (int i = 0; i < card.getCopies() - 1; i++) {
+                Card clone = card.typedClone();
+                cloneCards.add((T) clone);
+            }
+        });
+        return cloneCards;
+    }
+
+    private static <T extends Card> List<T> cardBeanBuilder(Path filePath, Class<T> clazz) throws IOException {
+        Reader reader = Files.newBufferedReader(filePath);
+        CsvToBean<T> cb = new CsvToBeanBuilder<T>(reader)
+                .withType(clazz).withSeparator('|')
+                .build();
+        return cb.parse();
+    }
+
+    public static BitCard pickACardDestructively() {
+        List<Card> deck = getCardDeck(Card.BOOSTER_INOCULATE_TRAP);
+        return (BitCard) deck.remove(random.nextInt(deck.size()));
+    }
+
+    public static void reloadCards(List<Object> bitDeckJson) {
+        List<Card> bitDeck = decks.get(Card.BOOSTER_INOCULATE_TRAP);
+        LOGGER.debug("Deck size {}", bitDeck.size());
+        List<Integer> unmodifiableList = bitDeckJson.stream().map(Integer.class::cast).toList();
+        List<Integer> ids = new ArrayList<>(unmodifiableList);
+        List<Card> filteredDeck = new ArrayList<>();
+        for (Card card : bitDeck) {
+            Integer id = ((BitCard) card).getId();
+            if (ids.remove(id)) {
+                filteredDeck.add(card);
+            }
+        }
+
+        decks.put(Card.BOOSTER_INOCULATE_TRAP, filteredDeck);
+        LOGGER.debug("Deck size after reload {}", filteredDeck.size());
+    }
+
+    public static List<BitCard> reloadHoldCards(List<Object> holdDeckJson) {
+        List<Integer> unmodifiableList = holdDeckJson.stream().map(Integer.class::cast).toList();
+        List<BitCard> filteredDeck = new ArrayList<>();
+        unmodifiableList.forEach(id -> filteredDeck.add(pickACardDestructivelyById(id)));
+
+        return filteredDeck;
+    }
+
+    public static BitCard pickACardDestructivelyById(int id) {
+        List<Card> deck = getCardDeck(Card.BOOSTER_INOCULATE_TRAP);
+        BitCard returnCard = (BitCard) deck.stream().filter(card -> ((BitCard) card).getId() == id).findFirst().orElseThrow();
+        deck.remove(returnCard);
+        return returnCard;
+    }
+
+    public static String toJSON() {
+        List<String> stringList = getCardDeck(Card.BOOSTER_INOCULATE_TRAP).stream().map(BitCard.class::cast).map(BitCard::toJSON).toList();
+        return "\"bitDeck\":[" + String.join(",", stringList) + "]";
     }
 
 
