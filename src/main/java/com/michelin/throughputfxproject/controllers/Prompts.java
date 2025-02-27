@@ -100,7 +100,7 @@ public class Prompts {
             }
 
             // Create a popup and add the stack pane to it
-            createModalStage("Booster, Inoculation, Trap", container, root, 5);
+            createModalStage("Booster, Inoculation, Trap", container, root, 45);
 
             gameBoardLog.getBackground().getImages().clear();
             //Follow the instructions on BIT card. If we get a hold card put in weekly hold or game hold.
@@ -131,9 +131,7 @@ public class Prompts {
     public static void alertWithoutBoardUpdate(@NonNull String title, @NonNull String text, int timeoutDurationMillis){
 
         Alert alert = makeAlert(title, text);
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.millis(timeoutDurationMillis), _ -> {
-            alert.hide();
-        }));
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.millis(timeoutDurationMillis), _ -> alert.hide()));
         idleStage.setCycleCount(1);
         idleStage.playFromStart();
 
@@ -198,7 +196,7 @@ public class Prompts {
         ComboBox<Color> serverColorPicker = ((PairingController) loader.getController()).getWorkstationToPairWith();
         buildColorComboBox(serverColorPicker, Arrays.stream(WorkstationService.getWorkstations()).filter(Workstation::hasHumanServers).map(Workstation::getColor).toArray(Color[]::new));
 
-        createModalStage("Paired Work", container, root, 20);
+        createModalStage("Paired Work", container, root, 60);
     }
 
     @SuppressWarnings({"java:S1190", "java:S117"})
@@ -253,7 +251,7 @@ public class Prompts {
         LOGGER.debug("promptForFinishedGoodsAreNowFourPoints");
 
         String gameBoardLogText = "Augmenting finished goods." + System.lineSeparator() + "Their value is 4 pts for the remainder of the game";
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 10000);
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 30000);
         ScorecardService.getFinishedGoods().setValue(4);
     }
 
@@ -265,7 +263,7 @@ public class Prompts {
         LOGGER.debug("promptForPairRetry");
 
         String gameBoardLogText = "Your first try failed for Server " + server.getColor().name() + System.lineSeparator() + "Partner steps in to help with a retry";
-        alertWithGameBoardUpdate("Partner", gameBoardLog, gameBoardLogText, 10000);
+        alertWithGameBoardUpdate("Partner", gameBoardLog, gameBoardLogText, 30000);
     }
 
     protected static void promptForServerMoves(@NonNull Pane container, HumanServer inTraining, BoardController boardController) throws IOException {
@@ -296,7 +294,7 @@ public class Prompts {
 
         ((ServerMovesController) loader.getController()).setBoardController(boardController);
 
-        createModalStage("Server Moves", container, root, 15);
+        createModalStage("Server Moves", container, root, 45);
 
     }
 
@@ -312,7 +310,7 @@ public class Prompts {
         alert.setTitle("Retry");
         alert.setHeaderText(null);
 
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(15), _ -> {
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(45), _ -> {
             alert.setResult(ButtonType.YES);
             alert.hide();
         }));
@@ -332,7 +330,7 @@ public class Prompts {
 
         Button submitButton = ((EstimateController) loader.getController()).getEstimateButton();
 
-        createModalStageWithButton("Estimate your Week", container, root, 15, submitButton);
+        createModalStageWithButton("Estimate your Week", container, root, 45, submitButton);
     }
 
     @SuppressWarnings({"java:S1190", "java:S117"})
@@ -377,7 +375,7 @@ public class Prompts {
 
         if (backlogCount <= 0) {
             String gameBoardLogText = "Backlog is Empty" + System.lineSeparator() + System.lineSeparator() + "No moves possible";
-            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 10000);
+            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 60000);
             return;
         }
 
@@ -401,7 +399,7 @@ public class Prompts {
         workstationMaxText.setText(String.valueOf(maxIntToMove));
 
         Button submitButton = ((InitialWorkItemsController) loader.getController()).getWorkItemMoveButton();
-        createModalStageWithButton("Move Items", container, root, 10, submitButton);
+        createModalStageWithButton("Move Items", container, root, 45, submitButton);
     }
 
     protected static void promptForWorkItemWorkstationMoves(@NonNull Pane container, Workstation workstation, int workstationPosition) throws IOException {
@@ -442,7 +440,7 @@ public class Prompts {
         workItemResponseText.setText(String.valueOf(maxIntToMove));
 
         Button submitButton = ((WorkItemsController) loader.getController()).getWorkItemMoveButton();
-        createModalStageWithButton("Move Items", container, root, 10, submitButton);
+        createModalStageWithButton("Move Items", container, root, 45, submitButton);
     }
 
     protected static void promptToAddSkill(@NonNull Pane container) throws IOException {
@@ -465,7 +463,7 @@ public class Prompts {
         ComboBox<Color> skillColorPicker = ((SkillsController) loader.getController()).getSkillsToAddToServer();
         buildColorComboBox(skillColorPicker, Color.humanColorValues());
 
-        createModalStage("Add Skills to Server", container, root, 25);
+        createModalStage("Add Skills to Server", container, root, 45);
 
     }
 
@@ -483,7 +481,7 @@ public class Prompts {
         ComboBox<Color> workstationToAddCapacity = ((AddedCapacityController) loader.getController()).getWorkstationToAddCapacity();
         buildColorComboBox(workstationToAddCapacity, Color.humanColorValues());
 
-        createModalStage("Add Capacity", container, root, 15);
+        createModalStage("Add Capacity", container, root, 45);
 
     }
 
@@ -528,7 +526,7 @@ public class Prompts {
         List<Color> leftoverColors = Arrays.stream(Color.automatedColorValues()).filter(color -> !serverColors.contains(color)).toList();
         buildColorComboBox(serverWorkstationColorPicker, leftoverColors.toArray(Color[]::new));
 
-        createModalStage("Automate Workstation", container, root, 20);
+        createModalStage("Automate Workstation", container, root, 60);
     }
 
     protected static boolean promptToDrawSkillsCard(@NonNull Pane container) throws IOException {
@@ -542,7 +540,7 @@ public class Prompts {
         ((SkillCardController) loader.getController()).getCardInstructionsExtended().setText(skillCard.getInstructionsExtended());
         ((SkillCardController) loader.getController()).getIsSuccessful().setText(String.valueOf(skillCard.isSuccess()));
 
-        createModalStage("Skills", container, root, 5);
+        createModalStage("Skills", container, root, 30);
         return skillCard.isSuccess();
     }
 
@@ -602,30 +600,30 @@ public class Prompts {
 
     protected static void publishEndOfGame(TextArea gameBoardLog) {
         String gameBoardLogText = "End of Game." + System.lineSeparator() + "Assess and discuss how you did";
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 15000);
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 45000);
     }
 
     protected static void publishEndPeriod(TextArea gameBoardLog) {
         String gameBoardLogText = "End of Week." + System.lineSeparator() + "Prepare for the start of the next week";
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 10000);
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 60000);
     }
 
     protected static void publishStartPeriod(TextArea gameBoardLog, int period) {
         String gameBoardLogText = "Week: " + period + System.lineSeparator() + START_THE_WEEK;
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 100);
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 10000);
 
     }
 
     protected static void publishTurnStart(TextArea gameBoardLog, int period, int turn) {
         String gameBoardLogText = "Day: " + turn + "  Week:  " + period + System.lineSeparator() + "Click on Run Day to start the day";
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 100);
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 40000);
     }
 
     protected static ChanceResult serverChanceCardPlay(@NonNull Pane container, @NonNull Server server, Workstation workstation, @NonNull TextArea gameBoardLog) throws IOException {
 
         if (workstation.getWorkItemCount() == 0) {
             String gameBoardLogText = "No Moves." + System.lineSeparator() + workstation.getColor() + " " + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE;
-            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 12000);
+            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 45000);
             return ChanceResult.EMPTY;
         }
 
@@ -644,7 +642,7 @@ public class Prompts {
         ((ChanceController) loader.getController()).getCardInstructions().setText(chanceCard.getInstructions());
         ((ChanceController) loader.getController()).getCardChance().setText(workstation.getColor().name() + " - " + chanceCard.getChanceText());
 
-        createModalStage("Chance", container, root, 5);
+        createModalStage("Chance", container, root, 30);
 
         return chanceCard.isSuccess() ? ChanceResult.SUCCESS : ChanceResult.FAILED;
 
@@ -691,7 +689,7 @@ public class Prompts {
         Image backImage = new Image(Objects.requireNonNull(ThroughputApplication.class.getResource(getDieImage(teamMood))).openStream());
         backImageView.setImage(backImage);
 
-        createModalStage("Team Mood", container, root, 5);
+        createModalStage("Team Mood", container, root, 30);
 
         return Math.min(teamMood, ScorecardService.getBacklog().getBacklogItemCount());
     }
