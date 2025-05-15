@@ -2,27 +2,18 @@ package com.michelin.throughputfxproject.controllers;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.michelin.throughputfxproject.ThroughputApplication;
 import com.michelin.throughputfxproject.entities.Color;
-import com.michelin.throughputfxproject.entities.actions.BoardAction;
-import com.michelin.throughputfxproject.entities.actions.HelpAction;
-import com.michelin.throughputfxproject.entities.actions.Trap;
+import com.michelin.throughputfxproject.entities.actions.*;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
-import com.michelin.throughputfxproject.entities.servers.HumanServer;
-import com.michelin.throughputfxproject.entities.servers.PairPartner;
-import com.michelin.throughputfxproject.entities.servers.Server;
-import com.michelin.throughputfxproject.entities.state.Board;
-import com.michelin.throughputfxproject.entities.state.ScoreCard;
-import com.michelin.throughputfxproject.entities.state.Workstation;
+import com.michelin.throughputfxproject.entities.servers.*;
+import com.michelin.throughputfxproject.entities.state.*;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
+import javafx.animation.*;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
@@ -39,9 +30,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
+import javafx.scene.text.*;
 import javafx.util.Duration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -62,7 +51,17 @@ public class BoardController {
     public static final Logger LOGGER = LoggerFactory.getLogger(BoardController.class.getName());
     //Timer label implementation
     private static final Integer START_TIME = 60;
-
+    private static final String COLUMN_WK = "Wk";
+    private static final String COLUMN_EST = "Est";
+    private static final String COLUMN_WIP = "WIP";
+    private static final String COLUMN_FIN = "FIN";
+    private static final String COLUMN_PTS = "Pts";
+    private static final String PROPERTY_PERIOD = "period";
+    private static final String PROPERTY_ESTIMATE = "estimate";
+    private static final String PROPERTY_WORK_IN_PROCESS = "workInProcess";
+    private static final String PROPERTY_FINISHED_GOODS = "finishedGoods";
+    private static final String PROPERTY_SCORE = "score";
+    public static final String ACTION_EVENT = "Action Event: {}";
     @FXML
     private Button buttonLoadGame;
     @FXML
@@ -143,9 +142,7 @@ public class BoardController {
     private Label workstationLabel4;
     @FXML
     private Button buttonEndGame;
-
     private Timeline timeline;
-
 
     public BoardController() {
         try {
@@ -158,42 +155,67 @@ public class BoardController {
         }
     }
 
+    /**
+     * Activates a trap and applies its effects based on the trap's type and duration.
+     *
+     * @param trap               The trap to be activated.
+     * @param bitCard            The BitCard associated with the trap, used to determine if the trap is mitigated.
+     * @param currentWorkstation The index of the current workstation where the trap is being applied.
+     */
     private void activateTrap(Trap trap, BitCard bitCard, int currentWorkstation) {
-
         boolean trapMitigated = Board.getInstance().isTrapMitigated(bitCard);
         Prompts.promptForAppliedTrap(trap, trapMitigated, gameBoardLog);
-        if (!trapMitigated) {
-            if (trap.effected().equals(TEAM) && trap.duration().equals(PERIOD)) {
-                Board.getInstance().augmentRunTurn(Board.getInstance().getRunTurns());
-            } else if (trap.effected().equals(TEAM) && trap.duration().equals(RUN)) {
-                Board.getInstance().augmentRunTurn();
-            } else if (trap.effected().equals(ANY_SERVER) && trap.duration().equals(RUN)) {
-                int nextWorkstationLocation = currentWorkstation + 1;
-                if (nextWorkstationLocation >= Board.getInstance().getStationCount())
-                    nextWorkstationLocation = 0;
-                Workstation nextWorkstation = WorkstationService.getWorkstation(nextWorkstationLocation);
-                nextWorkstation.setActive(false);
-            }
-        } else {
+
+        if (trapMitigated) {
             if (trap.effected().equals(TEAM) && trap.mitigatedDuration().equals(RUN)) {
                 Board.getInstance().augmentRunTurn();
             }
+            return;
+        }
+
+        switch (trap.effected()) {
+            case TEAM -> {
+                if (trap.duration().equals(PERIOD)) {
+                    Board.getInstance().augmentRunTurn(Board.getInstance().getRunTurns());
+                } else if (trap.duration().equals(RUN)) {
+                    Board.getInstance().augmentRunTurn();
+                }
+            }
+            case ANY_SERVER -> {
+                if (trap.duration().equals(RUN)) {
+                    int nextWorkstation = (currentWorkstation + 1) % Board.getInstance().getStationCount();
+                    WorkstationService.getWorkstation(nextWorkstation).setActive(false);
+                }
+            }
+            default ->
+                LOGGER.debug("Trap effected mismatch {}", trap.effected());
         }
     }
 
+    /**
+     * Adds or removes skills for servers based on the current game state and user prompts.
+     *
+     * @param actionEvent The action event triggered by the user.
+     * @throws IOException If an I/O error occurs during the process.
+     */
     @FXML
     protected void addOrRemoveSkillsForServers(ActionEvent actionEvent) throws IOException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(actionEvent.toString());
+        // Log the action event for debugging purposes
+        LOGGER.debug(ACTION_EVENT, actionEvent);
+
+        // Check if the game is not in vanilla mode and prompt the user to draw a skills card
+        if (!isVanilla() && Prompts.promptToDrawSkillsCard(gameDialogPane)) {
+            // Prompt the user to add a skill
+            Prompts.promptToAddSkill(gameDialogPane);
+        } else if (!isVanilla()) {
+            // Prompt the user to remove a skill
+            Prompts.promptToRemoveSkill();
         }
-        if (!isVanilla()) {
-            if (Prompts.promptToDrawSkillsCard(gameDialogPane)) {
-                Prompts.promptToAddSkill(gameDialogPane);
-            } else {
-                Prompts.promptToRemoveSkill();
-            }
-        }
+
+        // Disable the "Add Skills" button after the operation
         buttonAddSkills.setDisable(true);
+
+        // Redraw the game board to reflect the changes
         redrawBoard();
     }
 
@@ -201,359 +223,437 @@ public class BoardController {
         return Board.getInstance().getCurrentPeriod() == 1;
     }
 
-
+    /**
+     * Redraws the game board by updating the UI elements to reflect the current state of the game.
+     * This includes updating server cards, workstation counts, labels, and other game statistics.
+     */
     protected void redrawBoard() {
-
-        Workstation workstation0 = WorkstationService.getWorkstations()[0];
-        Workstation workstation1 = WorkstationService.getWorkstations()[1];
-        Workstation workstation2 = WorkstationService.getWorkstations()[2];
-        Workstation workstation3 = WorkstationService.getWorkstations()[3];
-        Workstation workstation4 = WorkstationService.getWorkstations()[4];
+        // Retrieve the list of workstations
+        Workstation[] workstations = WorkstationService.getWorkstations();
 
         try {
-            buildServerCards(workstation0.getServers(), servers00);
-            buildServerCards(workstation1.getServers(), servers10);
-            buildServerCards(workstation2.getServers(), servers20);
-            buildServerCards(workstation3.getServers(), servers30);
-            buildServerCards(workstation4.getServers(), servers40);
+            // Update the server cards for each workstation
+            Pane[] serverPanes = {servers00, servers10, servers20, servers30, servers40};
+            for (int i = 0; i < workstations.length; i++) {
+                buildServerCards(workstations[i].getServers(), serverPanes[i]);
+            }
+            // Update the in-training server card
             buildInTrainingCard(Board.getInstance().getInTrainingServer(), inTrainingBox);
         } catch (IOException e) {
+            // Handle any I/O exceptions by wrapping them in a runtime exception
             throw new ThroughputRuntimeException(e);
         }
 
-        workstationCount0.setText(StringUtils.leftPad(String.valueOf(workstation0.getWorkItemCount()), 3, '0'));
-        workstationCount1.setText(StringUtils.leftPad(String.valueOf(workstation1.getWorkItemCount()), 3, '0'));
-        workstationCount2.setText(StringUtils.leftPad(String.valueOf(workstation2.getWorkItemCount()), 3, '0'));
-        workstationCount3.setText(StringUtils.leftPad(String.valueOf(workstation3.getWorkItemCount()), 3, '0'));
-        workstationCount4.setText(StringUtils.leftPad(String.valueOf(workstation4.getWorkItemCount()), 3, '0'));
+        // Update the workstation counts and labels
+        Label[] workstationCounts = {workstationCount0, workstationCount1, workstationCount2, workstationCount3, workstationCount4};
+        Label[] workstationLabels = {workstationLabel0, workstationLabel1, workstationLabel2, workstationLabel3, workstationLabel4};
+        for (int i = 0; i < workstations.length; i++) {
+            workstationCounts[i].setText(StringUtils.leftPad(String.valueOf(workstations[i].getWorkItemCount()), 3, '0'));
+            workstationLabels[i].setText(workstations[i].getColor().name() + ": " + workstations[i].getCapacity());
+        }
 
+        // Update the backlog and finished goods counts
         backlogCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.getBacklog().getBacklogItemCount()), 3, '0'));
         finishedGoodsCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.getFinishedGoods().getFinishedGoodsTally()), 3, '0'));
 
-        workstationLabel0.setText(workstation0.getColor().name() + ": " + workstation0.getCapacity());
-        workstationLabel1.setText(workstation1.getColor().name() + ": " + workstation1.getCapacity());
-        workstationLabel2.setText(workstation2.getColor().name() + ": " + workstation2.getCapacity());
-        workstationLabel3.setText(workstation3.getColor().name() + ": " + workstation3.getCapacity());
-        workstationLabel4.setText(workstation4.getColor().name() + ": " + workstation4.getCapacity());
-
+        // Update the current run number, period number, and total score
         runNumber.setText(String.valueOf(Board.getInstance().getCurrentRunTurn()));
         periodNumber.setText(String.valueOf(Board.getInstance().getCurrentPeriod()));
-
         totalScore.setText(String.valueOf(ScorecardService.getTotalScore()));
 
+        // Refresh the scorecard table and hold card box
         updateScorecardTable();
         updateHoldCardBox();
     }
 
+    /**
+     * Builds and configures server cards for a given set of servers and adds them to the specified pane.
+     *
+     * @param serverSet    The set of servers to be displayed as cards.
+     * @param serverHolder The pane where the server cards will be added.
+     * @throws IOException If an error occurs while loading server images or tooltips.
+     */
     private void buildServerCards(Set<Server> serverSet, Pane serverHolder) throws IOException {
+        // Clear any existing children in the server holder pane
         serverHolder.getChildren().clear();
+
+        // Iterate through each server in the set
         for (Server server : serverSet) {
+            // Create and configure the server image
+            ImageView imageView = createImageView(server.getImage(), 60, 53);
 
-            ImageView imageView = new ImageView(new Image(Objects.requireNonNull(Objects.requireNonNull(ThroughputApplication.class.getResource(server.getImage())).openStream())));
-            imageView.setFitHeight(60);
-            imageView.setFitWidth(53);
+            // Create and configure the tooltip with the server's back image
+            Tooltip tooltip = createTooltip(server.getBackImage(), 60, 60);
 
-            Tooltip tooltip = new Tooltip();
-            Image tooltipImage = new Image(Objects.requireNonNull(ThroughputApplication.class.getResourceAsStream(server.getBackImage())));
-            ImageView tooltipImageView = new ImageView(tooltipImage);
-            tooltipImageView.setFitHeight(60);
-            tooltipImageView.setFitWidth(60);
-            tooltip.setGraphic(tooltipImageView);
-
-            //loop through skills
+            // Build the skills box for human servers
             VBox vBox = new VBox();
-            if (server.getType().equals(Server.TYPE_HUMAN)) {
+            if (Server.TYPE_HUMAN.equals(server.getType())) {
                 buildServerSkillsBox(server, vBox, 60.0);
             } else {
+                // Log a debug message for non-human servers
                 LOGGER.debug("Non Human server of color {}", server.getColor());
             }
+            // Set a unique ID for the VBox based on the server holder and server color
             vBox.setId("v_box_" + serverHolder.getId() + "_" + server.getColor().name());
 
+            // Create and configure the HBox containing the image and skills box
             HBox hBox = new HBox(imageView, vBox);
-            hBox.setPrefHeight(60);
-            hBox.setPrefWidth(63);
+            hBox.setPrefSize(63, 60);
             hBox.setId("h_box_" + serverHolder.getId() + "_" + server.getColor().name());
             Tooltip.install(hBox, tooltip);
 
+            // Add the HBox to the server holder pane
             serverHolder.getChildren().add(hBox);
         }
     }
 
+    /**
+     * Builds and configures the in-training server card and adds it to the specified pane.
+     *
+     * @param inTrainingServer The human server currently in training. If null, the method exits without action.
+     * @param inTrainingBox    The pane where the in-training server card will be added.
+     * @throws IOException If an error occurs while loading server images or tooltips.
+     */
     private void buildInTrainingCard(HumanServer inTrainingServer, Pane inTrainingBox) throws IOException {
+        // Exit early if there is no in-training server
         if (inTrainingServer == null) {
             return;
         }
+        // Clear any existing children in the in-training box
         inTrainingBox.getChildren().clear();
 
-        ImageView imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource(inTrainingServer.getImage())).openStream()));
-        imageView.setFitHeight(100);
-        imageView.setFitWidth(100);
+        // Create and configure the server image
+        ImageView imageView = createImageView(inTrainingServer.getImage(), 100, 100);
 
-        Tooltip tooltip = new Tooltip();
-        Image tooltipImage = new Image(Objects.requireNonNull(ThroughputApplication.class.getResourceAsStream(inTrainingServer.getBackImage())));
-        ImageView tooltipImageView = new ImageView(tooltipImage);
-        tooltipImageView.setFitHeight(100);
-        tooltipImageView.setFitWidth(100);
-        tooltip.setGraphic(tooltipImageView);
+        // Create and configure the tooltip with the server's back image
+        Tooltip tooltip = createTooltip(inTrainingServer.getBackImage(), 100, 100);
 
-        //loop through skills
+        // Build the skills box for the in-training server
         VBox vBox = new VBox();
         buildServerSkillsBox(inTrainingServer, vBox, 100.0);
         vBox.setId("v_box_" + inTrainingBox.getId() + "_" + inTrainingServer.getColor().name());
 
+        // Create and configure the HBox containing the image and skills box
         HBox hBox = new HBox(imageView, vBox);
-        hBox.setPrefHeight(100);
-        hBox.setPrefWidth(90);
+        hBox.setPrefSize(90, 100);
         hBox.setId("h_box_" + inTrainingBox.getId() + "_" + inTrainingServer.getColor().name());
         Tooltip.install(hBox, tooltip);
 
-
+        // Add the HBox to the in-training box
         inTrainingBox.getChildren().add(hBox);
+
+        // Add a margin to the in-training box
         VBox.setMargin(inTrainingBox, new Insets(0, 0, 0, 10));
     }
 
+    /**
+     * Updates the scorecard table by retrieving scorecards, defining table columns,
+     * and refreshing the table view to reflect the current data.
+     */
     private void updateScorecardTable() {
+        // Retrieve scorecards and set them as table items
         ObservableList<ScoreCard> scoreCards = FXCollections.observableArrayList(ScorecardService.getScorecards());
-
-        TableColumn<ScoreCard, Integer> periodCol = new TableColumn<>("Wk");
-        periodCol.setCellValueFactory(new PropertyValueFactory<>("period"));
-
-        TableColumn<ScoreCard, Integer> estimatedCol = new TableColumn<>("Est");
-        estimatedCol.setCellValueFactory(new PropertyValueFactory<>("estimate"));
-
-        TableColumn<ScoreCard, Integer> wipCol = new TableColumn<>("WIP");
-        wipCol.setCellValueFactory(new PropertyValueFactory<>("workInProcess"));
-
-        TableColumn<ScoreCard, Integer> finishedGoodsCol = new TableColumn<>("FIN");
-        finishedGoodsCol.setCellValueFactory(new PropertyValueFactory<>("finishedGoods"));
-
-        TableColumn<ScoreCard, Integer> scoreCol = new TableColumn<>("Pts");
-        scoreCol.setCellValueFactory(new PropertyValueFactory<>("score"));
-
-        ObservableList<TableColumn<ScoreCard, ?>> columns = scoreTableView.getColumns();
-        columns.setAll(Arrays.asList(periodCol, estimatedCol, wipCol, finishedGoodsCol, scoreCol));
         scoreTableView.setItems(scoreCards);
+
+        // Define table columns with their respective property mappings
+        List<TableColumn<ScoreCard, ?>> columns = List.of(
+                createTableColumn(COLUMN_WK, PROPERTY_PERIOD), // Column for the period
+                createTableColumn(COLUMN_EST, PROPERTY_ESTIMATE), // Column for the estimate
+                createTableColumn(COLUMN_WIP, PROPERTY_WORK_IN_PROCESS), // Column for work in process
+                createTableColumn(COLUMN_FIN, PROPERTY_FINISHED_GOODS), // Column for finished goods
+                createTableColumn(COLUMN_PTS, PROPERTY_SCORE) // Column for the score
+        );
+
+        // Set columns to the table and refresh
+        scoreTableView.getColumns().setAll(columns);
         scoreTableView.refresh();
     }
 
-    @java.lang.SuppressWarnings({"java:S1190", "java:S117"})
+    /**
+     * Updates the hold card box by clearing its contents and populating it with
+     * period and game hold cards. Each card is built and added to the box.
+     */
     private void updateHoldCardBox() {
+        // Clear any existing children in the hold card box
         holdCardBox.getChildren().clear();
-        AtomicInteger periodIndex = new AtomicInteger(0);
-        Board.getInstance().getPeriodHoldCards().forEach(_ -> buildHoldCards("2nd Chance", periodIndex.getAndIncrement(), 0));
-        AtomicInteger gameIndex = new AtomicInteger(0);
-        Board.getInstance().getGameHoldCards().forEach(card -> buildHoldCards(card.getInstructions(), gameIndex.getAndIncrement(), 1));
 
+        // Populate the hold card box with period hold cards
+        AtomicInteger periodIndex = new AtomicInteger(0);
+        Board.getInstance().getPeriodHoldCards().forEach(ignored ->
+                buildHoldCards("2nd Chance", periodIndex.getAndIncrement(), 0)
+        );
+
+        // Populate the hold card box with game hold cards
+        AtomicInteger gameIndex = new AtomicInteger(0);
+        Board.getInstance().getGameHoldCards().forEach(card ->
+                buildHoldCards(card.getInstructions(), gameIndex.getAndIncrement(), 1)
+        );
     }
 
+    /**
+     * Creates and configures an ImageView for a given image path.
+     *
+     * @param imagePath The path to the image resource.
+     * @param height    The height of the ImageView.
+     * @param width     The width of the ImageView.
+     * @return The configured ImageView.
+     * @throws IOException If the image resource cannot be loaded.
+     */
+    private ImageView createImageView(String imagePath, double height, double width) throws IOException {
+        ImageView imageView = new ImageView(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource(imagePath)).openStream()));
+        imageView.setFitHeight(height);
+        imageView.setFitWidth(width);
+        return imageView;
+    }
+
+    /**
+     * Creates and configures a Tooltip with an image for a given back image path.
+     *
+     * @param backImagePath The path to the back image resource.
+     * @param height        The height of the tooltip image.
+     * @param width         The width of the tooltip image.
+     * @return The configured Tooltip.
+     */
+    private Tooltip createTooltip(String backImagePath, double height, double width) {
+        Tooltip tooltip = new Tooltip();
+        Image tooltipImage = new Image(Objects.requireNonNull(ThroughputApplication.class.getResourceAsStream(backImagePath)));
+        ImageView tooltipImageView = new ImageView(tooltipImage);
+        tooltipImageView.setFitHeight(height);
+        tooltipImageView.setFitWidth(width);
+        tooltip.setGraphic(tooltipImageView);
+        return tooltip;
+    }
+
+    /**
+     * Builds and configures a skills box for a given server by creating rectangles
+     * representing each skill and adding them to the specified VBox.
+     *
+     * @param server    The server whose skills are to be displayed.
+     * @param vBox      The VBox where the skill rectangles will be added.
+     * @param boxHeight The height of the VBox, used to calculate the height of each skill rectangle.
+     */
     private void buildServerSkillsBox(Server server, VBox vBox, double boxHeight) {
+        // Get the number of skills the server has
         int skillsCount = server.getSkills().size();
+
+        // Create a rectangle for each skill and add it to the VBox
         server.getSkills().forEach(color -> {
             Rectangle rectangle = new Rectangle(10, (boxHeight / skillsCount), color.lookupFXColor());
             vBox.getChildren().add(rectangle);
         });
+
+        // Log the color of the human server for debugging purposes
         LOGGER.debug("Human server of color {}", server.getColor());
     }
 
+    /**
+     * Creates a table column for a `TableView` with the specified title and property binding.
+     *
+     * @param <T>      The type of the property value in the column.
+     * @param title    The title of the column to be displayed in the table header.
+     * @param property The name of the property to bind to the column's cells.
+     * @return A configured `TableColumn` instance with the specified title and property binding.
+     */
+    private <T> TableColumn<ScoreCard, T> createTableColumn(String title, String property) {
+        TableColumn<ScoreCard, T> column = new TableColumn<>(title);
+        column.setCellValueFactory(new PropertyValueFactory<>(property));
+        return column;
+    }
+
+    /**
+     * Builds and configures a hold card by creating a rectangle with a shadow effect
+     * and a label with the specified text. The card is then added to the hold card box
+     * at the specified column and row.
+     *
+     * @param text   The text to display on the card.
+     * @param column The column index in the GridPane where the card will be placed.
+     * @param row    The row index in the GridPane where the card will be placed.
+     */
     private void buildHoldCards(String text, int column, int row) {
-
-        InnerShadow innerShadow = new InnerShadow();
-        innerShadow.setOffsetX(3.0);
-        innerShadow.setOffsetY(3.0);
-        innerShadow.setColor(javafx.scene.paint.Color.BLACK);
-
-
+        // Create a rectangle with a shadow effect
         Rectangle rectangle = new Rectangle(110, row == 0 ? 60 : 110, javafx.scene.paint.Color.rgb(228, 251, 255));
-        rectangle.setEffect(innerShadow);
+        rectangle.setEffect(new InnerShadow(10, 3.0, 3.0, javafx.scene.paint.Color.BLACK));
 
+        // Create a label with the specified text and styling
         Label label = new Label(text);
         label.setLayoutX(5);
         label.setLayoutY(15);
         label.setWrapText(true);
         label.setPrefWidth(105);
-        label.setCenterShape(true);
-        label.setPadding(new Insets(5, 5, 5, 5));
+        label.setPadding(new Insets(5));
         label.setFont(Font.font("Michelin", FontWeight.BOLD, FontPosture.ITALIC, 11.0));
 
-
+        // Combine the rectangle and label into an AnchorPane
         AnchorPane anchorPane = new AnchorPane(rectangle, label);
 
+        // Add the AnchorPane to the GridPane with a margin
         HBox.setMargin(anchorPane, new Insets(5));
         ((GridPane) holdCardBox).add(anchorPane, column, row);
     }
 
-    @java.lang.SuppressWarnings("java:S6878")
+    /**
+     * Determines and executes the appropriate actions based on the drawn BitCard
+     * and the current game state. This includes handling traps or help actions.
+     *
+     * @param currentWorkstation The index of the current workstation where the action is being applied.
+     * @throws IOException If an I/O error occurs during the process.
+     */
     private void bitActionsDetermined(int currentWorkstation) throws IOException {
-        if (isVanilla()) {
-            return;
-        }
-        BitCard bitCard = Prompts.drawBit(gameDialogPane, Board.getInstance().getDieFaces(), gameBoardLog, Board.getInstance().getDieFaces());
-        //Discover bit actions handles a null bit card
-        BoardAction boardAction = Board.getInstance().discoverBitActions(bitCard, Board.getInstance().getCurrentRunTurn(), Board.getInstance().getCurrentPeriod());
-        switch (boardAction) {
-            case Trap trap -> activateTrap(trap, bitCard, currentWorkstation);
-            case HelpAction helpAction -> {
-                switch (helpAction.type()) {
-                    case ADD_ONE ->
-                            Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, false, Board.getInstance().getDieFaces());
-                    case DOUBLE ->
-                            Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, true, Board.getInstance().getDieFaces());
-                    case AUTOMATE -> Prompts.promptToAutomateWorkstation(gameDialogPane, gameBoardLog);
-                    case PAIR -> Prompts.implementPairedProgramming(gameDialogPane, gameBoardLog);
-                    case AUGMENT -> Prompts.promptForFinishedGoodsAreNowFourPoints(gameBoardLog);
-                }
-            }
-            case null, default -> {
-                //do nothing
-            }
-        }
+        // Exit early if the game is in vanilla mode
+        if (isVanilla()) return;
 
+        // Draw a BitCard and determine the corresponding board action
+        BitCard bitCard = Prompts.drawBit(gameDialogPane, Board.getInstance().getDieFaces(), gameBoardLog, Board.getInstance().getDieFaces());
+        BoardAction boardAction = Board.getInstance().discoverBitActions(bitCard, Board.getInstance().getCurrentRunTurn(), Board.getInstance().getCurrentPeriod());
+
+        // Handle the board action based on its type (Trap or HelpAction)
+        if (boardAction instanceof Trap trap) {
+            activateTrap(trap, bitCard, currentWorkstation);
+        } else if (boardAction instanceof HelpAction helpAction) {
+            handleHelpAction(helpAction);
+        }
     }
 
-    @java.lang.SuppressWarnings("java:S6878")
+    /**
+     * Enables or disables the main game buttons.
+     *
+     * @param disable A boolean indicating whether to disable (true) or enable (false) the buttons.
+     */
+    private void disableButtons(boolean disable) {
+        buttonRunTurn.setDisable(disable);
+        buttonServerMoves.setDisable(disable);
+        buttonSaveGame.setDisable(disable);
+        buttonEndGame.setDisable(disable);
+    }
+
+    /**
+     * Executes the logic for running a turn in the game. This includes stopping the timer,
+     * processing workstations, updating the game state, and handling the transition to the next turn or period.
+     *
+     * @param actionEvent The action event triggered by the user.
+     * @throws IOException          If an I/O error occurs during the process.
+     * @throws InterruptedException If the thread is interrupted during execution.
+     */
     @FXML
     protected void doRunTurn(ActionEvent actionEvent) throws IOException, InterruptedException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(actionEvent.toString());
-        }
-        //Stop timer
+        // Log the action event if debugging is enabled
+        if (LOGGER.isDebugEnabled()) LOGGER.debug(actionEvent.toString());
+
+        // Stop the timer if it is active
         if (timeline != null) timeline.stop();
 
+        // Log the current run turn
         LOGGER.debug("Run Turn {}", Board.getInstance().getCurrentRunTurn());
 
-        //During run activities period activities are hidden and run and server moves disabled
-        buttonRunTurn.setDisable(true);
-        buttonServerMoves.setDisable(true);
-        buttonSaveGame.setDisable(true);
-        buttonEndGame.setDisable(true);
+        // Disable buttons during the run
+        disableButtons(true);
 
-
+        // Highlight the backlog as the active workstation
         highlightActiveWorkstation(-1);
 
-        //Get Team mood and start moving work items
-
-        int localBacklogCount = ScorecardService.getBacklog().getBacklogItemCount();
-        int startValue = localBacklogCount > 0 ? Prompts.teamMood(gameDialogPane, Board.getInstance().getDieFaces()) : 0;
-
-        Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, localBacklogCount, gameBoardLog);
+        // Get the team mood and move initial work items
+        int backlogItemCount = ScorecardService.getBacklog().getBacklogItemCount();
+        int startValue = backlogItemCount > 0 ? Prompts.teamMood(gameDialogPane, Board.getInstance().getDieFaces()) : 0;
+        Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, backlogItemCount, gameBoardLog);
         redrawBoard();
 
+        // Process each workstation
         for (int stationIndex = 0; stationIndex < Board.getInstance().getStationCount(); stationIndex++) {
             highlightActiveWorkstation(stationIndex);
-            //go through server workstations - redraws at end of each server turn
             runWorkstations(stationIndex);
         }
 
-        //Re-enable save after workstations finish
-        buttonSaveGame.setDisable(false);
-        buttonEndGame.setDisable(false);
+        // Re-enable buttons after all workstations are processed
+        disableButtons(false);
+
+        // Check if the current run turn is the last one
         if (Board.getInstance().getCurrentRunTurn() == Board.getInstance().getRunTurns()) {
-            //hide run buttons
-            turnButtonBar.setVisible(false);
-            buttonRunTurn.setVisible(false);
-            buttonServerMoves.setVisible(false);
-            //End of period
+            // Hide run buttons and publish the end of the period
+            hideRunButtons();
             Prompts.publishEndPeriod(gameBoardLog);
+        } else {
+            // Move to the next run turn
+            Board.getInstance().augmentRunTurn();
+            highlightActiveWorkstation(100);
+            Board.getInstance().returnServerToOriginalWorkstation();
+            inTrainingBox.getChildren().clear();
+
+            // Check if the game is over
+            if (Board.getInstance().gameIsOver()) {
+                updateScorecardChart();
+                redrawBoard();
+                return;
+            }
+
+            // Handle the transition to the next run or period
+            handleNextRunOrPeriod();
         }
-
-        //Next Run
-        Board.getInstance().augmentRunTurn();
-        highlightActiveWorkstation(100);
-
-        //Clear in training box
-        Board.getInstance().returnServerToOriginalWorkstation();
-        inTrainingBox.getChildren().clear();
-
-        if (Board.getInstance().gameIsOver()) {
-            //Draw chart
-            updateScorecardChart();
-            redrawBoard();
-            return;
-        }
-
-        if (Board.getInstance().getCurrentRunTurn() == 1) {
-
-            //Make period buttons visible
-            periodButtonBar.setVisible(true);
-            buttonRunPeriod.setVisible(true);
-            buttonRunPeriod.setDisable(false);
-            buttonAddSkills.setVisible(true);
-            buttonAddSkills.setDisable(false);
-
-            redrawBoard();
-            //Start Period
-            Prompts.publishStartPeriod(gameBoardLog, Board.getInstance().getCurrentPeriod());
-
-            //Timer for start of period
-            buildTimer(START_TIME * 2);
-            return;
-
-        }
-
-        //If not last run of the period re-enable run buttons
-        if (Board.getInstance().getCurrentRunTurn() <= Board.getInstance().getRunTurns()) {
-            //re-enable run  buttons
-            buttonRunTurn.setDisable(false);
-            buttonServerMoves.setDisable(isVanilla());
-            redrawBoard();
-            Prompts.publishTurnStart(gameBoardLog, Board.getInstance().getCurrentPeriod(), Board.getInstance().getCurrentRunTurn());
-
-            //Timer for start of turn
-            buildTimer(START_TIME);
-            return;
-
-        }
-        throw new IllegalStateException("Run: " + Board.getInstance().getCurrentRunTurn() + " Period: " + Board.getInstance().getCurrentPeriod() + " Is not allowed!!");
-
-
     }
 
+    /**
+     * Ends the game by publishing the end-of-game message, disabling the "End Game" button,
+     * and prompting the user to save the game. If the user chooses to save, the game state
+     * is saved to a file.
+     *
+     * @param ignoredActionEvent The action event triggered by the user (not used in this method).
+     */
     @FXML
     protected void endGame(ActionEvent ignoredActionEvent) {
+        // Publish the end-of-game message to the game log
         Prompts.publishEndOfGame(gameBoardLog);
+
+        // Disable the "End Game" button to prevent further interaction
         buttonEndGame.setDisable(true);
+
+        // Create a confirmation alert to ask the user if they want to save the game
         Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, "Save Game?", ButtonType.YES, ButtonType.NO);
         confirmationAlert.setTitle("Throughput");
+
+        // Show the alert and handle the user's response
         confirmationAlert.showAndWait().ifPresent(answer -> {
+            // If the user chooses "YES", save the game state
             if (answer.equals(ButtonType.YES)) saveGame(ignoredActionEvent);
         });
-
     }
 
+    /**
+     * Saves the current state of the game to a JSON file.
+     *
+     * @param actionEvent The action event triggered by the user.
+     * @throws ThroughputRuntimeException If an I/O error occurs or the directory for saved games cannot be created.
+     */
     @FXML
     protected void saveGame(ActionEvent actionEvent) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(actionEvent.toString());
-        }
+        LOGGER.debug(ACTION_EVENT, actionEvent);
 
-        String stateOfTheGame = Board.getInstance().toJSON();
-        LOGGER.debug(stateOfTheGame);
         try {
-            // Get the resources directory within the project structure
-            String resourcesPath = getProjectResourcesPath();
+            String gameState = Board.getInstance().toJSON();
+            LOGGER.debug("Game State: {}", gameState);
 
-            // Create the resources directory if it doesn't exist
-            File resourcesDirectory = new File(resourcesPath + "/savedGames");
-            if (!resourcesDirectory.exists() && !resourcesDirectory.mkdirs())
-                throw new IllegalStateException("Cannot create directory for saved games");
+            File saveDir = new File(getProjectResourcesPath() + "/savedGames");
+            if (!saveDir.exists() && !saveDir.mkdirs()) {
+                throw new IllegalStateException("Failed to create saved games directory");
+            }
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-            JsonNode node = objectMapper.readTree(stateOfTheGame);
+            String filePath = saveDir + "/game_" + System.currentTimeMillis() + ".json";
+            ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+            mapper.writeValue(new File(filePath), mapper.readTree(gameState));
 
-            // Create the file path
-            String filePath = resourcesPath + "/savedGames/" + "game_" + System.currentTimeMillis() + ".json";
             LOGGER.debug("Data saved to: {}", filePath);
-            objectMapper.writer().withDefaultPrettyPrinter().writeValue(new File(filePath), node);
-
             Prompts.alertWithoutBoardUpdate("Game Saved", filePath, 10);
 
         } catch (IOException e) {
             throw new ThroughputRuntimeException(e);
         }
-
     }
 
+    /**
+     * Retrieves the absolute path to the project's resources directory.
+     * This method determines the location of the current class file, processes the path
+     * to remove unnecessary parts, and constructs the path to the `main/resources` directory.
+     *
+     * @return A string representing the absolute path to the `main/resources` directory.
+     */
     private String getProjectResourcesPath() {
         // Get the absolute path of the current class file
         String currentClassPath = ThroughputApplication.class.getProtectionDomain().getCodeSource().getLocation().getPath();
@@ -568,122 +668,248 @@ public class BoardController {
         return currentClassDirectory + "/main/resources";
     }
 
+    /**
+     * Handles a HelpAction by executing the appropriate prompt based on the action type.
+     *
+     * @param helpAction The HelpAction to be handled.
+     * @throws IOException If an I/O error occurs during the process.
+     */
+    private void handleHelpAction(HelpAction helpAction) throws IOException {
+        // Execute the corresponding prompt based on the type of help action
+        switch (helpAction.type()) {
+            case ADD_ONE ->
+                    Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, false, Board.getInstance().getDieFaces());
+            case DOUBLE ->
+                    Prompts.promptToAugmentWorkstationCapacity(gameDialogPane, true, Board.getInstance().getDieFaces());
+            case AUTOMATE -> Prompts.promptToAutomateWorkstation(gameDialogPane, gameBoardLog);
+            case PAIR -> Prompts.implementPairedProgramming(gameDialogPane, gameBoardLog);
+            case AUGMENT -> Prompts.promptForFinishedGoodsAreNowFourPoints(gameBoardLog);
+        }
+    }
+
+    /**
+     * Handles the transition to the next run or period. This includes updating the UI,
+     * publishing prompts, and starting the timer for the next phase.
+     *
+     */
+    private void handleNextRunOrPeriod()  {
+        // Check if the current run turn is the first one
+        if (Board.getInstance().getCurrentRunTurn() == 1) {
+            // Show period-related buttons and prompts
+            periodButtonBar.setVisible(true);
+            buttonRunPeriod.setVisible(true);
+            buttonRunPeriod.setDisable(false);
+            buttonAddSkills.setVisible(true);
+            buttonAddSkills.setDisable(false);
+            redrawBoard();
+            Prompts.publishStartPeriod(gameBoardLog, Board.getInstance().getCurrentPeriod());
+            buildTimer(START_TIME * 2);
+        } else if (Board.getInstance().getCurrentRunTurn() <= Board.getInstance().getRunTurns()) {
+            // Enable turn-related buttons and publish the start of the turn
+            buttonRunTurn.setDisable(false);
+            buttonServerMoves.setDisable(isVanilla());
+            redrawBoard();
+            Prompts.publishTurnStart(gameBoardLog, Board.getInstance().getCurrentPeriod(), Board.getInstance().getCurrentRunTurn());
+            buildTimer(START_TIME);
+        } else {
+            // Throw an exception if the run turn is invalid
+            throw new IllegalStateException("Run: " + Board.getInstance().getCurrentRunTurn() +
+                    " Period: " + Board.getInstance().getCurrentPeriod() + " Is not allowed!!");
+        }
+    }
+
+    /**
+     * Hides the buttons related to running a turn.
+     */
+    private void hideRunButtons() {
+        turnButtonBar.setVisible(false);
+        buttonRunTurn.setVisible(false);
+        buttonServerMoves.setVisible(false);
+    }
+
+    /**
+     * Initializes the game board by setting up workstation counts, labels,
+     * backlog and finished goods counts, run and period labels, total score,
+     * and the scorecard table.
+     */
     @FXML
     protected void initialize() {
+        // Initialize workstation counts and labels
+        initializeWorkstationCounts();
+        initializeWorkstationLabels();
 
-        workstationCount0.setText("000");
-        workstationCount1.setText("000");
-        workstationCount2.setText("000");
-        workstationCount3.setText("000");
-        workstationCount4.setText("000");
-
+        // Initialize backlog and finished goods counts
         backlogCount.setText("000");
         backlogCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
         finishedGoodsCount.setText("000");
 
-
-        workstationLabel0.setText(Color.BLUE.name());
-        workstationLabel1.setText(Color.GREEN.name());
-        workstationLabel2.setText(Color.ROSE.name());
-        workstationLabel3.setText(Color.YELLOW.name());
-        workstationLabel4.setText(Color.VIOLET.name());
-
+        // Initialize run and period labels
         runLabel.setText(System.getProperty("run.label", "Day"));
         runNumber.setText(String.valueOf(Board.getInstance().getCurrentRunTurn()));
         periodLabel.setText(System.getProperty("period.label", "Week"));
         periodNumber.setText(String.valueOf(Board.getInstance().getCurrentPeriod()));
 
+        // Initialize total score
         totalScore.setText("000");
 
+        // Update the scorecard table
         updateScorecardTable();
     }
 
-    @FXML
-    protected void loadGame(ActionEvent actionEvent) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(actionEvent.toString());
-        }
-        // Create an ObjectMapper for JSON deserialization
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        // Get the resources directory within the project structure
-        File gameFile = Prompts.promptToUploadPreviousGame(gameDialogPane, new File(getProjectResourcesPath()));
-
-        try {
-            // Read the JSON data from the file and deserialize it
-            String jsonData = new String(Files.readAllBytes(gameFile.toPath()));
-            TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {
-            };
-            HashMap<String, Object> parsedJson = objectMapper.readValue(jsonData, typeRef);
-            if (LOGGER.isDebugEnabled()) parsedJson.forEach((k, v) -> LOGGER.debug("{} : {}", k, v));
-            Board.reloadInstance(parsedJson);
-
-        } catch (IOException e) {
-            throw new ThroughputRuntimeException(e);
-        }
-
-        buttonSaveGame.setDisable(false);
-        buttonLoadGame.setDisable(true);
-        buttonRunGame.setDisable(true);
-        buttonEndGame.setDisable(false);
-
-        redrawBoard();
-        //If day = 1 rerun the period
-        if (Board.getInstance().getCurrentRunTurn() == 1) {
-            periodButtonBar.setVisible(true);
-            buttonRunPeriod.setVisible(true);
-            buttonAddSkills.setVisible(isVanilla());
-        } else {
-            //Do run period stuff, but don't ask for estimates or add skills
-            periodButtonBar.setVisible(false);
-            buttonRunPeriod.setVisible(false);
-            buttonAddSkills.setVisible(false);
-
-            //Show buttons to run turn
-            turnButtonBar.setVisible(true);
-            buttonRunTurn.setVisible(true);
-            buttonRunTurn.setDisable(false);
-            buttonServerMoves.setVisible(true);
-            buttonServerMoves.setDisable(isVanilla());
-            Prompts.publishTurnStart(gameBoardLog, Board.getInstance().getCurrentPeriod(), Board.getInstance().getCurrentRunTurn());
-
-        }
-
-
+    /**
+     * Initializes the workstation counts by setting their text values to "000".
+     */
+    private void initializeWorkstationCounts() {
+        workstationCount0.setText("000");
+        workstationCount1.setText("000");
+        workstationCount2.setText("000");
+        workstationCount3.setText("000");
+        workstationCount4.setText("000");
     }
 
+    /**
+     * Initializes the workstation labels by setting their text values to the names
+     * of their respective colors.
+     */
+    private void initializeWorkstationLabels() {
+        workstationLabel0.setText(Color.BLUE.name());
+        workstationLabel1.setText(Color.GREEN.name());
+        workstationLabel2.setText(Color.ROSE.name());
+        workstationLabel3.setText(Color.YELLOW.name());
+        workstationLabel4.setText(Color.VIOLET.name());
+    }
+
+    /**
+     * Loads a previously saved game by prompting the user to select a game file,
+     * parsing its JSON content, and updating the game state and UI accordingly.
+     *
+     * @param actionEvent The action event triggered by the user.
+     * @throws ThroughputRuntimeException If an I/O error occurs during the loading process.
+     */
+    @FXML
+    protected void loadGame(ActionEvent actionEvent) {
+        // Log the action event for debugging purposes
+        LOGGER.debug(ACTION_EVENT, actionEvent);
+
+        try {
+            // Prompt the user to upload a previously saved game file
+            File gameFile = Prompts.promptToUploadPreviousGame(gameDialogPane, new File(getProjectResourcesPath()));
+
+            // Read the content of the selected game file as a string
+            String jsonData = Files.readString(gameFile.toPath());
+
+            // Parse the JSON content into a HashMap
+            HashMap<String, Object> parsedJson = new ObjectMapper().readValue(jsonData, new TypeReference<>() {
+            });
+
+            // Log the parsed JSON content for debugging purposes
+            parsedJson.forEach((k, v) -> LOGGER.debug("{} : {}", k, v));
+
+            // Reload the game state using the parsed JSON data
+            Board.reloadInstance(parsedJson);
+
+            // Update the states of various buttons
+            buttonSaveGame.setDisable(false);
+            buttonLoadGame.setDisable(true);
+            buttonRunGame.setDisable(true);
+            buttonEndGame.setDisable(false);
+
+            // Redraw the game board to reflect the loaded state
+            redrawBoard();
+
+            // Update the UI based on the current run turn
+            if (Board.getInstance().getCurrentRunTurn() == 1) {
+                // Show period-related buttons and enable the "Add Skills" button if in vanilla mode
+                periodButtonBar.setVisible(true);
+                buttonRunPeriod.setVisible(true);
+                buttonAddSkills.setVisible(isVanilla());
+            } else {
+                // Show turn-related buttons and update their states
+                periodButtonBar.setVisible(false);
+                buttonRunPeriod.setVisible(false);
+                buttonAddSkills.setVisible(false);
+                turnButtonBar.setVisible(true);
+                buttonRunTurn.setVisible(true);
+                buttonRunTurn.setDisable(false);
+                buttonServerMoves.setVisible(true);
+                buttonServerMoves.setDisable(isVanilla());
+
+                // Publish the start of the current turn
+                Prompts.publishTurnStart(gameBoardLog, Board.getInstance().getCurrentPeriod(), Board.getInstance().getCurrentRunTurn());
+            }
+        } catch (IOException e) {
+            // Wrap and rethrow any I/O exceptions as a runtime exception
+            throw new ThroughputRuntimeException(e);
+        }
+    }
+
+    /**
+     * Attempts to retry a server action using a period hold card. If the retry is successful,
+     * the server performs its action on the workstation. The method also updates the hold card box
+     * and handles the result of the retry action.
+     *
+     * @param workstation The workstation where the server is located.
+     * @param position    The position of the workstation in the sequence.
+     * @param server      The server attempting the retry action.
+     * @throws IOException If an I/O error occurs during the retry process.
+     */
     private void retryWithCard(Workstation workstation, int position, Server server) throws IOException {
-        //Prompt for do over
+        // Prompt the user to decide whether to retry the server action
         boolean retry = Prompts.promptForServerRetry(server);
         if (retry) {
+            // Remove the first period hold card and update the hold card box
             Board.getInstance().getPeriodHoldCards().removeFirst();
             updateHoldCardBox();
+
+            // Attempt the server action and handle the result
             ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, workstation, gameBoardLog);
             if (ChanceResult.SUCCESS.equals(result)) {
+                // If the action is successful, prompt for workstation moves
                 Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
             }
         }
     }
 
+    /**
+     * Attempts to retry a server action using a pair retry mechanism. If the retry is successful,
+     * the server performs its action on the workstation. This method handles the retry prompt,
+     * executes the server action, and processes workstation moves if the action succeeds.
+     *
+     * @param workstation The workstation where the server is located.
+     * @param position    The position of the workstation in the sequence.
+     * @param server      The server attempting the retry action.
+     * @throws IOException If an I/O error occurs during the retry process.
+     */
     private void retryWithPartner(Workstation workstation, int position, Server server) throws IOException {
-        //Prompt for do over
+        // Prompt the user for a pair retry action
         Prompts.promptForPairRetry(server, gameBoardLog);
+
+        // Execute the server action and retrieve the result
         ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, workstation, gameBoardLog);
+
+        // If the action is successful, prompt for workstation moves
         if (ChanceResult.SUCCESS.equals(result)) {
             Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
         }
-
     }
 
+    /**
+     * Starts the game by initializing the UI and enabling/disabling relevant buttons.
+     * This method also publishes the start of the current period and sets up a timer.
+     *
+     * @param actionEvent The action event triggered by the user.
+     */
     @FXML
     protected void runGame(ActionEvent actionEvent) {
+        // Log the action event if debugging is enabled
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(actionEvent.toString());
         }
 
+        // Publish the start of the current period to the game log
         Prompts.publishStartPeriod(gameBoardLog, Board.getInstance().getCurrentPeriod());
 
-        //Start the game by highlighting the Run Period button
+        // Redraw the game board and update button states
         redrawBoard();
         buttonRunGame.setDisable(true);
         periodButtonBar.setVisible(true);
@@ -691,210 +917,277 @@ public class BoardController {
         buttonRunPeriod.setDisable(false);
         buttonAddSkills.setVisible(true);
         buttonAddSkills.setDisable(true);
-
         buttonSaveGame.setDisable(false);
         buttonLoadGame.setDisable(true);
         buttonEndGame.setDisable(false);
 
-        //Start the 15-Second timer.
-        //Timer label implementation
+        // Start a timer with a duration of 15 seconds
         buildTimer(15);
     }
 
-    @java.lang.SuppressWarnings({"java:S1190", "java:S117"})
+
+    /**
+     * Builds and starts a countdown timer with the specified start time.
+     * The timer updates the `countdownTimer` label with the remaining time
+     * and changes its appearance when the timer finishes.
+     *
+     * @param startTime The initial time (in seconds) for the countdown timer.
+     */
     private void buildTimer(Integer startTime) {
 
+        // Set the text color of the countdown timer to dark blue
         countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
-        //Start timer
-        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime);
-        timeline = new Timeline();
-        countdownTimer.textProperty().bind(timeSeconds.asString());
-        timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(startTime + 1.0), new KeyValue(timeSeconds, 0)));
-        timeline.setOnFinished(_ -> {
-            countdownTimer.textProperty().unbind();
-            countdownTimer.setText("X");
-            countdownTimer.setTextFill(javafx.scene.paint.Color.RED);
-        });
-        timeline.playFromStart();
 
+        // Create a property to track the remaining time
+        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime);
+
+        // Initialize the timeline for the countdown
+        timeline = new Timeline();
+
+        // Bind the countdown timer's text to the remaining time
+        countdownTimer.textProperty().bind(timeSeconds.asString());
+
+        // Add a keyframe to decrement the time to zero over the specified duration
+        timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(startTime + 1.0), new KeyValue(timeSeconds, 0)));
+
+        // Define the action to perform when the timer finishes
+        timeline.setOnFinished(_ -> {
+            countdownTimer.textProperty().unbind(); // Unbind the text property
+            countdownTimer.setText("X"); // Display "X" when the timer ends
+            countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
+        });
+
+        // Start the timer from the beginning
+        timeline.playFromStart();
     }
 
+    /**
+     * Handles the logic for running a period in the game. This includes stopping the timer,
+     * hiding period-related buttons, estimating work items, updating the game board, and
+     * preparing the UI for the next turn. Finally, it starts a timer for the turn.
+     *
+     * @param actionEvent The action event triggered by the user.
+     */
     @FXML
     protected void runPeriod(ActionEvent actionEvent) {
+        // Log the action event if debugging is enabled
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(actionEvent.toString());
         }
-        //Stop timer
+        // Stop the timer if it is active
         if (timeline != null) timeline.stop();
         try {
-            //Hide Period Buttons
+            // Hide period-related buttons
             periodButtonBar.setVisible(false);
             buttonRunPeriod.setVisible(false);
             buttonAddSkills.setVisible(false);
 
-            //Estimate Work Items
+            // Prompt the user to estimate work items
             Prompts.promptForWorkItemEstimates(gameDialogPane);
+            // Redraw the game board to reflect the updated state
             redrawBoard();
+            // Highlight the backlog as the active workstation
             highlightActiveWorkstation(-1);
 
-            //Skills add is triggered by button push
+            // Skills addition is triggered by a button push
 
-            //Show buttons to run turn
+            // Show buttons to run the turn
             turnButtonBar.setVisible(true);
             buttonRunTurn.setVisible(true);
             buttonRunTurn.setDisable(false);
             buttonServerMoves.setVisible(true);
             buttonServerMoves.setDisable(isVanilla());
+            // Publish the start of the turn to the game log
             Prompts.publishTurnStart(gameBoardLog, Board.getInstance().getCurrentPeriod(), Board.getInstance().getCurrentRunTurn());
         } catch (IOException e) {
+            // Wrap and rethrow any I/O exceptions as a runtime exception
             throw new ThroughputRuntimeException(e);
         }
 
-
-        //Start timer for the turn
+        // Start a timer for the turn
         buildTimer(START_TIME);
-
     }
 
+    /**
+     * Highlights the active workstation or count by updating the background and text colors
+     * of the corresponding UI elements. Resets all other workstations and counts to their default state.
+     *
+     * @param activeWorkstation The index of the active workstation to highlight.
+     *                          Use -1 to highlight the backlog count,
+     *                          100 to highlight the finished goods count,
+     *                          or a valid workstation index (0-4) to highlight a specific workstation.
+     */
     private void highlightActiveWorkstation(int activeWorkstation) {
-        //RESET colors
+        // Reset all workstation and count backgrounds to white
         Background whiteBackground = new Background(new BackgroundFill(javafx.scene.paint.Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY));
+        List<Label> workstationCounts = List.of(workstationCount0, workstationCount1, workstationCount2, workstationCount3, workstationCount4);
+        workstationCounts.forEach(label -> {
+            label.setBackground(whiteBackground);
+            label.setTextFill(javafx.scene.paint.Color.BLACK);
+        });
         backlogCount.setBackground(whiteBackground);
-        workstationCount0.setBackground(whiteBackground);
-        workstationCount1.setBackground(whiteBackground);
-        workstationCount2.setBackground(whiteBackground);
-        workstationCount3.setBackground(whiteBackground);
-        workstationCount4.setBackground(whiteBackground);
         finishedGoodsCount.setBackground(whiteBackground);
 
-        workstationCount0.setTextFill(javafx.scene.paint.Color.BLACK);
-        workstationCount1.setTextFill(javafx.scene.paint.Color.BLACK);
-        workstationCount2.setTextFill(javafx.scene.paint.Color.BLACK);
-        workstationCount3.setTextFill(javafx.scene.paint.Color.BLACK);
-        workstationCount4.setTextFill(javafx.scene.paint.Color.BLACK);
-
-        switch (activeWorkstation) {
-            case -1:
-                backlogCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
-                break;
-            case 0:
-                workstationCount0.setBackground(new Background(new BackgroundFill(WorkstationService.getWorkstations()[0].getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-                workstationCount0.setTextFill(WorkstationService.getWorkstations()[0].getColor().lookupFontColor());
-                break;
-            case 1:
-                workstationCount1.setBackground(new Background(new BackgroundFill(WorkstationService.getWorkstations()[1].getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-                workstationCount1.setTextFill(WorkstationService.getWorkstations()[1].getColor().lookupFontColor());
-                break;
-            case 2:
-                workstationCount2.setBackground(new Background(new BackgroundFill(WorkstationService.getWorkstations()[2].getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-                workstationCount2.setTextFill(WorkstationService.getWorkstations()[2].getColor().lookupFontColor());
-                break;
-            case 3:
-                workstationCount3.setBackground(new Background(new BackgroundFill(WorkstationService.getWorkstations()[3].getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-                workstationCount3.setTextFill(WorkstationService.getWorkstations()[3].getColor().lookupFontColor());
-                break;
-            case 4:
-                workstationCount4.setBackground(new Background(new BackgroundFill(WorkstationService.getWorkstations()[4].getColor().lookupFXColor(), CornerRadii.EMPTY, Insets.EMPTY)));
-                workstationCount4.setTextFill(WorkstationService.getWorkstations()[4].getColor().lookupFontColor());
-                break;
-            case 100:
-                finishedGoodsCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
-                break;
-            default:
-                //do nothing
+        // Highlight the active workstation or count
+        if (activeWorkstation == -1) {
+            // Highlight the backlog count
+            backlogCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        } else if (activeWorkstation >= 0 && activeWorkstation < workstationCounts.size()) {
+            // Highlight the specified workstation
+            Label activeLabel = workstationCounts.get(activeWorkstation);
+            javafx.scene.paint.Color bgColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFXColor();
+            javafx.scene.paint.Color fontColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFontColor();
+            activeLabel.setBackground(new Background(new BackgroundFill(bgColor, CornerRadii.EMPTY, Insets.EMPTY)));
+            activeLabel.setTextFill(fontColor);
+        } else if (activeWorkstation == 100) {
+            // Highlight the finished goods count
+            finishedGoodsCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
         }
     }
 
-    private void runWorkstations(int position) throws IOException, InterruptedException {
-        //For each server
-        Workstation workstation = WorkstationService.getWorkstation(position);
-        Objects.requireNonNull(workstation);
+   /**
+    * Processes the servers in a workstation, handling their actions and updating the game state.
+    * If the workstation is inactive, it waits for a specified duration, reactivates it, and redraws the board.
+    * For each server, it performs the server's action and handles success, failure, or empty results.
+    * Additionally, it determines and executes any bit actions and redraws the board after each server's action.
+    *
+    * @param position The index of the workstation to process.
+    * @throws IOException          If an I/O error occurs during server actions or prompts.
+    * @throws InterruptedException If the thread is interrupted during the sleep operation.
+    */
+   private void runWorkstations(int position) throws IOException, InterruptedException {
+       // Retrieve the workstation at the specified position
+       Workstation workstation = WorkstationService.getWorkstation(position);
+       Objects.requireNonNull(workstation);
 
-        //Check if skip workstation has been triggered
-        if (!workstation.isActive()) {
-            Thread.sleep(5000);
-            workstation.setActive(true);
-            redrawBoard();
-            return;
-        }
+       // Check if the workstation is inactive
+       if (!workstation.isActive()) {
+           // Wait for 5 seconds, reactivate the workstation, and redraw the board
+           Thread.sleep(5000);
+           workstation.setActive(true);
+           redrawBoard();
+           return;
+       }
 
-        //Don't roll for a Partner
-        List<Server> serverList = workstation.getServers().stream().filter(server -> !(server instanceof PairPartner)).toList();
-        for (Server server : serverList) {
-            if (Board.getInstance().gameIsOver()) break;
-            LOGGER.debug("Now serving server {}", server);
+       // Filter out PairPartner servers from the workstation's server list
+       List<Server> serverList = workstation.getServers().stream().filter(server -> !(server instanceof PairPartner)).toList();
+       for (Server server : serverList) {
+           // Exit the loop if the game is over
+           if (Board.getInstance().gameIsOver()) break;
 
-            ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, workstation, gameBoardLog);
-            switch (result) {
-                case SUCCESS:
-                    Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
-                    break;
-                case FAILED:
-                    if (!Board.getInstance().getPeriodHoldCards().isEmpty()) {
-                        retryWithCard(workstation, position, server);
-                    } else if (workstation.getServers().stream().anyMatch(PairPartner.class::isInstance)) {
-                        retryWithPartner(workstation, position, server);
-                    }
-                    break;
-                case EMPTY:
-                    break;
-            }
-            bitActionsDetermined(position);
-            redrawBoard();
-        }
+           // Log the current server being processed
+           LOGGER.debug("Now serving server {}", server);
+
+           // Perform the server's action and handle the result
+           ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, workstation, gameBoardLog);
+           switch (result) {
+               case SUCCESS:
+                   // Prompt for moving work items within the workstation
+                   Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
+                   break;
+               case FAILED:
+                   // Retry the action using a period hold card or a partner if available
+                   if (!Board.getInstance().getPeriodHoldCards().isEmpty()) {
+                       retryWithCard(workstation, position, server);
+                   } else if (workstation.getServers().stream().anyMatch(PairPartner.class::isInstance)) {
+                       retryWithPartner(workstation, position, server);
+                   }
+                   break;
+               case EMPTY:
+                   // No action is taken for an empty result
+                   break;
+           }
+
+           // Determine and execute any bit actions for the current position
+           bitActionsDetermined(position);
+
+           // Redraw the board to reflect the updated state
+           redrawBoard();
+       }
+   }
+
+/**
+ * Handles the server moves action by prompting the user to move servers
+ * and updating the game state accordingly.
+ *
+ * @param actionEvent The action event triggered by the user.
+ * @throws ThroughputRuntimeException If an I/O error occurs during the process.
+ */
+@FXML
+protected void serverMoves(ActionEvent actionEvent) {
+    if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(actionEvent.toString());
     }
-
-    @FXML
-    protected void serverMoves(ActionEvent actionEvent) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(actionEvent.toString());
-        }
-        try {
-            Prompts.promptForServerMoves(gameDialogPane, Board.getInstance().getInTrainingServer(), this);
-        } catch (IOException e) {
-            throw new ThroughputRuntimeException(e);
-        }
+    try {
+        Prompts.promptForServerMoves(gameDialogPane, Board.getInstance().getInTrainingServer(), this);
+    } catch (IOException e) {
+        throw new ThroughputRuntimeException(e);
     }
+}
 
-    @FXML
-    protected void showInfo(ActionEvent actionEvent) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(actionEvent.toString());
-        }
-        try {
-            Prompts.showInfoCard(gameDialogPane);
-        } catch (IOException e) {
-            throw new ThroughputRuntimeException(e);
-        }
+/**
+ * Displays the information card to the user by invoking the appropriate prompt.
+ *
+ * @param actionEvent The action event triggered by the user.
+ * @throws ThroughputRuntimeException If an I/O error occurs during the process.
+ */
+@FXML
+protected void showInfo(ActionEvent actionEvent) {
+    if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(actionEvent.toString());
     }
-
-    @FXML
-    protected void showRules(ActionEvent actionEvent) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(actionEvent.toString());
-        }
-        try {
-            Prompts.showRulesCard(gameDialogPane);
-        } catch (IOException e) {
-            throw new ThroughputRuntimeException(e);
-        }
+    try {
+        Prompts.showInfoCard(gameDialogPane);
+    } catch (IOException e) {
+        throw new ThroughputRuntimeException(e);
     }
+}
 
-    private void updateScorecardChart() {
-        scoreLineChart.getData().clear();
-
-        ScoreCard[] scorecards = ScorecardService.getScorecards();
-        //defining a series
-        XYChart.Series<Integer, Integer> series = new XYChart.Series<>();
-
-        for (int scorecardIndex = 0; scorecardIndex < scorecards.length; scorecardIndex++) {
-            //populating the series with data
-            series.getData().add(new XYChart.Data<>(scorecardIndex + 1, scorecards[scorecardIndex].getScore()));
-        }
-        scoreLineChart.setCreateSymbols(false);
-        scoreLineChart.setAnimated(false);
-        scoreLineChart.setLegendVisible(false);
-        scoreLineChart.getData().add(series);
+/**
+ * Displays the rules card to the user by invoking the appropriate prompt.
+ *
+ * @param actionEvent The action event triggered by the user.
+ * @throws ThroughputRuntimeException If an I/O error occurs during the process.
+ */
+@FXML
+protected void showRules(ActionEvent actionEvent) {
+    if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(actionEvent.toString());
     }
+    try {
+        Prompts.showRulesCard(gameDialogPane);
+    } catch (IOException e) {
+        throw new ThroughputRuntimeException(e);
+    }
+}
+
+   /**
+    * Updates the scorecard chart by clearing existing data, retrieving the latest scorecards,
+    * and populating the chart with the scores. Configures the chart to disable symbols,
+    * animations, and legends for a cleaner display.
+    */
+   private void updateScorecardChart() {
+       // Clear existing data from the score line chart
+       scoreLineChart.getData().clear();
+
+       // Retrieve the array of scorecards
+       ScoreCard[] scorecards = ScorecardService.getScorecards();
+
+       // Define a new series to hold the score data
+       XYChart.Series<Integer, Integer> series = new XYChart.Series<>();
+
+       // Populate the series with data from the scorecards
+       for (int scorecardIndex = 0; scorecardIndex < scorecards.length; scorecardIndex++) {
+           series.getData().add(new XYChart.Data<>(scorecardIndex + 1, scorecards[scorecardIndex].getScore()));
+       }
+
+       // Configure the chart settings
+       scoreLineChart.setCreateSymbols(false); // Disable symbols on the chart
+       scoreLineChart.setAnimated(false); // Disable animations for the chart
+       scoreLineChart.setLegendVisible(false); // Hide the legend
+
+       // Add the populated series to the chart
+       scoreLineChart.getData().add(series);
+   }
 
 }

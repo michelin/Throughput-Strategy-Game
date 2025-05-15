@@ -4,9 +4,7 @@ import com.michelin.throughputfxproject.ThroughputApplication;
 import com.michelin.throughputfxproject.entities.Color;
 import com.michelin.throughputfxproject.entities.actions.Trap;
 import com.michelin.throughputfxproject.entities.cards.*;
-import com.michelin.throughputfxproject.entities.servers.AutomatedServer;
-import com.michelin.throughputfxproject.entities.servers.HumanServer;
-import com.michelin.throughputfxproject.entities.servers.Server;
+import com.michelin.throughputfxproject.entities.servers.*;
 import com.michelin.throughputfxproject.entities.state.Workstation;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.*;
@@ -21,10 +19,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.*;
 import javafx.util.Duration;
@@ -35,9 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.michelin.throughputfxproject.services.DiceService.getDieImage;
@@ -54,6 +47,34 @@ public class Prompts {
         super();
     }
 
+    /**
+     * Displays an alert without updating the game board and automatically hides it after a timeout.
+     *
+     * @param title                 The title of the alert dialog.
+     * @param text                  The message to display in the alert dialog.
+     * @param timeoutDurationMillis The duration in milliseconds before the alert is automatically hidden.
+     */
+    public static void alertWithoutBoardUpdate(@NonNull String title, @NonNull String text, int timeoutDurationMillis) {
+        Alert alert = makeAlert(title, text);
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.millis(timeoutDurationMillis), _ -> alert.hide()));
+        idleStage.setCycleCount(1);
+        idleStage.playFromStart();
+
+        alert.showAndWait();
+    }
+
+    /**
+     * Draws a BIT card based on a die roll and displays its details in a modal dialog.
+     * If the die roll meets or exceeds the required number for success, a BIT card is drawn,
+     * its details are displayed, and it is returned. Otherwise, null is returned.
+     *
+     * @param container                The parent container for the modal dialog.
+     * @param dieSides                 The number of sides on the die to be rolled.
+     * @param gameBoardLog             The log area to display game-related messages.
+     * @param numberRequiredForSuccess The minimum die roll required to draw a BIT card.
+     * @return The drawn BIT card if successful, or null if the die roll fails.
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static BitCard drawBit(@NonNull Pane container, int dieSides, @NonNull TextArea gameBoardLog, int numberRequiredForSuccess) throws IOException {
 
         LOGGER.debug("drawBIT");
@@ -111,6 +132,14 @@ public class Prompts {
         return null;
     }
 
+    /**
+     * Displays an alert with a game board update and automatically hides it after a timeout.
+     *
+     * @param title                 The title of the alert dialog.
+     * @param gameBoardLog          The log area to display the game-related message.
+     * @param gameBoardLogText      The message to display in the game board log.
+     * @param timeoutDurationMillis The duration in milliseconds before the alert is automatically hidden.
+     */
     @SuppressWarnings({"java:S1190", "java:S117"})
     private static void alertWithGameBoardUpdate(String title, @NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, int timeoutDurationMillis) {
 
@@ -128,16 +157,33 @@ public class Prompts {
 
     }
 
-    public static void alertWithoutBoardUpdate(@NonNull String title, @NonNull String text, int timeoutDurationMillis){
+    /**
+     * Creates a modal stage with a timeout duration.
+     * The stage is automatically hidden after the specified timeout duration.
+     *
+     * @param title           The title of the modal stage.
+     * @param container       The parent container for the modal stage.
+     * @param root            The root node of the modal stage's scene.
+     * @param timeoutDuration The duration in seconds before the stage is automatically hidden.
+     */
+    @SuppressWarnings({"java:S1190", "java:S117"})
+    private static void createModalStage(@NonNull String title, @NonNull Pane container, @NonNull Parent root, int timeoutDuration) {
+        Stage stage = createModalStageWithoutAction(title, container, root);
 
-        Alert alert = makeAlert(title, text);
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.millis(timeoutDurationMillis), _ -> alert.hide()));
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> stage.hide()));
         idleStage.setCycleCount(1);
         idleStage.playFromStart();
 
-        alert.showAndWait();
+        stage.showAndWait();
     }
 
+    /**
+     * Creates an alert dialog with the specified title and message.
+     *
+     * @param title The title of the alert dialog.
+     * @param text  The message to display in the alert dialog.
+     * @return The created alert dialog.
+     */
     private static Alert makeAlert(@NonNull String title, @NonNull String text) {
         Text alertText = new Text(text);
         alertText.setWrappingWidth(200);
@@ -149,7 +195,32 @@ public class Prompts {
         return alert;
     }
 
+    /**
+     * Creates a modal stage without any additional actions.
+     * Configures the stage with the specified title, parent container, and root node.
+     * The stage is centered on the screen and set to be non-resizable.
+     *
+     * @param title     The title of the modal stage.
+     * @param container The parent container for the modal stage.
+     * @param root      The root node of the modal stage's scene.
+     * @return The created modal stage.
+     */
+    private static Stage createModalStageWithoutAction(@NonNull String title, @NonNull Pane container, @NonNull Parent root) {
+        Stage stage = new Stage();
+        stage.setScene(new Scene(root));
+        stage.setTitle(title);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(container.getScene().getWindow());
+        stage.setResizable(false);
+        setModalPosition(stage);
+        return stage;
+    }
 
+    /**
+     * Centers a modal window on the screen.
+     *
+     * @param modalWindow The modal window to position.
+     */
     private static void setModalPosition(Window modalWindow) {
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
@@ -174,9 +245,19 @@ public class Prompts {
 
     }
 
+    /**
+     * Prompts the user to implement paired programming for a workstation.
+     * Displays a modal dialog where the user can select a workstation to pair.
+     * If a pair partner is already assigned, it updates the game board log with a message and exits.
+     *
+     * @param container    The parent container for the modal dialog.
+     * @param gameBoardLog The log area to display game-related messages.
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static void implementPairedProgramming(@NonNull Pane container, @NonNull TextArea gameBoardLog) throws IOException {
         LOGGER.debug("implementPairedProgramming");
 
+        // Check if a pair partner is already assigned
         if (WorkstationService.findIfPairPartnerIsAlreadyAssigned()) {
             gameBoardLog.setText(
                     "Partner assigned already" + System.lineSeparator() + System.lineSeparator() +
@@ -184,24 +265,43 @@ public class Prompts {
             return;
         }
 
+        // Load the FXML file for the pairing dialog
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("implement-pairs.fxml"));
         Parent root = loader.load();
 
-        String implementPairsText = "Choose which color workstation to pair." + System.lineSeparator() + "Requires a HUMAN server on the same workstation to work" +
-                System.lineSeparator() + System.lineSeparator() + "Pair Partner gives an additional chance for a successful day";
+        // Set the instructions text for the pairing dialog
+        String implementPairsText = "Choose which color workstation to pair." + System.lineSeparator() +
+                "Requires a HUMAN server on the same workstation to work" +
+                System.lineSeparator() + System.lineSeparator() +
+                "Pair Partner gives an additional chance for a successful day";
 
         TextArea node = ((PairingController) loader.getController()).getImplementPairsText();
         node.setText(implementPairsText);
 
+        // Populate the color picker with workstations that have human servers
         ComboBox<Color> serverColorPicker = ((PairingController) loader.getController()).getWorkstationToPairWith();
-        buildColorComboBox(serverColorPicker, Arrays.stream(WorkstationService.getWorkstations()).filter(Workstation::hasHumanServers).map(Workstation::getColor).toArray(Color[]::new));
+        buildColorComboBox(serverColorPicker, Arrays.stream(WorkstationService.getWorkstations())
+                .filter(Workstation::hasHumanServers)
+                .map(Workstation::getColor)
+                .toArray(Color[]::new));
 
+        // Display the modal dialog
         createModalStage("Paired Work", container, root, 60);
     }
 
+    /**
+     * Populates a `ComboBox` with a list of colors and configures its display and behavior.
+     * The method sets up the items, custom cell rendering, and a string converter for the `ComboBox`.
+     *
+     * @param colorPicker The `ComboBox` to populate with color options.
+     * @param es          An array of `Color` objects to add to the `ComboBox`.
+     */
     @SuppressWarnings({"java:S1190", "java:S117"})
     private static void buildColorComboBox(ComboBox<Color> colorPicker, Color[] es) {
+        // Add all colors to the ComboBox
         colorPicker.getItems().addAll(es);
+
+        // Set a custom cell factory to define how each color is displayed
         colorPicker.setCellFactory(_ -> new ListCell<>() {
             @Override
             public void updateItem(Color color, boolean empty) {
@@ -213,6 +313,8 @@ public class Prompts {
                 }
             }
         });
+
+        // Set a string converter to handle color-to-string and string-to-color conversions
         colorPicker.setConverter(new StringConverter<>() {
             @Override
             public String toString(Color color) {
@@ -233,6 +335,14 @@ public class Prompts {
         });
     }
 
+    /**
+     * Logs and updates the game board log with a message about the application of a trap.
+     * If the trap is mitigated, it logs the mitigated duration; otherwise, it logs the full duration.
+     *
+     * @param trap         The trap being applied.
+     * @param isMitigated  A flag indicating whether the trap is mitigated (true) or not (false).
+     * @param gameBoardLog The log area to display the trap-related message.
+     */
     protected static void promptForAppliedTrap(Trap trap, boolean isMitigated, @NonNull TextArea gameBoardLog) {
         LOGGER.debug("promptForAppliedTrap");
 
@@ -247,6 +357,12 @@ public class Prompts {
         gameBoardLog.setText(builder);
     }
 
+    /**
+     * Logs and updates the game board log with a message about augmenting finished goods.
+     * Sets the value of finished goods to 4 points for the remainder of the game.
+     *
+     * @param gameBoardLog The log area to display the finished goods augmentation message.
+     */
     protected static void promptForFinishedGoodsAreNowFourPoints(@NonNull TextArea gameBoardLog) {
         LOGGER.debug("promptForFinishedGoodsAreNowFourPoints");
 
@@ -255,10 +371,25 @@ public class Prompts {
         ScorecardService.getFinishedGoods().setValue(4);
     }
 
+    /**
+     * Displays an alert with a game board update and automatically hides it after a timeout.
+     * Delegates to the overloaded `alertWithGameBoardUpdate` method with a default title.
+     *
+     * @param gameBoardLog     The log area to display the game-related message.
+     * @param gameBoardLogText The message to display in the game board log.
+     * @param timeoutDuration  The duration in milliseconds before the alert is automatically hidden.
+     */
     private static void alertWithGameBoardUpdate(@NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, int timeoutDuration) {
         alertWithGameBoardUpdate(THROUGHPUT, gameBoardLog, gameBoardLogText, timeoutDuration);
     }
 
+    /**
+     * Logs a message and updates the game board log with a retry prompt for a server.
+     * Displays a message indicating that a partner is stepping in to help with a retry.
+     *
+     * @param server       The server for which the retry is being prompted.
+     * @param gameBoardLog The log area to display the retry-related message.
+     */
     protected static void promptForPairRetry(@NonNull Server server, @NonNull TextArea gameBoardLog) {
         LOGGER.debug("promptForPairRetry");
 
@@ -266,6 +397,16 @@ public class Prompts {
         alertWithGameBoardUpdate("Partner", gameBoardLog, gameBoardLogText, 30000);
     }
 
+    /**
+     * Prompts the user to move a human server to a workstation.
+     * Displays a modal dialog where the user can select a server and a workstation to move to.
+     * If a server is in training, it is excluded from the available options.
+     *
+     * @param container       The parent container for the modal dialog.
+     * @param inTraining      The human server currently in training, if any.
+     * @param boardController The controller managing the game board state.
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static void promptForServerMoves(@NonNull Pane container, HumanServer inTraining, BoardController boardController) throws IOException {
         LOGGER.debug("promptForServerMoves");
 
@@ -295,9 +436,16 @@ public class Prompts {
         ((ServerMovesController) loader.getController()).setBoardController(boardController);
 
         createModalStage("Server Moves", container, root, 45);
-
     }
 
+    /**
+     * Prompts the user to retry a server action using a retry card.
+     * Displays a modal dialog asking the user if they want to use a retry card.
+     * If no response is given within 45 seconds, the default response is "Yes".
+     *
+     * @param server The server for which the retry is being prompted.
+     * @return True if the user chooses to use a retry card, false otherwise.
+     */
     @SuppressWarnings({"java:S1190", "java:S117"})
     protected static boolean promptForServerRetry(@NonNull Server server) {
         LOGGER.debug("promptForServerRetry");
@@ -320,9 +468,16 @@ public class Prompts {
         ButtonType button = alert.showAndWait().orElse(null);
 
         return button == null || button == ButtonType.YES;
-
     }
 
+    /**
+     * Prompts the user to estimate their work for the week.
+     * Loads the "submit-estimate.fxml" file, retrieves the submit button from the controller,
+     * and displays a modal dialog with a timeout that automatically triggers the submit button.
+     *
+     * @param container The parent container for the modal dialog.
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static void promptForWorkItemEstimates(@NonNull Pane container) throws IOException {
         LOGGER.debug("promptForWorkItemEstimates");
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
@@ -333,6 +488,17 @@ public class Prompts {
         createModalStageWithButton("Estimate your Week", container, root, 45, submitButton);
     }
 
+    /**
+     * Creates a modal dialog with a button that is automatically triggered after a timeout.
+     * The dialog is displayed with the specified title and content, and the button is fired
+     * when the timeout duration elapses.
+     *
+     * @param title           The title of the modal dialog.
+     * @param container       The parent container for the modal dialog.
+     * @param root            The root node of the modal dialog's scene.
+     * @param timeoutDuration The duration in seconds before the button is automatically triggered.
+     * @param button          The button to be triggered after the timeout.
+     */
     @SuppressWarnings({"java:S1190", "java:S117"})
     private static void createModalStageWithButton(@NonNull String title, @NonNull Pane container, @NonNull Parent root, int timeoutDuration, Button button) {
 
@@ -346,30 +512,17 @@ public class Prompts {
 
     }
 
-    private static Stage createModalStageWithoutAction(@NonNull String title, @NonNull Pane container, @NonNull Parent root) {
-        Stage stage = new Stage();
-        stage.setScene(new Scene(root));
-        stage.setTitle(title);
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(container.getScene().getWindow());
-        stage.setResizable(false);
-        setModalPosition(stage);
-        return stage;
-    }
-
-    @SuppressWarnings({"java:S1190", "java:S117"})
-    private static void createModalStage(@NonNull String title, @NonNull Pane container, @NonNull Parent root, int timeoutDuration) {
-
-        Stage stage = createModalStageWithoutAction(title, container, root);
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> stage.hide()));
-        idleStage.setCycleCount(1);
-        idleStage.playFromStart();
-
-        stage.showAndWait();
-
-    }
-
+    /**
+     * Prompts the user to move initial work items from the backlog to the first workstation.
+     * Displays a modal dialog where the user can specify the number of items to move.
+     * If the backlog is empty, a message is displayed, and no action is taken.
+     *
+     * @param container    The parent container for the modal dialog.
+     * @param startValue   The maximum number of items that can be moved.
+     * @param backlogCount The current number of items in the backlog.
+     * @param gameBoardLog The log area to display game-related messages.
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static void promptForWorkItemInitialMoves(@NonNull Pane container, int startValue, int backlogCount, @NonNull TextArea gameBoardLog) throws IOException {
         LOGGER.debug("promptForWorkItemInitialMoves");
 
@@ -402,6 +555,16 @@ public class Prompts {
         createModalStageWithButton("Move Items", container, root, 45, submitButton);
     }
 
+    /**
+     * Prompts the user to move work items from a specified workstation to the next.
+     * Displays a modal dialog where the user can specify the number of items to move.
+     * If the workstation is the last one (position 4), the items are moved to finished goods.
+     *
+     * @param container           The parent container for the modal dialog.
+     * @param workstation         The workstation from which the items are being moved.
+     * @param workstationPosition The position of the workstation in the workflow (1-4).
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static void promptForWorkItemWorkstationMoves(@NonNull Pane container, Workstation workstation, int workstationPosition) throws IOException {
         LOGGER.debug("promptForWorkItemWorkstationMoves");
 
@@ -443,48 +606,86 @@ public class Prompts {
         createModalStageWithButton("Move Items", container, root, 45, submitButton);
     }
 
+    /**
+     * Prompts the user to add a skill to a server.
+     * Displays a modal dialog where the user can select a server and a skill to assign.
+     * Only human servers are eligible for skill assignment.
+     *
+     * @param container The parent container for the modal dialog.
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static void promptToAddSkill(@NonNull Pane container) throws IOException {
         LOGGER.debug("promptToAddSkill");
 
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-skills.fxml"));
         Parent root = loader.load();
 
+        // Instructions for the user on how to add a skill
         String builder = "Choose which server to add a skill and which skill to add. " + System.lineSeparator() + System.lineSeparator() +
                 " At prompting please enter: Server Color>Skill Color." +
                 " You can only assign to Human Servers!" + System.lineSeparator() + System.lineSeparator() +
                 " Example BLUE>YELLOW  will assign the BLUE HUMAN SERVER a YELLOW skill";
 
+        // Set the instructions text in the dialog
         TextArea node = ((SkillsController) loader.getController()).getSkillAddText();
         node.setText(builder);
 
+        // Populate the server color picker with available human servers
         ComboBox<Color> serverColorPicker = ((SkillsController) loader.getController()).getServerToAddSkills();
         buildColorComboBox(serverColorPicker, Color.humanColorValues());
 
+        // Populate the skill color picker with available skills
         ComboBox<Color> skillColorPicker = ((SkillsController) loader.getController()).getSkillsToAddToServer();
         buildColorComboBox(skillColorPicker, Color.humanColorValues());
 
+        // Display the modal dialog
         createModalStage("Add Skills to Server", container, root, 45);
-
     }
 
+    /**
+     * Prompts the user to augment the capacity of a workstation.
+     * Displays a modal dialog where the user can select a workstation and specify
+     * whether to double its capacity or add one to its capacity.
+     *
+     * @param container   The parent container for the modal dialog.
+     * @param timesTwo    A flag indicating whether to double the workstation's capacity (true)
+     *                    or add one to its capacity (false).
+     * @param maxCapacity The maximum allowable capacity for the workstation.
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static void promptToAugmentWorkstationCapacity(@NonNull Pane container, boolean timesTwo, int maxCapacity) throws IOException {
         LOGGER.debug("promptToAugmentWorkstationCapacity");
 
+        // Load the FXML file for the "Add Capacity" dialog
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-capacity.fxml"));
         Parent root = loader.load();
 
+        // Retrieve the workstation to augment (specifically the BLUE workstation)
         Workstation workstationBlue = Objects.requireNonNull(WorkstationService.getWorkstation(Color.BLUE));
 
+        // Set the descriptive text for the capacity augmentation in the dialog
         TextArea node = ((AddedCapacityController) loader.getController()).getAddCapacityText();
         node.setText(getWorkstationCapacityText(timesTwo, workstationBlue, maxCapacity));
 
+        // Populate the color picker with available workstation colors
         ComboBox<Color> workstationToAddCapacity = ((AddedCapacityController) loader.getController()).getWorkstationToAddCapacity();
         buildColorComboBox(workstationToAddCapacity, Color.humanColorValues());
 
+        // Display the modal dialog
         createModalStage("Add Capacity", container, root, 45);
-
     }
 
+    /**
+     * Generates a descriptive text for augmenting the capacity of a workstation.
+     * Depending on the `timesTwo` flag, the text either describes adding one to the capacity
+     * or doubling the capacity of the specified workstation.
+     *
+     * @param timesTwo        A flag indicating whether to double the workstation's capacity (true)
+     *                        or add one to its capacity (false).
+     * @param workstationBlue The workstation whose capacity is being augmented.
+     * @param maxCapacity     The maximum allowable capacity for the workstation.
+     * @return A string describing the capacity augmentation action.
+     */
     private static String getWorkstationCapacityText(boolean timesTwo, Workstation workstationBlue, int maxCapacity) {
         StringBuilder builder = new StringBuilder();
         if (!timesTwo) {
@@ -505,128 +706,208 @@ public class Prompts {
         return builder.toString();
     }
 
+    /**
+     * Prompts the user to automate a workstation.
+     * Displays a modal dialog where the user can select a workstation to automate.
+     * If all automated servers are already deployed, it updates the game board log
+     * with a message and exits.
+     *
+     * @param container    The parent container for the modal dialog.
+     * @param gameBoardLog The log area to display game-related messages.
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static void promptToAutomateWorkstation(@NonNull Pane container, @NonNull TextArea gameBoardLog) throws IOException {
         LOGGER.debug("promptToAutomateWorkstation");
+
+        // Check if all automated servers are already deployed
         if (WorkstationService.findDeployedAutomatedServers().size() == 3) {
             gameBoardLog.setText("No Robots Left!" + System.lineSeparator() + "There are no workstations available to automate");
             return;
         }
 
+        // Load the FXML file for the automation dialog
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("add-automation.fxml"));
         Parent root = loader.load();
 
-        String builder = "Choose which color workstation to add automation " + System.lineSeparator() + System.lineSeparator() + Color.GREEN.name() + "|" + Color.ROSE.name() + "|" + Color.YELLOW.name() +
-                System.lineSeparator() + System.lineSeparator() + "Example: GREEN will will automate the GREEN workstation. The human server will remain until moved";
+        // Build the instructions text for the dialog
+        String builder = "Choose which color workstation to add automation " + System.lineSeparator() + System.lineSeparator()
+                + Color.GREEN.name() + "|" + Color.ROSE.name() + "|" + Color.YELLOW.name() + System.lineSeparator() + System.lineSeparator()
+                + "Example: GREEN will will automate the GREEN workstation. The human server will remain until moved";
 
+        // Set the instructions text in the dialog
         TextArea node = ((AddAutomationController) loader.getController()).getAddAutomationText();
         node.setText(builder);
 
+        // Populate the color picker with available workstation colors
         ComboBox<Color> serverWorkstationColorPicker = ((AddAutomationController) loader.getController()).getWorkstationToAddAutomation();
         List<Color> serverColors = WorkstationService.findDeployedAutomatedServers().stream().map(Server::getColor).toList();
         List<Color> leftoverColors = Arrays.stream(Color.automatedColorValues()).filter(color -> !serverColors.contains(color)).toList();
         buildColorComboBox(serverWorkstationColorPicker, leftoverColors.toArray(Color[]::new));
 
+        // Display the modal dialog
         createModalStage("Automate Workstation", container, root, 60);
     }
 
+    /**
+     * Prompts the user to draw a skills card.
+     * Loads the "skill-card.fxml" file, displays the card details in a modal window,
+     * and returns whether the skill card action was successful.
+     *
+     * @param container The parent container for the modal dialog.
+     * @return True if the skill card action was successful, false otherwise.
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static boolean promptToDrawSkillsCard(@NonNull Pane container) throws IOException {
         LOGGER.debug("promptToDrawSkillsCard");
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("skill-card.fxml"));
         Parent root = loader.load();
 
+        // Pick a skill card and set its details in the controller
         SkillCard skillCard = (SkillCard) CardService.pickACard(Card.SKILLS);
         ((SkillCardController) loader.getController()).getCardSkill().setText(skillCard.getSkill());
         ((SkillCardController) loader.getController()).getCardInstructions().setText(skillCard.getInstructions());
         ((SkillCardController) loader.getController()).getCardInstructionsExtended().setText(skillCard.getInstructionsExtended());
         ((SkillCardController) loader.getController()).getIsSuccessful().setText(String.valueOf(skillCard.isSuccess()));
 
+        // Display the modal dialog
         createModalStage("Skills", container, root, 30);
         return skillCard.isSuccess();
     }
 
+    /**
+     * Prompts the user to remove a skill from the most skilled server.
+     * Displays an informational alert and removes the skill from the server.
+     */
     protected static void promptToRemoveSkill() {
         LOGGER.debug("promptToRemoveSkill");
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "Replace skilled server", ButtonType.FINISH);
         alert.setTitle("Skills");
         alert.setHeaderText(null);
-        ServerService.removeSkillsFromMostSkilledServer();
 
+        // Remove skills from the most skilled server
+        ServerService.removeSkillsFromMostSkilledServer();
     }
 
+    /**
+     * Prompts the user to upload a file for a previous game.
+     * Displays a modal dialog where the user can select a file from their system.
+     *
+     * @param container        The parent container for the modal dialog.
+     * @param initialDirectory The initial directory to open in the file chooser.
+     * @return The selected file, or null if no file was selected.
+     */
     public static File promptToUploadPreviousGame(@NonNull Pane container, @NonNull File initialDirectory) {
         // Create a new stage for the dialog
         Stage dialogStage = new Stage();
         dialogStage.initModality(Modality.APPLICATION_MODAL);
         dialogStage.initStyle(StageStyle.UTILITY);
         dialogStage.initOwner(container.getScene().getWindow());
+        dialogStage.setTitle("Upload Previous Game");
         dialogStage.setHeight(300);
         dialogStage.setWidth(300);
 
-        dialogStage.setTitle("Upload Previous Game");
-
-        // Create a label to display the selected file path
+        // Label to display the selected file path
         Label filePathLabel = new Label();
         filePathLabel.setWrapText(true);
 
-        // Create a button to trigger the file chooser
+        // Atomic reference to store the selected file
         AtomicReference<File> selectedFile = new AtomicReference<>();
+
+        // Button to open the file chooser
         Button chooseFileButton = new Button("Choose Game File");
         chooseFileButton.setOnAction(event -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setInitialDirectory(initialDirectory);
-            selectedFile.set(fileChooser.showOpenDialog(dialogStage));
-            if (selectedFile.get() != null) {
-                filePathLabel.setText(selectedFile.get().getAbsolutePath());
+            File file = fileChooser.showOpenDialog(dialogStage);
+            if (file != null) {
+                selectedFile.set(file);
+                filePathLabel.setText(file.getAbsolutePath());
             }
         });
 
-        // Create a button to close the dialog
+        // Button to close the dialog
         Button closeButton = new Button("Load File");
         closeButton.setOnAction(event -> dialogStage.close());
 
-        // Create a vertical layout to arrange the controls
-        VBox layout = new VBox(10);
+        // Layout for the dialog
+        VBox layout = new VBox(10, filePathLabel, chooseFileButton, closeButton);
         layout.setPadding(new Insets(20));
         layout.setPrefWidth(300);
-        layout.getChildren().addAll(filePathLabel, chooseFileButton, closeButton);
 
-        // Create a scene and set it to the dialog stage
-        Scene scene = new Scene(layout);
-        dialogStage.setScene(scene);
-        dialogStage.showAndWait(); // Show the dialog and wait for it to close
+        // Set the scene and display the dialog
+        dialogStage.setScene(new Scene(layout));
+        dialogStage.showAndWait();
 
+        // Return the selected file
         return selectedFile.get();
     }
 
+    /**
+     * Publishes the end-of-game message to the game board log.
+     *
+     * @param gameBoardLog The log area to display the end-of-game message.
+     */
     protected static void publishEndOfGame(TextArea gameBoardLog) {
         String gameBoardLogText = "End of Game." + System.lineSeparator() + "Assess and discuss how you did";
         alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 45000);
     }
 
+    /**
+     * Publishes the end-of-week message to the game board log.
+     *
+     * @param gameBoardLog The log area to display the end-of-week message.
+     */
     protected static void publishEndPeriod(TextArea gameBoardLog) {
         String gameBoardLogText = "End of Week." + System.lineSeparator() + "Prepare for the start of the next week";
         alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 60000);
     }
 
+    /**
+     * Publishes the start-of-week message to the game board log.
+     *
+     * @param gameBoardLog The log area to display the start-of-week message.
+     * @param period       The current week number.
+     */
     protected static void publishStartPeriod(TextArea gameBoardLog, int period) {
         String gameBoardLogText = "Week: " + period + System.lineSeparator() + START_THE_WEEK;
         alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 10000);
-
     }
 
+    /**
+     * Publishes the start-of-day message to the game board log.
+     *
+     * @param gameBoardLog The log area to display the start-of-day message.
+     * @param period       The current week number.
+     * @param turn         The current day number within the week.
+     */
     protected static void publishTurnStart(TextArea gameBoardLog, int period, int turn) {
         String gameBoardLogText = "Day: " + turn + "  Week:  " + period + System.lineSeparator() + "Click on Run Day to start the day";
         alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 40000);
     }
 
+    /**
+     * Plays a server chance card based on the type of server and the workstation's state.
+     * If the workstation has no work items, it logs a message and returns an empty result.
+     * Otherwise, it picks a chance card, displays it in a modal window, and returns the result
+     * of the chance card play.
+     *
+     * @param container    The parent container for the modal window.
+     * @param server       The server attempting the chance card play.
+     * @param workstation  The workstation associated with the server.
+     * @param gameBoardLog The log area to display game-related messages.
+     * @return A `ChanceResult` indicating the outcome of the chance card play.
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static ChanceResult serverChanceCardPlay(@NonNull Pane container, @NonNull Server server, Workstation workstation, @NonNull TextArea gameBoardLog) throws IOException {
 
+        // Check if the workstation has no work items
         if (workstation.getWorkItemCount() == 0) {
             String gameBoardLogText = "No Moves." + System.lineSeparator() + workstation.getColor() + " " + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE;
             alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 45000);
             return ChanceResult.EMPTY;
         }
 
+        // Determine the type of chance card to pick based on the server type
         ChanceCard chanceCard;
         FXMLLoader loader;
         if (server instanceof AutomatedServer) {
@@ -637,61 +918,116 @@ public class Prompts {
             loader = new FXMLLoader(ThroughputApplication.class.getResource("chance-card.fxml"));
         }
 
+        // Load the FXML file for the chance card modal
         Parent root = loader.load();
 
+        // Set the chance card instructions and details in the modal
         ((ChanceController) loader.getController()).getCardInstructions().setText(chanceCard.getInstructions());
         ((ChanceController) loader.getController()).getCardChance().setText(workstation.getColor().name() + " - " + chanceCard.getChanceText());
 
+        // Display the modal window
         createModalStage("Chance", container, root, 30);
 
+        // Return the result of the chance card play
         return chanceCard.isSuccess() ? ChanceResult.SUCCESS : ChanceResult.FAILED;
-
     }
 
+    /**
+     * Displays the "Game Information" card in a modal window.
+     *
+     * @param container The parent container for the modal window.
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static void showInfoCard(Pane container) throws IOException {
+        // Create a new stage for the modal window
         Stage stage = new Stage();
+
+        // Load the FXML file for the "Game Information" card
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("info.fxml"));
         Parent root = loader.load();
+
+        // Set the scene for the stage with the loaded FXML content
         stage.setScene(new Scene(root));
+
+        // Set the title of the modal window
         stage.setTitle("Game Information");
+
+        // Configure the stage to be a modal window
         stage.initModality(Modality.WINDOW_MODAL);
+
+        // Set the owner of the modal window to the parent container's window
         stage.initOwner(container.getScene().getWindow());
+
+        // Display the modal window
         stage.show();
     }
 
+    /**
+     * Displays the "Game Rules" card in a modal window.
+     *
+     * @param container The parent container for the modal window.
+     * @throws IOException If an error occurs while loading the FXML file.
+     */
     protected static void showRulesCard(Pane container) throws IOException {
+        // Create a new stage for the modal window
         Stage stage = new Stage();
+
+        // Load the FXML file for the "Game Rules" card
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("rules.fxml"));
         Parent root = loader.load();
+
+        // Set the scene for the stage with the loaded FXML content
         stage.setScene(new Scene(root));
+
+        // Set the title of the modal window
         stage.setTitle("Game Rules");
+
+        // Configure the stage to be a modal window
         stage.initModality(Modality.WINDOW_MODAL);
+
+        // Set the owner of the modal window to the parent container's window
         stage.initOwner(container.getScene().getWindow());
+
+        // Display the modal window
         stage.show();
     }
 
+    /**
+     * Calculates the team mood by rolling a die, determines the maximum number of items
+     * that can be moved from the backlog to the first workstation, and displays the result
+     * in a modal dialog.
+     *
+     * @param container The parent container for the modal dialog.
+     * @param dieSides  The number of sides on the die to be rolled.
+     * @return The maximum number of items that can be moved to the first workstation.
+     * @throws IOException If an error occurs while loading the FXML file or resources.
+     */
     protected static int teamMood(@NonNull Pane container, int dieSides) throws IOException {
-
+        // Roll a die to determine the team mood
         int teamMood = DiceService.rollDie(DiceService.getDie(dieSides)).getValue();
 
+        // Get the current backlog count
+        int backlogCount = ScorecardService.getBacklog().getBacklogItemCount();
+
+        // Calculate the maximum number of items that can be moved
+        int maxItemsToMove = Math.min(teamMood, backlogCount);
+
+        // Load the FXML file for the die-roll modal dialog
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("die-roll.fxml"));
         Parent root = loader.load();
 
-        String builder = "Team Mood is " + teamMood + " and backlog has " + ScorecardService.getBacklog().getBacklogItemCount() + " work items" + " At the prompt you can move up to " + Math.min(teamMood, ScorecardService.getBacklog().getBacklogItemCount()) + " items into your 1st workstation";
+        // Configure the modal dialog with the team mood and backlog information
+        DieController controller = loader.getController();
+        controller.getDieText().setText("Team Mood is " + teamMood + " and backlog has " + backlogCount
+                + " work items. At the prompt, you can move up to " + maxItemsToMove + " items into your 1st workstation.");
+        controller.getDieHeaderText().setText("Rolled for Team Mood");
+        controller.getDieImage().setImage(new Image(ThroughputApplication.class.getResource(getDieImage(teamMood)).openStream()));
 
-        Label dieText = ((DieController) loader.getController()).getDieText();
-        dieText.setText(builder);
-
-        Label dieHeaderText = ((DieController) loader.getController()).getDieHeaderText();
-        dieHeaderText.setText("Rolled for Team Mood");
-
-        ImageView backImageView = ((DieController) loader.getController()).getDieImage();
-        Image backImage = new Image(Objects.requireNonNull(ThroughputApplication.class.getResource(getDieImage(teamMood))).openStream());
-        backImageView.setImage(backImage);
-
+        // Display the modal dialog
         createModalStage("Team Mood", container, root, 30);
 
-        return Math.min(teamMood, ScorecardService.getBacklog().getBacklogItemCount());
+        // Return the maximum number of items that can be moved
+        return maxItemsToMove;
     }
 
 }
