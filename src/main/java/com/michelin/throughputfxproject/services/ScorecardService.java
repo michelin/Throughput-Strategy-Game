@@ -26,9 +26,9 @@ import java.util.Map;
 @Slf4j
 public class ScorecardService {
 
-    private static final Backlog backlog = new Backlog();
-    private static final FinishedGoods finishedGoods = new FinishedGoods();
-    private static final ScoreCard[] scorecards = new ScoreCard[Board.getInstance().getRunPeriods()];
+    public static final Backlog BACKLOG = new Backlog();
+    public static final FinishedGoods FINISHED_GOODS = FinishedGoods.builder().value(FinishedGoods.STARTING_FINISHED_GOODS_VALUE).build();
+    public static final ScoreCard[] SCORECARDS = new ScoreCard[Board.getInstance().getRunPeriods()];
 
 
   static {
@@ -36,7 +36,7 @@ public class ScorecardService {
 //       Each ScoreCard is initialized with default values: period number, score, finished goods,
 //       estimate, and work in process all set to 0.
       for (int scorecardIndex = 0; scorecardIndex < Board.getInstance().getRunPeriods(); scorecardIndex++) {
-          scorecards[scorecardIndex] = new ScoreCard(scorecardIndex + 1, 0, 0, 0, 0);
+          SCORECARDS[scorecardIndex] =  ScoreCard.builder().period(scorecardIndex + 1).build();
       }
   }
 
@@ -46,7 +46,7 @@ public class ScorecardService {
    * @return The ScoreCard corresponding to the current period.
    */
   public static ScoreCard getScorecardForCurrentWeek() {
-      return scorecards[(Board.getInstance().getCurrentPeriod() - 1)];
+      return SCORECARDS[(Board.getInstance().getCurrentPeriod() - 1)];
   }
 
   /**
@@ -57,7 +57,7 @@ public class ScorecardService {
    * @return The total score as an integer.
    */
   public static int getTotalScore() {
-      int totalScores = Arrays.stream(scorecards)
+      int totalScores = Arrays.stream(SCORECARDS)
               .filter(scoreCard -> scoreCard.getPeriod() < (Board.getInstance().getCurrentPeriod() + 1))
               .mapToInt(ScoreCard::getScore)
               .sum();
@@ -74,8 +74,8 @@ public class ScorecardService {
    */
   public static int currentWeekRunningScore() {
       return (Math.round(WorkstationService.tallyWorkInProcessScore() * -1)) +
-             Math.round((backlog.backlogScore(Board.getInstance().getStationCount()) * -1)) +
-             finishedGoods.calculateScore();
+             Math.round((BACKLOG.backlogScore(Board.getInstance().getStationCount()) * -1)) +
+             FINISHED_GOODS.calculateScore();
   }
 
 /**
@@ -106,13 +106,13 @@ public static void reloadScorecards(Map<String, Object> scorecardServiceJson) {
         Integer score = (Integer)((Map<String, Object>)scorecard).get("score");
         Integer finishedGoods = (Integer)((Map<String, Object>)scorecard).get("finishedGoods");
         Integer workInProcess = (Integer)((Map<String, Object>)scorecard).get("workInProcess");
-        scorecards[period-1] = new ScoreCard( period,  score,  finishedGoods,  estimate,  workInProcess);
+        SCORECARDS[period-1] =  ScoreCard.builder().period(period).score(score).finishedGoods(finishedGoods).estimate(estimate).workInProcess(workInProcess).build();
     });
 
-    backlog.setBacklogItemCount((Integer) ((Map<String, Object>)scorecardServiceJson.get("backlog")).get("backlogItemCount"));
+    BACKLOG.setBacklogItemCount((Integer) ((Map<String, Object>)scorecardServiceJson.get("backlog")).get("backlogItemCount"));
     var finishedGoodsMap = (Map<String, Object>) scorecardServiceJson.get("finishedGoods");
-    finishedGoods.setFinishedGoodsTally((Integer)finishedGoodsMap.get("finishedGoodsTally"));
-    finishedGoods.setValue((Integer)finishedGoodsMap.get("currentValue"));
+    FINISHED_GOODS.setFinishedGoodsTally((Integer)finishedGoodsMap.get("finishedGoodsTally"));
+    FINISHED_GOODS.setValue((Integer)finishedGoodsMap.get("currentValue"));
 }
 
 /**
@@ -122,8 +122,8 @@ public static void reloadScorecards(Map<String, Object> scorecardServiceJson) {
  * @return A JSON string representing the scorecard service data.
  */
 public static String toJSON() {
-    List<String> stringList = Arrays.stream(scorecards).map(ScoreCard::toJSON).toList();
-    return "\"scorecardService\": {" + backlog.toJSON() +
-            "," + finishedGoods.toJSON() + ", \"scorecards\": [" + String.join(",", stringList) + "]}";
+    List<String> stringList = Arrays.stream(SCORECARDS).map(ScoreCard::toJSON).toList();
+    return "\"scorecardService\": {" + BACKLOG.toJSON() +
+            "," + FINISHED_GOODS.toJSON() + ", \"scorecards\": [" + String.join(",", stringList) + "]}";
 }
 }

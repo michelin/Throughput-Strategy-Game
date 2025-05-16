@@ -255,8 +255,8 @@ public class BoardController {
         }
 
         // Update the backlog and finished goods counts
-        backlogCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.getBacklog().getBacklogItemCount()), 3, '0'));
-        finishedGoodsCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.getFinishedGoods().getFinishedGoodsTally()), 3, '0'));
+        backlogCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.BACKLOG.getBacklogItemCount()), 3, '0'));
+        finishedGoodsCount.setText(StringUtils.leftPad(String.valueOf(ScorecardService.FINISHED_GOODS.getFinishedGoodsTally()), 3, '0'));
 
         // Update the current run number, period number, and total score
         runNumber.setText(String.valueOf(Board.getInstance().getCurrentRunTurn()));
@@ -354,7 +354,7 @@ public class BoardController {
      */
     private void updateScorecardTable() {
         // Retrieve scorecards and set them as table items
-        ObservableList<ScoreCard> scoreCards = FXCollections.observableArrayList(ScorecardService.getScorecards());
+        ObservableList<ScoreCard> scoreCards = FXCollections.observableArrayList(ScorecardService.SCORECARDS);
         scoreTableView.setItems(scoreCards);
 
         // Define table columns with their respective property mappings
@@ -554,7 +554,7 @@ public class BoardController {
         highlightActiveWorkstation(-1);
 
         // Get the team mood and move initial work items
-        int backlogItemCount = ScorecardService.getBacklog().getBacklogItemCount();
+        int backlogItemCount = ScorecardService.BACKLOG.getBacklogItemCount();
         int startValue = backlogItemCount > 0 ? Prompts.teamMood(gameDialogPane, Board.getInstance().getDieFaces()) : 0;
         Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, backlogItemCount, gameBoardLog);
         redrawBoard();
@@ -1173,7 +1173,7 @@ protected void showRules(ActionEvent actionEvent) {
        scoreLineChart.getData().clear();
 
        // Retrieve the array of scorecards
-       ScoreCard[] scorecards = ScorecardService.getScorecards();
+       ScoreCard[] scorecards = ScorecardService.SCORECARDS;
 
        // Define a new series to hold the score data
        XYChart.Series<Integer, Integer> series = new XYChart.Series<>();

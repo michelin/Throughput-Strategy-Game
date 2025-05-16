@@ -166,11 +166,11 @@ public class Board implements Savable {
           // Update Scorecard
           ScoreCard scoreCard = ScorecardService.getScorecardForCurrentWeek();
           scoreCard.setWorkInProcess(WorkstationService.tallyWorkInProcess());
-          scoreCard.setFinishedGoods(ScorecardService.getFinishedGoods().getFinishedGoodsTally());
+          scoreCard.setFinishedGoods(ScorecardService.FINISHED_GOODS.getFinishedGoodsTally());
           scoreCard.setScore(ScorecardService.currentWeekRunningScore());
 
           // Remove finished goods
-          ScorecardService.getFinishedGoods().setFinishedGoodsTally(0);
+          ScorecardService.FINISHED_GOODS.setFinishedGoodsTally(0);
 
           augmentRunPeriod();
           resetRunTurns();
@@ -269,8 +269,8 @@ public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) 
      * This method updates the backlog with the current tally of finished goods and clears the tally.
      */
     private void returnFinishedGoodsToBacklog() {
-        ScorecardService.getBacklog().addToBacklog(ScorecardService.getFinishedGoods().getFinishedGoodsTally());
-        ScorecardService.getFinishedGoods().setFinishedGoodsTally(0);
+        ScorecardService.BACKLOG.addToBacklog(ScorecardService.FINISHED_GOODS.getFinishedGoodsTally());
+        ScorecardService.FINISHED_GOODS.setFinishedGoodsTally(0);
     }
     
     /**
@@ -291,7 +291,7 @@ public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) 
         int offendingWorkstationIndex = WorkstationService.getWorkstationIndex(color);
         Workstation offendingWorkstation = WorkstationService.getWorkstation(offendingWorkstationIndex);
         if (offendingWorkstationIndex == 0) {
-            ScorecardService.getBacklog().addToBacklog(offendingWorkstation.getWorkItemCount());
+            ScorecardService.BACKLOG.addToBacklog(offendingWorkstation.getWorkItemCount());
             offendingWorkstation.setWorkItemCount(0);
         } else if (offendingWorkstationIndex < 0) {
             log.warn("Couldn't find workstation for color {}", color.name());
