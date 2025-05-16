@@ -32,9 +32,10 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
 import javafx.util.Duration;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,10 +46,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.michelin.throughputfxproject.ThroughputApplication.*;
 import static com.michelin.throughputfxproject.entities.state.Board.*;
 
-
+@EqualsAndHashCode
+@ToString
+@Slf4j
 public class BoardController {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(BoardController.class.getName());
     //Timer label implementation
     private static final Integer START_TIME = 60;
     private static final String COLUMN_WK = "Wk";
@@ -151,7 +153,7 @@ public class BoardController {
                 Board.initializeInstance(DEFAULT_DIE_SIDES, DEFAULT_RUN_STATIONS, DEFAULT_RUN_PERIODS, DEFAULT_RUN_TURNS);
             }
         } catch (IllegalStateException e) {
-            LOGGER.info(e.getMessage());
+            log.info(e.getMessage());
         }
     }
 
@@ -188,7 +190,7 @@ public class BoardController {
                 }
             }
             default ->
-                LOGGER.debug("Trap effected mismatch {}", trap.effected());
+                log.debug("Trap effected mismatch {}", trap.effected());
         }
     }
 
@@ -201,7 +203,7 @@ public class BoardController {
     @FXML
     protected void addOrRemoveSkillsForServers(ActionEvent actionEvent) throws IOException {
         // Log the action event for debugging purposes
-        LOGGER.debug(ACTION_EVENT, actionEvent);
+        log.debug("Remove skill " + ACTION_EVENT, actionEvent);
 
         // Check if the game is not in vanilla mode and prompt the user to draw a skills card
         if (!isVanilla() && Prompts.promptToDrawSkillsCard(gameDialogPane)) {
@@ -291,7 +293,7 @@ public class BoardController {
                 buildServerSkillsBox(server, vBox, 60.0);
             } else {
                 // Log a debug message for non-human servers
-                LOGGER.debug("Non Human server of color {}", server.getColor());
+                log.debug("Non Human server of color {}", server.getColor());
             }
             // Set a unique ID for the VBox based on the server holder and server color
             vBox.setId("v_box_" + serverHolder.getId() + "_" + server.getColor().name());
@@ -443,7 +445,7 @@ public class BoardController {
         });
 
         // Log the color of the human server for debugging purposes
-        LOGGER.debug("Human server of color {}", server.getColor());
+        log.debug("Human server of color {}", server.getColor());
     }
 
     /**
@@ -537,13 +539,13 @@ public class BoardController {
     @FXML
     protected void doRunTurn(ActionEvent actionEvent) throws IOException, InterruptedException {
         // Log the action event if debugging is enabled
-        if (LOGGER.isDebugEnabled()) LOGGER.debug(actionEvent.toString());
+        if (log.isDebugEnabled()) log.debug(actionEvent.toString());
 
         // Stop the timer if it is active
         if (timeline != null) timeline.stop();
 
         // Log the current run turn
-        LOGGER.debug("Run Turn {}", Board.getInstance().getCurrentRunTurn());
+        log.debug("Run Turn {}", Board.getInstance().getCurrentRunTurn());
 
         // Disable buttons during the run
         disableButtons(true);
@@ -624,11 +626,11 @@ public class BoardController {
      */
     @FXML
     protected void saveGame(ActionEvent actionEvent) {
-        LOGGER.debug(ACTION_EVENT, actionEvent);
+        log.debug("Save Game: " + ACTION_EVENT, actionEvent);
 
         try {
             String gameState = Board.getInstance().toJSON();
-            LOGGER.debug("Game State: {}", gameState);
+            log.debug("Game State: {}", gameState);
 
             File saveDir = new File(getProjectResourcesPath() + "/savedGames");
             if (!saveDir.exists() && !saveDir.mkdirs()) {
@@ -639,7 +641,7 @@ public class BoardController {
             ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
             mapper.writeValue(new File(filePath), mapper.readTree(gameState));
 
-            LOGGER.debug("Data saved to: {}", filePath);
+            log.debug("Data saved to: {}", filePath);
             Prompts.alertWithoutBoardUpdate("Game Saved", filePath, 10);
 
         } catch (IOException e) {
@@ -789,7 +791,7 @@ public class BoardController {
     @FXML
     protected void loadGame(ActionEvent actionEvent) {
         // Log the action event for debugging purposes
-        LOGGER.debug(ACTION_EVENT, actionEvent);
+        log.debug("Load Game: " + ACTION_EVENT, actionEvent);
 
         try {
             // Prompt the user to upload a previously saved game file
@@ -803,7 +805,7 @@ public class BoardController {
             });
 
             // Log the parsed JSON content for debugging purposes
-            parsedJson.forEach((k, v) -> LOGGER.debug("{} : {}", k, v));
+            parsedJson.forEach((k, v) -> log.debug("{} : {}", k, v));
 
             // Reload the game state using the parsed JSON data
             Board.reloadInstance(parsedJson);
@@ -902,8 +904,8 @@ public class BoardController {
     @FXML
     protected void runGame(ActionEvent actionEvent) {
         // Log the action event if debugging is enabled
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(actionEvent.toString());
+        if (log.isDebugEnabled()) {
+            log.debug(actionEvent.toString());
         }
 
         // Publish the start of the current period to the game log
@@ -971,8 +973,8 @@ public class BoardController {
     @FXML
     protected void runPeriod(ActionEvent actionEvent) {
         // Log the action event if debugging is enabled
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(actionEvent.toString());
+        if (log.isDebugEnabled()) {
+            log.debug(actionEvent.toString());
         }
         // Stop the timer if it is active
         if (timeline != null) timeline.stop();
@@ -1076,7 +1078,7 @@ public class BoardController {
            if (Board.getInstance().gameIsOver()) break;
 
            // Log the current server being processed
-           LOGGER.debug("Now serving server {}", server);
+           log.debug("Now serving server {}", server);
 
            // Perform the server's action and handle the result
            ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, workstation, gameBoardLog);
@@ -1115,8 +1117,8 @@ public class BoardController {
  */
 @FXML
 protected void serverMoves(ActionEvent actionEvent) {
-    if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug(actionEvent.toString());
+    if (log.isDebugEnabled()) {
+        log.debug(actionEvent.toString());
     }
     try {
         Prompts.promptForServerMoves(gameDialogPane, Board.getInstance().getInTrainingServer(), this);
@@ -1133,8 +1135,8 @@ protected void serverMoves(ActionEvent actionEvent) {
  */
 @FXML
 protected void showInfo(ActionEvent actionEvent) {
-    if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug(actionEvent.toString());
+    if (log.isDebugEnabled()) {
+        log.debug(actionEvent.toString());
     }
     try {
         Prompts.showInfoCard(gameDialogPane);
@@ -1151,8 +1153,8 @@ protected void showInfo(ActionEvent actionEvent) {
  */
 @FXML
 protected void showRules(ActionEvent actionEvent) {
-    if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug(actionEvent.toString());
+    if (log.isDebugEnabled()) {
+        log.debug(actionEvent.toString());
     }
     try {
         Prompts.showRulesCard(gameDialogPane);
