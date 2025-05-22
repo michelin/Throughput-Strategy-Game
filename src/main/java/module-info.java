@@ -28,7 +28,7 @@ module com.michelin.throughputfxproject {
     exports com.michelin.throughputfxproject.controllers;
     exports com.michelin.throughputfxproject.control;
     opens com.michelin.throughputfxproject.css to javafx.fxml;
-    opens com.michelin.throughputfxproject.controllers to javafx.fxml,com.michelin.throughputfxproject.controllerTests;
+    opens com.michelin.throughputfxproject.controllers to javafx.fxml;
     opens com.michelin.throughputfxproject.control to javafx.fxml;
     exports com.michelin.throughputfxproject.entities;
     opens com.michelin.throughputfxproject.entities to javafx.fxml;

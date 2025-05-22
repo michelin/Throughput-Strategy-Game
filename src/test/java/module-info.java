@@ -1,4 +1,4 @@
-module com.michelin.throughputfxproject.controllers {
+module com.michelin.throughputfxproject.controllerTests {
     requires com.michelin.throughputfxproject;
     requires org.mockito.junit.jupiter;
     requires org.mockito;
