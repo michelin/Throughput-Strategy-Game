@@ -45,7 +45,7 @@ public class ServerMovesController {
         ServerMove move = new ServerMove(Objects.requireNonNull(serverColor), Objects.requireNonNull(workstationColor));
         try {
             Board.getInstance().startDay(move);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException _) {
             //do nothing
         } finally {
             ((Stage) moveButton.getParent().getScene().getWindow()).close();

@@ -28,45 +28,30 @@ import java.util.*;
 @Slf4j
 public class Board implements Savable {
 
-
-
     public static final String NONE = "NONE";
     public static final String RUN = "RUN";
     public static final String TEAM = "TEAM";
     public static final String PERIOD = "PERIOD";
     public static final String ANY_SERVER = "ANY_SERVER";
     private static final String HUMAN_SERVER = "HUMAN_SERVER";
+
     private static Board instance;
     //Play containers - Holders of game status
-    private final List<BitCard> periodHoldCards;
-    private final List<BitCard> gameHoldCards;
+    @Builder.Default
+    private final List<BitCard> periodHoldCards= new ArrayList<>(10);
+    @Builder.Default
+    private final List<BitCard> gameHoldCards= new ArrayList<>(10);
     private final int dieFaces;
     private final int stationCount;
     private final int runPeriods;
     private final int runTurns;
+    @Builder.Default
     private Integer currentRunTurn = 1;
+    @Builder.Default
     private Integer currentPeriod = 1;
-    private HumanServer inTrainingServer = null;
+    private HumanServer inTrainingServer;
 
 
-    /**
-     * Private constructor for the Board class.
-     * Initializes the board with the specified parameters and creates empty lists
-     * for period hold cards and game hold cards.
-     *
-     * @param dieFaces The number of faces on the die used in the game.
-     * @param stationCount The number of stations in the game.
-     * @param runPeriods The number of periods in a game run.
-     * @param runTurns The number of turns in a game run.
-     */
-    private Board(int dieFaces, int stationCount, int runPeriods, int runTurns) {
-        this.dieFaces = dieFaces;
-        this.stationCount = stationCount;
-        this.runPeriods = runPeriods;
-        this.runTurns = runTurns;
-        this.periodHoldCards = new ArrayList<>(10);
-        this.gameHoldCards = new ArrayList<>(10);
-    }
 
     /**
      * Retrieves the singleton instance of the Board.
@@ -94,13 +79,13 @@ public class Board implements Savable {
         if (instance != null) {
             return;
         }
-        instance = new Board(dieFaces, stationCount, runPeriods, runTurns);
+        instance = Board.builder().dieFaces(dieFaces).stationCount(stationCount).runPeriods(runPeriods).runTurns(runTurns).build();
     }
 
     /**
      * Reloads the state of the Board instance from a provided JSON-like map.
      * This method extracts various game parameters and services from the map
-     * and reinitializes the Board instance with the extracted data.
+     * and reinitialized the Board instance with the extracted data.
      *
      * @param reloadGameJson A map containing the serialized state of the game.
      *                       Expected keys include:

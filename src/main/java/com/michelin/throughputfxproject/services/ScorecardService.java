@@ -28,7 +28,8 @@ public class ScorecardService {
 
     public static final Backlog BACKLOG = new Backlog();
     public static final FinishedGoods FINISHED_GOODS = FinishedGoods.builder().value(FinishedGoods.STARTING_FINISHED_GOODS_VALUE).build();
-    public static final ScoreCard[] SCORECARDS = new ScoreCard[Board.getInstance().getRunPeriods()];
+    @Getter
+    protected static final ScoreCard[] SCORECARDS = new ScoreCard[Board.getInstance().getRunPeriods()];
 
 
   static {

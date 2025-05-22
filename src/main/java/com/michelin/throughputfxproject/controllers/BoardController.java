@@ -14,6 +14,7 @@ import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
 import javafx.animation.*;
+import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
@@ -51,8 +52,9 @@ import static com.michelin.throughputfxproject.entities.state.Board.*;
 @Slf4j
 public class BoardController {
 
+    public static final String ACTION_EVENT = "Action Event: {}";
     //Timer label implementation
-    private static final Integer START_TIME = 60;
+    private static final Integer START_TIME = 30;
     private static final String COLUMN_WK = "Wk";
     private static final String COLUMN_EST = "Est";
     private static final String COLUMN_WIP = "WIP";
@@ -63,7 +65,6 @@ public class BoardController {
     private static final String PROPERTY_WORK_IN_PROCESS = "workInProcess";
     private static final String PROPERTY_FINISHED_GOODS = "finishedGoods";
     private static final String PROPERTY_SCORE = "score";
-    public static final String ACTION_EVENT = "Action Event: {}";
     @FXML
     private Button buttonLoadGame;
     @FXML
@@ -189,8 +190,7 @@ public class BoardController {
                     WorkstationService.getWorkstation(nextWorkstation).setActive(false);
                 }
             }
-            default ->
-                log.debug("Trap effected mismatch {}", trap.effected());
+            default -> log.debug("Trap effected mismatch {}", trap.effected());
         }
     }
 
@@ -354,7 +354,7 @@ public class BoardController {
      */
     private void updateScorecardTable() {
         // Retrieve scorecards and set them as table items
-        ObservableList<ScoreCard> scoreCards = FXCollections.observableArrayList(ScorecardService.SCORECARDS);
+        ObservableList<ScoreCard> scoreCards = FXCollections.observableArrayList(ScorecardService.getSCORECARDS());
         scoreTableView.setItems(scoreCards);
 
         // Define table columns with their respective property mappings
@@ -516,6 +516,107 @@ public class BoardController {
         }
     }
 
+    private void buildPeriodTimer(Integer startTime, ActionEvent actionEvent) {
+
+        // Set the text color of the countdown timer to dark blue
+        countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
+
+        // Create a property to track the remaining time
+        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime/2);
+
+        // Initialize the timeline for the countdown
+        timeline = new Timeline();
+
+        // Bind the countdown timer's text to the remaining time
+        countdownTimer.textProperty().bind(timeSeconds.asString());
+
+        // Add a keyframe to decrement the time to zero over the specified duration
+        timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(startTime + 1.0), new KeyValue(timeSeconds, 0)));
+
+        // Define the action to perform when the timer finishes
+        timeline.setOnFinished(_ -> {
+            countdownTimer.textProperty().unbind(); // Unbind the text property
+            countdownTimer.setText("X"); // Display "X" when the timer ends
+            countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
+            Platform.runLater(() -> runPeriod(actionEvent)); // Automatically call runPeriod
+        });
+
+        // Start the timer from the beginning
+        timeline.playFromStart();
+    }
+
+    private void buildRunTurnTimer(Integer startTime, ActionEvent actionEvent) {
+
+        // Set the text color of the countdown timer to dark blue
+        countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
+
+        // Create a property to track the remaining time
+        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime/3);
+
+        // Initialize the timeline for the countdown
+        timeline = new Timeline();
+
+        // Bind the countdown timer's text to the remaining time
+        countdownTimer.textProperty().bind(timeSeconds.asString());
+
+        // Add a keyframe to decrement the time to zero over the specified duration
+        timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(startTime + 1.0), new KeyValue(timeSeconds, 0)));
+
+        // Define the action to perform when the timer finishes
+        timeline.setOnFinished(_ -> {
+            countdownTimer.textProperty().unbind(); // Unbind the text property
+            countdownTimer.setText("X"); // Display "X" when the timer ends
+            countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
+            Platform.runLater(() -> {
+                try {
+                    doRunTurn(actionEvent); // Automatically call run turn
+                } catch (InterruptedException | IOException e) {
+                    Thread.currentThread().interrupt(); // Preserve the interrupted status
+                    log.error("Thread was interrupted during turn execution", e);
+                }
+            });
+        });
+
+        // Start the timer from the beginning
+        timeline.playFromStart();
+    }
+
+    /**
+     * Builds and starts a countdown timer with the specified start time.
+     * The timer updates the `countdownTimer` label with the remaining time
+     * and changes its appearance when the timer finishes.
+     *
+     * @param startTime The initial time (in seconds) for the countdown timer.
+     */
+    private void buildTimer(Integer startTime) {
+
+        // Set the text color of the countdown timer to dark blue
+        countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
+
+        // Create a property to track the remaining time
+        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime);
+
+        // Initialize the timeline for the countdown
+        timeline = new Timeline();
+
+        // Bind the countdown timer's text to the remaining time
+        countdownTimer.textProperty().bind(timeSeconds.asString());
+
+        // Add a keyframe to decrement the time to zero over the specified duration
+        timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(startTime + 1.0), new KeyValue(timeSeconds, 0)));
+
+        // Define the action to perform when the timer finishes
+        timeline.setOnFinished(_ -> {
+            countdownTimer.textProperty().unbind(); // Unbind the text property
+            countdownTimer.setText("X"); // Display "X" when the timer ends
+            countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
+
+        });
+
+        // Start the timer from the beginning
+        timeline.playFromStart();
+    }
+
     /**
      * Enables or disables the main game buttons.
      *
@@ -573,10 +674,11 @@ public class BoardController {
             // Hide run buttons and publish the end of the period
             hideRunButtons();
             Prompts.publishEndPeriod(gameBoardLog);
-        } else {
+        }
             // Move to the next run turn
             Board.getInstance().augmentRunTurn();
             highlightActiveWorkstation(100);
+           //Clear in training box
             Board.getInstance().returnServerToOriginalWorkstation();
             inTrainingBox.getChildren().clear();
 
@@ -589,7 +691,7 @@ public class BoardController {
 
             // Handle the transition to the next run or period
             handleNextRunOrPeriod();
-        }
+
     }
 
     /**
@@ -692,9 +794,8 @@ public class BoardController {
     /**
      * Handles the transition to the next run or period. This includes updating the UI,
      * publishing prompts, and starting the timer for the next phase.
-     *
      */
-    private void handleNextRunOrPeriod()  {
+    private void handleNextRunOrPeriod() {
         // Check if the current run turn is the first one
         if (Board.getInstance().getCurrentRunTurn() == 1) {
             // Show period-related buttons and prompts
@@ -705,14 +806,16 @@ public class BoardController {
             buttonAddSkills.setDisable(false);
             redrawBoard();
             Prompts.publishStartPeriod(gameBoardLog, Board.getInstance().getCurrentPeriod());
-            buildTimer(START_TIME * 2);
-        } else if (Board.getInstance().getCurrentRunTurn() <= Board.getInstance().getRunTurns()) {
+            buildPeriodTimer(START_TIME , new ActionEvent());
+        }
+
+        if (Board.getInstance().getCurrentRunTurn() <= Board.getInstance().getRunTurns()) {
             // Enable turn-related buttons and publish the start of the turn
             buttonRunTurn.setDisable(false);
             buttonServerMoves.setDisable(isVanilla());
             redrawBoard();
             Prompts.publishTurnStart(gameBoardLog, Board.getInstance().getCurrentPeriod(), Board.getInstance().getCurrentRunTurn());
-            buildTimer(START_TIME);
+            buildRunTurnTimer(START_TIME, new ActionEvent());
         } else {
             // Throw an exception if the run turn is invalid
             throw new IllegalStateException("Run: " + Board.getInstance().getCurrentRunTurn() +
@@ -727,6 +830,43 @@ public class BoardController {
         turnButtonBar.setVisible(false);
         buttonRunTurn.setVisible(false);
         buttonServerMoves.setVisible(false);
+    }
+
+    /**
+     * Highlights the active workstation or count by updating the background and text colors
+     * of the corresponding UI elements. Resets all other workstations and counts to their default state.
+     *
+     * @param activeWorkstation The index of the active workstation to highlight.
+     *                          Use -1 to highlight the backlog count,
+     *                          100 to highlight the finished goods count,
+     *                          or a valid workstation index (0-4) to highlight a specific workstation.
+     */
+    private void highlightActiveWorkstation(int activeWorkstation) {
+        // Reset all workstation and count backgrounds to white
+        Background whiteBackground = new Background(new BackgroundFill(javafx.scene.paint.Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY));
+        List<Label> workstationCounts = List.of(workstationCount0, workstationCount1, workstationCount2, workstationCount3, workstationCount4);
+        workstationCounts.forEach(label -> {
+            label.setBackground(whiteBackground);
+            label.setTextFill(javafx.scene.paint.Color.BLACK);
+        });
+        backlogCount.setBackground(whiteBackground);
+        finishedGoodsCount.setBackground(whiteBackground);
+
+        // Highlight the active workstation or count
+        if (activeWorkstation == -1) {
+            // Highlight the backlog count
+            backlogCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        } else if (activeWorkstation >= 0 && activeWorkstation < workstationCounts.size()) {
+            // Highlight the specified workstation
+            Label activeLabel = workstationCounts.get(activeWorkstation);
+            javafx.scene.paint.Color bgColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFXColor();
+            javafx.scene.paint.Color fontColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFontColor();
+            activeLabel.setBackground(new Background(new BackgroundFill(bgColor, CornerRadii.EMPTY, Insets.EMPTY)));
+            activeLabel.setTextFill(fontColor);
+        } else if (activeWorkstation == 100) {
+            // Highlight the finished goods count
+            finishedGoodsCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        }
     }
 
     /**
@@ -924,43 +1064,8 @@ public class BoardController {
         buttonEndGame.setDisable(false);
 
         // Start a timer with a duration of 15 seconds
-        buildTimer(15);
-    }
+        buildPeriodTimer(15, actionEvent);
 
-
-    /**
-     * Builds and starts a countdown timer with the specified start time.
-     * The timer updates the `countdownTimer` label with the remaining time
-     * and changes its appearance when the timer finishes.
-     *
-     * @param startTime The initial time (in seconds) for the countdown timer.
-     */
-    private void buildTimer(Integer startTime) {
-
-        // Set the text color of the countdown timer to dark blue
-        countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
-
-        // Create a property to track the remaining time
-        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime);
-
-        // Initialize the timeline for the countdown
-        timeline = new Timeline();
-
-        // Bind the countdown timer's text to the remaining time
-        countdownTimer.textProperty().bind(timeSeconds.asString());
-
-        // Add a keyframe to decrement the time to zero over the specified duration
-        timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(startTime + 1.0), new KeyValue(timeSeconds, 0)));
-
-        // Define the action to perform when the timer finishes
-        timeline.setOnFinished(_ -> {
-            countdownTimer.textProperty().unbind(); // Unbind the text property
-            countdownTimer.setText("X"); // Display "X" when the timer ends
-            countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
-        });
-
-        // Start the timer from the beginning
-        timeline.playFromStart();
     }
 
     /**
@@ -1007,189 +1112,152 @@ public class BoardController {
         }
 
         // Start a timer for the turn
-        buildTimer(START_TIME);
+        buildRunTurnTimer(START_TIME,actionEvent);
     }
 
     /**
-     * Highlights the active workstation or count by updating the background and text colors
-     * of the corresponding UI elements. Resets all other workstations and counts to their default state.
+     * Processes the servers in a workstation, handling their actions and updating the game state.
+     * If the workstation is inactive, it waits for a specified duration, reactivates it, and redraws the board.
+     * For each server, it performs the server's action and handles success, failure, or empty results.
+     * Additionally, it determines and executes any bit actions and redraws the board after each server's action.
      *
-     * @param activeWorkstation The index of the active workstation to highlight.
-     *                          Use -1 to highlight the backlog count,
-     *                          100 to highlight the finished goods count,
-     *                          or a valid workstation index (0-4) to highlight a specific workstation.
+     * @param position The index of the workstation to process.
+     * @throws IOException          If an I/O error occurs during server actions or prompts.
+     * @throws InterruptedException If the thread is interrupted during the sleep operation.
      */
-    private void highlightActiveWorkstation(int activeWorkstation) {
-        // Reset all workstation and count backgrounds to white
-        Background whiteBackground = new Background(new BackgroundFill(javafx.scene.paint.Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY));
-        List<Label> workstationCounts = List.of(workstationCount0, workstationCount1, workstationCount2, workstationCount3, workstationCount4);
-        workstationCounts.forEach(label -> {
-            label.setBackground(whiteBackground);
-            label.setTextFill(javafx.scene.paint.Color.BLACK);
-        });
-        backlogCount.setBackground(whiteBackground);
-        finishedGoodsCount.setBackground(whiteBackground);
+    private void runWorkstations(int position) throws IOException, InterruptedException {
+        // Retrieve the workstation at the specified position
+        Workstation workstation = WorkstationService.getWorkstation(position);
+        Objects.requireNonNull(workstation);
 
-        // Highlight the active workstation or count
-        if (activeWorkstation == -1) {
-            // Highlight the backlog count
-            backlogCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
-        } else if (activeWorkstation >= 0 && activeWorkstation < workstationCounts.size()) {
-            // Highlight the specified workstation
-            Label activeLabel = workstationCounts.get(activeWorkstation);
-            javafx.scene.paint.Color bgColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFXColor();
-            javafx.scene.paint.Color fontColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFontColor();
-            activeLabel.setBackground(new Background(new BackgroundFill(bgColor, CornerRadii.EMPTY, Insets.EMPTY)));
-            activeLabel.setTextFill(fontColor);
-        } else if (activeWorkstation == 100) {
-            // Highlight the finished goods count
-            finishedGoodsCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        // Check if the workstation is inactive
+        if (!workstation.isActive()) {
+            // Wait for 5 seconds, reactivate the workstation, and redraw the board
+            Thread.sleep(5000);
+            workstation.setActive(true);
+            redrawBoard();
+            return;
+        }
+
+        // Filter out PairPartner servers from the workstation's server list
+        List<Server> serverList = workstation.getServers().stream().filter(server -> !(server instanceof PairPartner)).toList();
+        for (Server server : serverList) {
+            // Exit the loop if the game is over
+            if (Board.getInstance().gameIsOver()) break;
+
+            // Log the current server being processed
+            log.debug("Now serving server {}", server);
+
+            // Perform the server's action and handle the result
+            ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, workstation, gameBoardLog);
+            switch (result) {
+                case SUCCESS:
+                    // Prompt for moving work items within the workstation
+                    Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
+                    break;
+                case FAILED:
+                    // Retry the action using a period hold card or a partner if available
+                    if (!Board.getInstance().getPeriodHoldCards().isEmpty()) {
+                        retryWithCard(workstation, position, server);
+                    } else if (workstation.getServers().stream().anyMatch(PairPartner.class::isInstance)) {
+                        retryWithPartner(workstation, position, server);
+                    }
+                    break;
+                case EMPTY:
+                    // No action is taken for an empty result
+                    break;
+            }
+
+            // Determine and execute any bit actions for the current position
+            bitActionsDetermined(position);
+
+            // Redraw the board to reflect the updated state
+            redrawBoard();
         }
     }
 
-   /**
-    * Processes the servers in a workstation, handling their actions and updating the game state.
-    * If the workstation is inactive, it waits for a specified duration, reactivates it, and redraws the board.
-    * For each server, it performs the server's action and handles success, failure, or empty results.
-    * Additionally, it determines and executes any bit actions and redraws the board after each server's action.
-    *
-    * @param position The index of the workstation to process.
-    * @throws IOException          If an I/O error occurs during server actions or prompts.
-    * @throws InterruptedException If the thread is interrupted during the sleep operation.
-    */
-   private void runWorkstations(int position) throws IOException, InterruptedException {
-       // Retrieve the workstation at the specified position
-       Workstation workstation = WorkstationService.getWorkstation(position);
-       Objects.requireNonNull(workstation);
-
-       // Check if the workstation is inactive
-       if (!workstation.isActive()) {
-           // Wait for 5 seconds, reactivate the workstation, and redraw the board
-           Thread.sleep(5000);
-           workstation.setActive(true);
-           redrawBoard();
-           return;
-       }
-
-       // Filter out PairPartner servers from the workstation's server list
-       List<Server> serverList = workstation.getServers().stream().filter(server -> !(server instanceof PairPartner)).toList();
-       for (Server server : serverList) {
-           // Exit the loop if the game is over
-           if (Board.getInstance().gameIsOver()) break;
-
-           // Log the current server being processed
-           log.debug("Now serving server {}", server);
-
-           // Perform the server's action and handle the result
-           ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, workstation, gameBoardLog);
-           switch (result) {
-               case SUCCESS:
-                   // Prompt for moving work items within the workstation
-                   Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
-                   break;
-               case FAILED:
-                   // Retry the action using a period hold card or a partner if available
-                   if (!Board.getInstance().getPeriodHoldCards().isEmpty()) {
-                       retryWithCard(workstation, position, server);
-                   } else if (workstation.getServers().stream().anyMatch(PairPartner.class::isInstance)) {
-                       retryWithPartner(workstation, position, server);
-                   }
-                   break;
-               case EMPTY:
-                   // No action is taken for an empty result
-                   break;
-           }
-
-           // Determine and execute any bit actions for the current position
-           bitActionsDetermined(position);
-
-           // Redraw the board to reflect the updated state
-           redrawBoard();
-       }
-   }
-
-/**
- * Handles the server moves action by prompting the user to move servers
- * and updating the game state accordingly.
- *
- * @param actionEvent The action event triggered by the user.
- * @throws ThroughputRuntimeException If an I/O error occurs during the process.
- */
-@FXML
-protected void serverMoves(ActionEvent actionEvent) {
-    if (log.isDebugEnabled()) {
-        log.debug(actionEvent.toString());
+    /**
+     * Handles the server moves action by prompting the user to move servers
+     * and updating the game state accordingly.
+     *
+     * @param actionEvent The action event triggered by the user.
+     * @throws ThroughputRuntimeException If an I/O error occurs during the process.
+     */
+    @FXML
+    protected void serverMoves(ActionEvent actionEvent) {
+        if (log.isDebugEnabled()) {
+            log.debug(actionEvent.toString());
+        }
+        try {
+            Prompts.promptForServerMoves(gameDialogPane, Board.getInstance().getInTrainingServer(), this);
+        } catch (IOException e) {
+            throw new ThroughputRuntimeException(e);
+        }
     }
-    try {
-        Prompts.promptForServerMoves(gameDialogPane, Board.getInstance().getInTrainingServer(), this);
-    } catch (IOException e) {
-        throw new ThroughputRuntimeException(e);
+
+    /**
+     * Displays the information card to the user by invoking the appropriate prompt.
+     *
+     * @param actionEvent The action event triggered by the user.
+     * @throws ThroughputRuntimeException If an I/O error occurs during the process.
+     */
+    @FXML
+    protected void showInfo(ActionEvent actionEvent) {
+        if (log.isDebugEnabled()) {
+            log.debug(actionEvent.toString());
+        }
+        try {
+            Prompts.showInfoCard(gameDialogPane);
+        } catch (IOException e) {
+            throw new ThroughputRuntimeException(e);
+        }
     }
-}
 
-/**
- * Displays the information card to the user by invoking the appropriate prompt.
- *
- * @param actionEvent The action event triggered by the user.
- * @throws ThroughputRuntimeException If an I/O error occurs during the process.
- */
-@FXML
-protected void showInfo(ActionEvent actionEvent) {
-    if (log.isDebugEnabled()) {
-        log.debug(actionEvent.toString());
+    /**
+     * Displays the rules card to the user by invoking the appropriate prompt.
+     *
+     * @param actionEvent The action event triggered by the user.
+     * @throws ThroughputRuntimeException If an I/O error occurs during the process.
+     */
+    @FXML
+    protected void showRules(ActionEvent actionEvent) {
+        if (log.isDebugEnabled()) {
+            log.debug(actionEvent.toString());
+        }
+        try {
+            Prompts.showRulesCard(gameDialogPane);
+        } catch (IOException e) {
+            throw new ThroughputRuntimeException(e);
+        }
     }
-    try {
-        Prompts.showInfoCard(gameDialogPane);
-    } catch (IOException e) {
-        throw new ThroughputRuntimeException(e);
+
+    /**
+     * Updates the scorecard chart by clearing existing data, retrieving the latest scorecards,
+     * and populating the chart with the scores. Configures the chart to disable symbols,
+     * animations, and legends for a cleaner display.
+     */
+    private void updateScorecardChart() {
+        // Clear existing data from the score line chart
+        scoreLineChart.getData().clear();
+
+        // Retrieve the array of scorecards
+        ScoreCard[] scorecards = ScorecardService.getSCORECARDS();
+
+        // Define a new series to hold the score data
+        XYChart.Series<Integer, Integer> series = new XYChart.Series<>();
+
+        // Populate the series with data from the scorecards
+        for (int scorecardIndex = 0; scorecardIndex < scorecards.length; scorecardIndex++) {
+            series.getData().add(new XYChart.Data<>(scorecardIndex + 1, scorecards[scorecardIndex].getScore()));
+        }
+
+        // Configure the chart settings
+        scoreLineChart.setCreateSymbols(false); // Disable symbols on the chart
+        scoreLineChart.setAnimated(false); // Disable animations for the chart
+        scoreLineChart.setLegendVisible(false); // Hide the legend
+
+        // Add the populated series to the chart
+        scoreLineChart.getData().add(series);
     }
-}
-
-/**
- * Displays the rules card to the user by invoking the appropriate prompt.
- *
- * @param actionEvent The action event triggered by the user.
- * @throws ThroughputRuntimeException If an I/O error occurs during the process.
- */
-@FXML
-protected void showRules(ActionEvent actionEvent) {
-    if (log.isDebugEnabled()) {
-        log.debug(actionEvent.toString());
-    }
-    try {
-        Prompts.showRulesCard(gameDialogPane);
-    } catch (IOException e) {
-        throw new ThroughputRuntimeException(e);
-    }
-}
-
-   /**
-    * Updates the scorecard chart by clearing existing data, retrieving the latest scorecards,
-    * and populating the chart with the scores. Configures the chart to disable symbols,
-    * animations, and legends for a cleaner display.
-    */
-   private void updateScorecardChart() {
-       // Clear existing data from the score line chart
-       scoreLineChart.getData().clear();
-
-       // Retrieve the array of scorecards
-       ScoreCard[] scorecards = ScorecardService.SCORECARDS;
-
-       // Define a new series to hold the score data
-       XYChart.Series<Integer, Integer> series = new XYChart.Series<>();
-
-       // Populate the series with data from the scorecards
-       for (int scorecardIndex = 0; scorecardIndex < scorecards.length; scorecardIndex++) {
-           series.getData().add(new XYChart.Data<>(scorecardIndex + 1, scorecards[scorecardIndex].getScore()));
-       }
-
-       // Configure the chart settings
-       scoreLineChart.setCreateSymbols(false); // Disable symbols on the chart
-       scoreLineChart.setAnimated(false); // Disable animations for the chart
-       scoreLineChart.setLegendVisible(false); // Hide the legend
-
-       // Add the populated series to the chart
-       scoreLineChart.getData().add(series);
-   }
 
 }

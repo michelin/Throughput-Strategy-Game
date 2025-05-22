@@ -42,7 +42,7 @@ public class InitialWorkItemsController {
             final Workstation workstationZero = WorkstationService.getWorkstation(0);
             workstationZero.addToWorkItemCount(Math.min(workstationMaxMovesInt,initialMoveFromBacklog));
 
-            ScorecardService.getBacklog().subtractFromBacklog(Math.min(workstationMaxMovesInt,initialMoveFromBacklog));
+            ScorecardService.BACKLOG.subtractFromBacklog(Math.min(workstationMaxMovesInt,initialMoveFromBacklog));
 
         } catch (NumberFormatException e) {
             LOGGER.error("InitialWorkItems", e);

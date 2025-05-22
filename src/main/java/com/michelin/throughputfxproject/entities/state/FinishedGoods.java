@@ -23,6 +23,21 @@ public class FinishedGoods implements Savable {
     private int value;
 
 
+/**
+     * Adds a specified amount to the tally of finished goods.
+     * If the provided amount is negative, it is treated as zero.
+     *
+     * @param amount The amount to add to the finished goods tally.
+     *               Negative values are treated as zero.
+     */
+    public void addToFinishedGoods(int amount) {
+        if (amount < 0) {
+            amount = 0;
+        }
+        finishedGoodsTally += amount;
+    }
+
+
     /**
      * Calculates the score based on the tally of finished goods and the multiplier value.
      * The formula used is: `finishedGoodsTally * value`.

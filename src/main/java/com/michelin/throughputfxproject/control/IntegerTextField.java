@@ -12,7 +12,7 @@ public class IntegerTextField extends TextField {
                     if (value >= 0 && value < 100) {
                         return change;
                     }
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException _) {
                     // Ignore
                 }
             }

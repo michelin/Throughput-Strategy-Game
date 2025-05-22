@@ -60,7 +60,7 @@ public class ThroughputApplication extends Application {
         int periods = getAnInt(cmd.getOptionValue("periods"), DEFAULT_RUN_PERIODS);
         int turns = getAnInt(cmd.getOptionValue("turns"), DEFAULT_RUN_TURNS);
 
-        log.info("The sum of the arguments is: {} {} {} {}", sides, stations, periods, turns);
+        log.debug("The the arguments are sides: {} stations: {} periods: {} turns: {}", sides, stations, periods, turns);
 
         try (InputStream input = new FileInputStream(new File(
                 Objects.requireNonNull(ThroughputApplication.class.getResource("config.properties")).toURI()))) {

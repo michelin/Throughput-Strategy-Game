@@ -27,9 +27,9 @@ public class EstimateController {
             ScoreCard scoreCard = ScorecardService.getScorecardForCurrentWeek();
             scoreCard.setEstimate(startValue);
 
-            ScorecardService.getBacklog().addToBacklog(startValue);
+            ScorecardService.BACKLOG.addToBacklog(startValue);
             estimateButton.setDisable(true);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText("Must enter a valid number");

@@ -53,7 +53,7 @@ public static Die rollDie(@NonNull Die die) {
  */
 public static Die getDie(int sides) {
     if (sides == 0) throw new IllegalArgumentException("sides cannot be zero");
-    return new Die(sides);
+    return  Die.builder().sides(sides).build();
 }
 
 /**
