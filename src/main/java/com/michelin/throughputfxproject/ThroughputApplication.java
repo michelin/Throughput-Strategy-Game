@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
 
 import java.io.*;
-import java.net.URISyntaxException;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -40,48 +39,55 @@ public class ThroughputApplication extends Application {
      */
     public static void main(String[] args) {
 
-        Options options = new Options();
-        options.addOption("sides", false, "Die Sides")
-                .addOption("stations", false, "Number Workstations")
-                .addOption("periods", false, "Number Periods")
-                .addOption("turns", false, "Number Turns");
+      Options options = new Options();
+      options.addOption("sides", false, "Die Sides");
+      options.addOption("stations", false, "Number Workstations");
+      options.addOption("periods", false, "Number Periods");
+      options.addOption("turns", false, "Number Turns");
+      options.addOption("configType", false, "Configuration Type (e.g., 'restaurant', 'management')");
 
-        CommandLine cmd;
-        try {
-            cmd = new DefaultParser().parse(options, args);
-        } catch (ParseException e) {
-            log.info(e.getMessage());
-            System.exit(1);
-            return; // Ensure no further execution
-        }
+      CommandLine cmd;
+      try {
+          cmd = new DefaultParser().parse(options, args);
+      } catch (ParseException e) {
+          log.info(e.getMessage());
+          System.exit(1);
+          return;
+      }
 
-        int sides = getAnInt(cmd.getOptionValue("sides"), DEFAULT_DIE_SIDES);
-        int stations = getAnInt(cmd.getOptionValue("stations"), DEFAULT_RUN_STATIONS);
-        int periods = getAnInt(cmd.getOptionValue("periods"), DEFAULT_RUN_PERIODS);
-        int turns = getAnInt(cmd.getOptionValue("turns"), DEFAULT_RUN_TURNS);
+      int sides = getAnInt(cmd.getOptionValue("sides"), DEFAULT_DIE_SIDES);
+      int stations = getAnInt(cmd.getOptionValue("stations"), DEFAULT_RUN_STATIONS);
+      int periods = getAnInt(cmd.getOptionValue("periods"), DEFAULT_RUN_PERIODS);
+      int turns = getAnInt(cmd.getOptionValue("turns"), DEFAULT_RUN_TURNS);
 
-        log.debug("The the arguments are sides: {} stations: {} periods: {} turns: {}", sides, stations, periods, turns);
+      log.debug("The arguments are sides: {} stations: {} periods: {} turns: {}", sides, stations, periods, turns);
 
-        try (InputStream input = new FileInputStream(new File(
-                Objects.requireNonNull(ThroughputApplication.class.getResource("config.properties")).toURI()))) {
+        String configType = cmd.getOptionValue("configType");
+        String configFileName = (configType != null && !configType.isEmpty())
+                ? String.format("config-%s.properties", configType)
+                : "config.properties";
 
-            Properties propertiesFile = new Properties();
-            propertiesFile.load(input);
+      try (InputStream input = ThroughputApplication.class.getResourceAsStream(configFileName)) {
+          if (input != null) {
+              Properties propertiesFile = new Properties();
+              propertiesFile.load(input);
 
-            if (log.isDebugEnabled()) {
-                log.debug(propertiesFile.getProperty("run.topic"));
-                log.debug(propertiesFile.getProperty("period.label"));
-                log.debug(propertiesFile.getProperty("run.label"));
-            }
+              if (log.isDebugEnabled()) {
+                  log.debug(propertiesFile.getProperty("run.topic"));
+                  log.debug(propertiesFile.getProperty("period.label"));
+                  log.debug(propertiesFile.getProperty("run.label"));
+              }
 
-            System.getProperties().putAll(propertiesFile);
+              System.getProperties().putAll(propertiesFile);
+          } else {
+              log.error("config.properties not found");
+          }
+      } catch (IOException ex) {
+          log.error("Problem loading properties", ex);
+      }
 
-        } catch (IOException | URISyntaxException ex) {
-            log.error("Problem loading properties", ex);
-        }
-
-        Board.initializeInstance(sides, stations, periods, turns);
-        launch();
+      Board.initializeInstance(sides, stations, periods, turns);
+      launch();
     }
 
     /**
