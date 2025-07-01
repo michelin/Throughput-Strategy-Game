@@ -1,5 +1,5 @@
 # pulled from Full project: https://gitlab.com/pages/plain-html
-image: busybox
+image: docker.artifactory.michelin.com/alpine:3.8
 pages:
   stage: deploy
   script:
