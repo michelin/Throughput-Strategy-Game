@@ -229,7 +229,7 @@ public class WorkstationService {
      * @return The total number of work items in process.
      */
     public static int tallyWorkInProcess() {
-        return Arrays.stream(workstations).mapToInt(Workstation::getWorkItemCount).sum();
+        return Arrays.stream(getWorkstations()).mapToInt(Workstation::getWorkItemCount).sum();
     }
 
     /**

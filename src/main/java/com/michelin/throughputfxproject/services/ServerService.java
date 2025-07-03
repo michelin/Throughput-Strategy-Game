@@ -45,7 +45,7 @@ public static HumanServer getHumanServer(Color color) {
         }
     }
     HumanServer humanServer = new HumanServer(color);
-    humanServers.add(new HumanServer(color));
+    humanServers.add(humanServer);
     return humanServer;
 }
 
@@ -73,7 +73,7 @@ public static AutomatedServer getRobotServer(Color color) {
         }
     }
     AutomatedServer automatedServer = new AutomatedServer(color);
-    automatedServers.add(new AutomatedServer(color));
+    automatedServers.add(automatedServer);
     return automatedServer;
 }
 

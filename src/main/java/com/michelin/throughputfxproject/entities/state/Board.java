@@ -67,19 +67,26 @@ public class Board implements Savable {
     }
 
     /**
+     * Clears the singleton instance of the Board.
+     * This is primarily intended for testing or resetting the game state.
+     * After calling this method, getInstance() will throw an IllegalStateException
+     * until initializeInstance() is called again.
+     */
+    public static void clearInstance() {
+        instance = null;
+    }
+
+    /**
      * Initializes the singleton instance of the Board with the specified parameters.
-     * If the instance is already initialized, this method does nothing.
      *
      * @param dieFaces The number of faces on the die used in the game.
      * @param stationCount The number of stations in the game.
      * @param runPeriods The number of periods in a game run.
      * @param runTurns The number of turns in a game run.
      */
-    public static void initializeInstance(int dieFaces, int stationCount, int runPeriods, int runTurns) {
-        if (instance != null) {
-            return;
-        }
+    public static Board initializeInstance(int dieFaces, int stationCount, int runPeriods, int runTurns) {
         instance = Board.builder().dieFaces(dieFaces).stationCount(stationCount).runPeriods(runPeriods).runTurns(runTurns).build();
+        return instance;
     }
 
     /**
@@ -413,5 +420,3 @@ public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) 
         return json.toString();
     }
 }
-
-

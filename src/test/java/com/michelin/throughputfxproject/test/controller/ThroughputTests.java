@@ -1,4 +1,4 @@
-package com.michelin.throughputfxproject.controllerTests;
+package com.michelin.throughputfxproject.test.controller;
 
 
 import com.michelin.throughputfxproject.ThroughputApplication;

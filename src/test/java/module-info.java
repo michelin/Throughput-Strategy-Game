@@ -1,4 +1,4 @@
-module com.michelin.throughputfxproject.controllerTests {
+module com.michelin.throughputfxproject.test {
     requires com.michelin.throughputfxproject;
     requires org.mockito.junit.jupiter;
     requires org.mockito;
@@ -7,5 +7,8 @@ module com.michelin.throughputfxproject.controllerTests {
     requires javafx.fxml;
     requires static lombok;
 
-    opens com.michelin.throughputfxproject.controllerTests to org.junit.platform.commons;
+
+    opens com.michelin.throughputfxproject.test.controller to org.junit.platform.commons;
+    opens com.michelin.throughputfxproject.test.service to org.junit.platform.commons;
+    opens com.michelin.throughputfxproject.test.state to org.junit.platform.commons;
 }

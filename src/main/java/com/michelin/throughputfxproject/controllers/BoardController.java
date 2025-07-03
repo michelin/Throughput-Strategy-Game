@@ -33,8 +33,7 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
 import javafx.util.Duration;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -50,6 +49,8 @@ import static com.michelin.throughputfxproject.entities.state.Board.*;
 @EqualsAndHashCode
 @ToString
 @Slf4j
+@Getter
+@Setter
 public class BoardController {
 
     public static final String ACTION_EVENT = "Action Event: {}";
@@ -149,12 +150,11 @@ public class BoardController {
 
     public BoardController() {
         try {
-            var board = Board.getInstance();
-            if (board == null) {
-                Board.initializeInstance(DEFAULT_DIE_SIDES, DEFAULT_RUN_STATIONS, DEFAULT_RUN_PERIODS, DEFAULT_RUN_TURNS);
-            }
+            Board.getInstance();
         } catch (IllegalStateException e) {
             log.info(e.getMessage());
+        } finally {
+            Board.initializeInstance(DEFAULT_DIE_SIDES, DEFAULT_RUN_STATIONS, DEFAULT_RUN_PERIODS, DEFAULT_RUN_TURNS);
         }
     }
 
@@ -201,7 +201,7 @@ public class BoardController {
      * @throws IOException If an I/O error occurs during the process.
      */
     @FXML
-    protected void addOrRemoveSkillsForServers(ActionEvent actionEvent) throws IOException {
+    public void addOrRemoveSkillsForServers(ActionEvent actionEvent) throws IOException {
         // Log the action event for debugging purposes
         log.debug("Remove skill " + ACTION_EVENT, actionEvent);
 
@@ -229,7 +229,7 @@ public class BoardController {
      * Redraws the game board by updating the UI elements to reflect the current state of the game.
      * This includes updating server cards, workstation counts, labels, and other game statistics.
      */
-    protected void redrawBoard() {
+    public void redrawBoard() {
         // Retrieve the list of workstations
         Workstation[] workstations = WorkstationService.getWorkstations();
 
@@ -237,6 +237,9 @@ public class BoardController {
             // Update the server cards for each workstation
             Pane[] serverPanes = {servers00, servers10, servers20, servers30, servers40};
             for (int i = 0; i < workstations.length; i++) {
+                if (serverPanes[i] == null) {
+                    continue;
+                }
                 buildServerCards(workstations[i].getServers(), serverPanes[i]);
             }
             // Update the in-training server card
@@ -250,6 +253,10 @@ public class BoardController {
         Label[] workstationCounts = {workstationCount0, workstationCount1, workstationCount2, workstationCount3, workstationCount4};
         Label[] workstationLabels = {workstationLabel0, workstationLabel1, workstationLabel2, workstationLabel3, workstationLabel4};
         for (int i = 0; i < workstations.length; i++) {
+            if(workstationCounts[i] == null || workstationLabels[i] == null) {
+                log.warn("workstationCounts[{}] or workstationLabels[{}] is null", i, i);
+                continue;
+            }
             workstationCounts[i].setText(StringUtils.leftPad(String.valueOf(workstations[i].getWorkItemCount()), 3, '0'));
             workstationLabels[i].setText(workstations[i].getColor().name() + ": " + workstations[i].getCapacity());
         }
@@ -522,7 +529,7 @@ public class BoardController {
         countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
 
         // Create a property to track the remaining time
-        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime/2);
+        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime / 2);
 
         // Initialize the timeline for the countdown
         timeline = new Timeline();
@@ -551,7 +558,7 @@ public class BoardController {
         countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
 
         // Create a property to track the remaining time
-        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime/3);
+        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime / 3);
 
         // Initialize the timeline for the countdown
         timeline = new Timeline();
@@ -581,41 +588,6 @@ public class BoardController {
         timeline.playFromStart();
     }
 
-    /**
-     * Builds and starts a countdown timer with the specified start time.
-     * The timer updates the `countdownTimer` label with the remaining time
-     * and changes its appearance when the timer finishes.
-     *
-     * @param startTime The initial time (in seconds) for the countdown timer.
-     */
-    private void buildTimer(Integer startTime) {
-
-        // Set the text color of the countdown timer to dark blue
-        countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
-
-        // Create a property to track the remaining time
-        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime);
-
-        // Initialize the timeline for the countdown
-        timeline = new Timeline();
-
-        // Bind the countdown timer's text to the remaining time
-        countdownTimer.textProperty().bind(timeSeconds.asString());
-
-        // Add a keyframe to decrement the time to zero over the specified duration
-        timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(startTime + 1.0), new KeyValue(timeSeconds, 0)));
-
-        // Define the action to perform when the timer finishes
-        timeline.setOnFinished(_ -> {
-            countdownTimer.textProperty().unbind(); // Unbind the text property
-            countdownTimer.setText("X"); // Display "X" when the timer ends
-            countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
-
-        });
-
-        // Start the timer from the beginning
-        timeline.playFromStart();
-    }
 
     /**
      * Enables or disables the main game buttons.
@@ -675,22 +647,22 @@ public class BoardController {
             hideRunButtons();
             Prompts.publishEndPeriod(gameBoardLog);
         }
-            // Move to the next run turn
-            Board.getInstance().augmentRunTurn();
-            highlightActiveWorkstation(100);
-           //Clear in training box
-            Board.getInstance().returnServerToOriginalWorkstation();
-            inTrainingBox.getChildren().clear();
+        // Move to the next run turn
+        Board.getInstance().augmentRunTurn();
+        highlightActiveWorkstation(100);
+        //Clear in training box
+        Board.getInstance().returnServerToOriginalWorkstation();
+        inTrainingBox.getChildren().clear();
 
-            // Check if the game is over
-            if (Board.getInstance().gameIsOver()) {
-                updateScorecardChart();
-                redrawBoard();
-                return;
-            }
+        // Check if the game is over
+        if (Board.getInstance().gameIsOver()) {
+            updateScorecardChart();
+            redrawBoard();
+            return;
+        }
 
-            // Handle the transition to the next run or period
-            handleNextRunOrPeriod();
+        // Handle the transition to the next run or period
+        handleNextRunOrPeriod();
 
     }
 
@@ -806,7 +778,7 @@ public class BoardController {
             buttonAddSkills.setDisable(false);
             redrawBoard();
             Prompts.publishStartPeriod(gameBoardLog, Board.getInstance().getCurrentPeriod());
-            buildPeriodTimer(START_TIME , new ActionEvent());
+            buildPeriodTimer(START_TIME, new ActionEvent());
         }
 
         if (Board.getInstance().getCurrentRunTurn() <= Board.getInstance().getRunTurns()) {
@@ -1112,7 +1084,7 @@ public class BoardController {
         }
 
         // Start a timer for the turn
-        buildRunTurnTimer(START_TIME,actionEvent);
+        buildRunTurnTimer(START_TIME, actionEvent);
     }
 
     /**
