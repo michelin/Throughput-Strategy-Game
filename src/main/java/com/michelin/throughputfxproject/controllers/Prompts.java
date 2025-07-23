@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.michelin.throughputfxproject.controllers;
 
 import com.michelin.throughputfxproject.ThroughputApplication;
@@ -40,7 +58,11 @@ public class Prompts {
     private static final String THROUGHPUT = "Throughput";
     private static final String START_THE_WEEK = "Click on Run Week to start the week";
     private static final String WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE = "Workstation is empty, No moves are possible";
-    private static final int TIMEOUT_DURATION = 15;
+    private static final int TIMEOUT_DURATION = 5;
+    public static final int MODAL_TIMEOUT_DURATION = 3;
+    public static final int ALERT_TIMEOUT_DURATION = 2;
+    public static final int END_PERIOD_TIMEOUT_DURATION = 10;
+    public static final int END_OF_GAME_TIMEOUT_DURATION = 20;
 
 
     /**
@@ -89,7 +111,7 @@ public class Prompts {
      * @return The drawn BIT card if successful, or null if the die roll fails.
      * @throws IOException If an error occurs while loading the FXML file.
      */
-    protected static BitCard drawBit(@NonNull Pane container, int dieSides, @NonNull TextArea gameBoardLog, int numberRequiredForSuccess) throws IOException {
+    public static BitCard drawBit(@NonNull Pane container, int dieSides, @NonNull TextArea gameBoardLog, int numberRequiredForSuccess) throws IOException {
 
         log.debug("drawBIT");
 
@@ -135,7 +157,7 @@ public class Prompts {
             }
 
             // Create a popup and add the stack pane to it
-            createModalStage("Booster, Inoculation, Trap", container, root, 10);
+            createModalStage("Booster, Inoculation, Trap", container, root, MODAL_TIMEOUT_DURATION);
 
             gameBoardLog.getBackground().getImages().clear();
             //Follow the instructions on BIT card. If we get a hold card put in weekly hold or game hold.
@@ -250,7 +272,7 @@ public class Prompts {
      * @param gameBoardLog The log area to display game-related messages.
      * @throws IOException If an error occurs while loading the FXML file.
      */
-    protected static void implementPairedProgramming(@NonNull Pane container, @NonNull TextArea gameBoardLog) throws IOException {
+    public static void implementPairedProgramming(@NonNull Pane container, @NonNull TextArea gameBoardLog) throws IOException {
         log.debug("implementPairedProgramming");
 
         // Check if a pair partner is already assigned
@@ -339,7 +361,7 @@ public class Prompts {
      * @param isMitigated  A flag indicating whether the trap is mitigated (true) or not (false).
      * @param gameBoardLog The log area to display the trap-related message.
      */
-    protected static void promptForAppliedTrap(Trap trap, boolean isMitigated, @NonNull TextArea gameBoardLog) {
+    public static void promptForAppliedTrap(Trap trap, boolean isMitigated, @NonNull TextArea gameBoardLog) {
         log.debug("promptForAppliedTrap");
 
         String builder;
@@ -359,11 +381,11 @@ public class Prompts {
      *
      * @param gameBoardLog The log area to display the finished goods augmentation message.
      */
-    protected static void promptForFinishedGoodsAreNowFourPoints(@NonNull TextArea gameBoardLog) {
+    public static void promptForFinishedGoodsAreNowFourPoints(@NonNull TextArea gameBoardLog) {
         log.debug("promptForFinishedGoodsAreNowFourPoints");
 
         String gameBoardLogText = "Augmenting finished goods." + System.lineSeparator() + "Their value is 4 pts for the remainder of the game";
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 10);
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, MODAL_TIMEOUT_DURATION);
         ScorecardService.FINISHED_GOODS.setValue(4);
     }
 
@@ -385,7 +407,7 @@ public class Prompts {
         alert.setTitle(THROUGHPUT);
         alert.setHeaderText(null);
 
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), event -> {
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> {
             gameBoardLog.setText(gameBoardLogText);
             alert.setResult(ButtonType.OK);
             alert.hide();
@@ -403,7 +425,7 @@ public class Prompts {
      * @param server       The server for which the retry is being prompted.
      * @param gameBoardLog The log area to display the retry-related message.
      */
-    protected static void promptForPairRetry(@NonNull Server server, @NonNull TextArea gameBoardLog) {
+    public static void promptForPairRetry(@NonNull Server server, @NonNull TextArea gameBoardLog) {
         log.debug("promptForPairRetry");
 
         String gameBoardLogText = "Your first try failed for Server " + server.getColor().name() + System.lineSeparator() + "Partner steps in to help with a retry";
@@ -420,7 +442,7 @@ public class Prompts {
      * @param boardController The controller managing the game board state.
      * @throws IOException If an error occurs while loading the FXML file.
      */
-    protected static void promptForServerMoves(@NonNull Pane container, HumanServer inTraining, BoardController boardController) throws IOException {
+    public static void promptForServerMoves(@NonNull Pane container, HumanServer inTraining, BoardController boardController) throws IOException {
         log.debug("promptForServerMoves");
 
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("server-moves.fxml"));
@@ -460,7 +482,7 @@ public class Prompts {
      * @return True if the user chooses to use a retry card, false otherwise.
      */
     @SuppressWarnings({"java:S1190", "java:S117"})
-    protected static boolean promptForServerRetry(@NonNull Server server) {
+    public static boolean promptForServerRetry(@NonNull Server server) {
         log.debug("promptForServerRetry");
 
         Text text = new Text("Your first try failed for Server " + server.getColor().name() + System.lineSeparator() + "You have a Retry card, would you like to use it? 'Y/N'");
@@ -491,7 +513,7 @@ public class Prompts {
      * @param container The parent container for the modal dialog.
      * @throws IOException If an error occurs while loading the FXML file.
      */
-    protected static void promptForWorkItemEstimates(@NonNull Pane container) throws IOException {
+    public static void promptForWorkItemEstimates(@NonNull Pane container) throws IOException {
         log.debug("promptForWorkItemEstimates");
         FXMLLoader loader = new FXMLLoader(ThroughputApplication.class.getResource("submit-estimate.fxml"));
         Parent root = loader.load();
@@ -782,7 +804,7 @@ public class Prompts {
         ((SkillCardController) loader.getController()).getIsSuccessful().setText(String.valueOf(skillCard.isSuccess()));
 
         // Display the modal dialog
-        createModalStage("Skills", container, root, 10);
+        createModalStage("Skills", container, root, MODAL_TIMEOUT_DURATION);
         return skillCard.isSuccess();
     }
 
@@ -827,7 +849,7 @@ public class Prompts {
 
         // Button to open the file chooser
         Button chooseFileButton = new Button("Choose Game File");
-        chooseFileButton.setOnAction(event -> {
+        chooseFileButton.setOnAction(_ -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setInitialDirectory(initialDirectory);
             File file = fileChooser.showOpenDialog(dialogStage);
@@ -839,10 +861,10 @@ public class Prompts {
 
         // Button to close the dialog
         Button closeButton = new Button("Load File");
-        closeButton.setOnAction(event -> dialogStage.close());
+        closeButton.setOnAction(_ -> dialogStage.close());
 
         // Layout for the dialog
-        VBox layout = new VBox(10, filePathLabel, chooseFileButton, closeButton);
+        VBox layout = new VBox(MODAL_TIMEOUT_DURATION, filePathLabel, chooseFileButton, closeButton);
         layout.setPadding(new Insets(20));
         layout.setPrefWidth(300);
 
@@ -861,7 +883,7 @@ public class Prompts {
      */
     protected static void publishEndOfGame(TextArea gameBoardLog) {
         String gameBoardLogText = "End of Game." + System.lineSeparator() + "Assess and discuss how you did";
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 60);
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, END_OF_GAME_TIMEOUT_DURATION);
     }
 
     /**
@@ -871,7 +893,7 @@ public class Prompts {
      */
     protected static void publishEndPeriod(TextArea gameBoardLog) {
         String gameBoardLogText = "End of Week." + System.lineSeparator() + "Prepare for the start of the next week";
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 30);
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, END_PERIOD_TIMEOUT_DURATION);
     }
 
     /**
@@ -882,7 +904,7 @@ public class Prompts {
      */
     protected static void publishStartPeriod(TextArea gameBoardLog, int period) {
         String gameBoardLogText = "Week: " + period + System.lineSeparator() + START_THE_WEEK;
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 5);
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, ALERT_TIMEOUT_DURATION);
     }
 
     /**
@@ -894,7 +916,7 @@ public class Prompts {
      */
     protected static void publishTurnStart(TextArea gameBoardLog, int period, int turn) {
         String gameBoardLogText = "Day: " + turn + "  Week:  " + period + System.lineSeparator() + "Click on Run Day to start the day";
-        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 10);
+        alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, MODAL_TIMEOUT_DURATION);
     }
 
     /**
@@ -915,7 +937,7 @@ public class Prompts {
         // Check if the workstation has no work items
         if (workstation.getWorkItemCount() == 0) {
             String gameBoardLogText = "No Moves." + System.lineSeparator() + workstation.getColor() + " " + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE;
-            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 5);
+            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, ALERT_TIMEOUT_DURATION);
             return ChanceResult.EMPTY;
         }
 
@@ -938,7 +960,7 @@ public class Prompts {
         ((ChanceController) loader.getController()).getCardChance().setText(workstation.getColor().name() + " - " + chanceCard.getChanceText());
 
         // Display the modal window
-        createModalStage("Chance", container, root, 10);
+        createModalStage("Chance", container, root, MODAL_TIMEOUT_DURATION);
 
         // Return the result of the chance card play
         return chanceCard.isSuccess() ? ChanceResult.SUCCESS : ChanceResult.FAILED;

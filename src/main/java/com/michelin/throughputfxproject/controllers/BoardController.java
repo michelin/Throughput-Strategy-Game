@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.michelin.throughputfxproject.controllers;
 
 
@@ -15,8 +34,6 @@ import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
 import javafx.animation.*;
 import javafx.application.Platform;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -32,7 +49,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
-import javafx.util.Duration;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -54,8 +70,6 @@ import static com.michelin.throughputfxproject.entities.state.Board.*;
 public class BoardController {
 
     public static final String ACTION_EVENT = "Action Event: {}";
-    //Timer label implementation
-    private static final Integer START_TIME = 30;
     private static final String COLUMN_WK = "Wk";
     private static final String COLUMN_EST = "Est";
     private static final String COLUMN_WIP = "WIP";
@@ -66,6 +80,7 @@ public class BoardController {
     private static final String PROPERTY_WORK_IN_PROCESS = "workInProcess";
     private static final String PROPERTY_FINISHED_GOODS = "finishedGoods";
     private static final String PROPERTY_SCORE = "score";
+    public static final int SERVER_RETRY_DELAY = 5000;
     @FXML
     private Button buttonLoadGame;
     @FXML
@@ -146,15 +161,17 @@ public class BoardController {
     private Label workstationLabel4;
     @FXML
     private Button buttonEndGame;
-    private Timeline timeline;
+
 
     public BoardController() {
         try {
             Board.getInstance();
         } catch (IllegalStateException e) {
             log.info(e.getMessage());
-        } finally {
             Board.initializeInstance(DEFAULT_DIE_SIDES, DEFAULT_RUN_STATIONS, DEFAULT_RUN_PERIODS, DEFAULT_RUN_TURNS);
+        } catch (Exception e) {
+            log.error("Error initializing Board instance", e);
+            throw new ThroughputRuntimeException(e);
         }
     }
 
@@ -523,51 +540,33 @@ public class BoardController {
         }
     }
 
-    private void buildPeriodTimer(Integer startTime, ActionEvent actionEvent) {
+    private void buildPeriodTimer(ActionEvent actionEvent) {
 
         // Set the text color of the countdown timer to dark blue
         countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
 
-        // Create a property to track the remaining time
-        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime / 2);
-
         // Initialize the timeline for the countdown
-        timeline = new Timeline();
-
-        // Bind the countdown timer's text to the remaining time
-        countdownTimer.textProperty().bind(timeSeconds.asString());
-
-        // Add a keyframe to decrement the time to zero over the specified duration
-        timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(startTime + 1.0), new KeyValue(timeSeconds, 0)));
+        Timeline timeline = Board.getInstance().getFreshTimeline(2, countdownTimer);
 
         // Define the action to perform when the timer finishes
         timeline.setOnFinished(_ -> {
             countdownTimer.textProperty().unbind(); // Unbind the text property
             countdownTimer.setText("X"); // Display "X" when the timer ends
             countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
-            Platform.runLater(() -> runPeriod(actionEvent)); // Automatically call runPeriod
+            Platform.runLater(() -> runPeriod(actionEvent, timeline)); // Automatically call runPeriod
         });
 
         // Start the timer from the beginning
         timeline.playFromStart();
     }
 
-    private void buildRunTurnTimer(Integer startTime, ActionEvent actionEvent) {
+    private void buildRunTurnTimer(ActionEvent actionEvent) {
 
         // Set the text color of the countdown timer to dark blue
         countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
 
-        // Create a property to track the remaining time
-        IntegerProperty timeSeconds = new SimpleIntegerProperty(startTime / 3);
-
         // Initialize the timeline for the countdown
-        timeline = new Timeline();
-
-        // Bind the countdown timer's text to the remaining time
-        countdownTimer.textProperty().bind(timeSeconds.asString());
-
-        // Add a keyframe to decrement the time to zero over the specified duration
-        timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(startTime + 1.0), new KeyValue(timeSeconds, 0)));
+        Timeline timeline = Board.getInstance().getFreshTimeline(3, countdownTimer);
 
         // Define the action to perform when the timer finishes
         timeline.setOnFinished(_ -> {
@@ -576,7 +575,7 @@ public class BoardController {
             countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
             Platform.runLater(() -> {
                 try {
-                    doRunTurn(actionEvent); // Automatically call run turn
+                    doRunTurn(actionEvent, timeline); // Automatically call run turn
                 } catch (InterruptedException | IOException e) {
                     Thread.currentThread().interrupt(); // Preserve the interrupted status
                     log.error("Thread was interrupted during turn execution", e);
@@ -611,6 +610,11 @@ public class BoardController {
      */
     @FXML
     protected void doRunTurn(ActionEvent actionEvent) throws IOException, InterruptedException {
+        doRunTurn(actionEvent, null);
+    }
+
+
+    private void doRunTurn(ActionEvent actionEvent, Timeline timeline) throws IOException, InterruptedException {
         // Log the action event if debugging is enabled
         if (log.isDebugEnabled()) log.debug(actionEvent.toString());
 
@@ -778,7 +782,7 @@ public class BoardController {
             buttonAddSkills.setDisable(false);
             redrawBoard();
             Prompts.publishStartPeriod(gameBoardLog, Board.getInstance().getCurrentPeriod());
-            buildPeriodTimer(START_TIME, new ActionEvent());
+            buildPeriodTimer(new ActionEvent());
         }
 
         if (Board.getInstance().getCurrentRunTurn() <= Board.getInstance().getRunTurns()) {
@@ -787,7 +791,7 @@ public class BoardController {
             buttonServerMoves.setDisable(isVanilla());
             redrawBoard();
             Prompts.publishTurnStart(gameBoardLog, Board.getInstance().getCurrentPeriod(), Board.getInstance().getCurrentRunTurn());
-            buildRunTurnTimer(START_TIME, new ActionEvent());
+            buildRunTurnTimer(new ActionEvent());
         } else {
             // Throw an exception if the run turn is invalid
             throw new IllegalStateException("Run: " + Board.getInstance().getCurrentRunTurn() +
@@ -994,7 +998,7 @@ public class BoardController {
      * @param server      The server attempting the retry action.
      * @throws IOException If an I/O error occurs during the retry process.
      */
-    private void retryWithPartner(Workstation workstation, int position, Server server) throws IOException {
+    private boolean retryWithPartner(Workstation workstation, int position, Server server) throws IOException {
         // Prompt the user for a pair retry action
         Prompts.promptForPairRetry(server, gameBoardLog);
 
@@ -1004,7 +1008,9 @@ public class BoardController {
         // If the action is successful, prompt for workstation moves
         if (ChanceResult.SUCCESS.equals(result)) {
             Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
+            return true;
         }
+        return false;
     }
 
     /**
@@ -1034,9 +1040,8 @@ public class BoardController {
         buttonSaveGame.setDisable(false);
         buttonLoadGame.setDisable(true);
         buttonEndGame.setDisable(false);
-
-        // Start a timer with a duration of 15 seconds
-        buildPeriodTimer(15, actionEvent);
+        // Start the period timer
+        buildPeriodTimer(actionEvent);
 
     }
 
@@ -1049,6 +1054,10 @@ public class BoardController {
      */
     @FXML
     protected void runPeriod(ActionEvent actionEvent) {
+       runPeriod(actionEvent, null);
+    }
+
+    private void runPeriod(ActionEvent actionEvent, Timeline timeline) {
         // Log the action event if debugging is enabled
         if (log.isDebugEnabled()) {
             log.debug(actionEvent.toString());
@@ -1084,7 +1093,7 @@ public class BoardController {
         }
 
         // Start a timer for the turn
-        buildRunTurnTimer(START_TIME, actionEvent);
+        buildRunTurnTimer(actionEvent);
     }
 
     /**
@@ -1105,7 +1114,7 @@ public class BoardController {
         // Check if the workstation is inactive
         if (!workstation.isActive()) {
             // Wait for 5 seconds, reactivate the workstation, and redraw the board
-            Thread.sleep(5000);
+            Thread.sleep(SERVER_RETRY_DELAY);
             workstation.setActive(true);
             redrawBoard();
             return;
@@ -1129,10 +1138,11 @@ public class BoardController {
                     break;
                 case FAILED:
                     // Retry the action using a period hold card or a partner if available
-                    if (!Board.getInstance().getPeriodHoldCards().isEmpty()) {
+                    boolean pairRetryResult = workstation.getServers().stream()
+                            .anyMatch(PairPartner.class::isInstance) &&
+                            retryWithPartner(workstation, position, server);
+                    if (!Board.getInstance().getPeriodHoldCards().isEmpty() && !pairRetryResult) {
                         retryWithCard(workstation, position, server);
-                    } else if (workstation.getServers().stream().anyMatch(PairPartner.class::isInstance)) {
-                        retryWithPartner(workstation, position, server);
                     }
                     break;
                 case EMPTY:
