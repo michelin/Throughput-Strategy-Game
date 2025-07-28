@@ -18,21 +18,17 @@
  */
 package com.michelin.throughputfxproject.controllers;
 
-import com.michelin.throughputfxproject.entities.state.Board;
 import com.michelin.throughputfxproject.entities.Color;
+import com.michelin.throughputfxproject.entities.state.Board;
 import com.michelin.throughputfxproject.entities.state.Workstation;
 import com.michelin.throughputfxproject.services.WorkstationService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Objects;
 
 @Getter
 public class AddedCapacityController {
@@ -52,12 +48,15 @@ public class AddedCapacityController {
         }
 
         Workstation workstation = WorkstationService.getWorkstation(workstationToAddCapacity.getSelectionModel().getSelectedItem());
-        Objects.requireNonNull(workstation);
-        if (addCapacityText.getText().contains("double")) {
-            workstation.setCapacity(Math.min( Board.getInstance().getDieFaces(), (workstation.getCapacity() * 2)));
-        } else {
-            workstation.setCapacity(Math.min( Board.getInstance().getDieFaces(), (workstation.getCapacity() + 1)));
+        if (workstation == null) {
+            workstation = WorkstationService.findLowestCapacityWorkstation();
         }
+        if (addCapacityText.getText().contains("double")) {
+            workstation.setCapacity(Math.min(Board.getInstance().getDieFaces(), (workstation.getCapacity() * 2)));
+        } else {
+            workstation.setCapacity(Math.min(Board.getInstance().getDieFaces(), (workstation.getCapacity() + 1)));
+        }
+
 
         ((Stage) capacityButton.getParent().getScene().getWindow()).close();
     }

@@ -19,6 +19,7 @@
 package com.michelin.throughputfxproject.controllers;
 
 import com.michelin.throughputfxproject.entities.Color;
+import com.michelin.throughputfxproject.entities.servers.Server;
 import com.michelin.throughputfxproject.services.WorkstationService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -29,6 +30,9 @@ import javafx.stage.Stage;
 import lombok.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Controller class for handling the automation functionality in the application.
@@ -64,6 +68,12 @@ public class AddAutomationController {
         Color selectedColor = workstationToAddAutomation.getSelectionModel().getSelectedItem();
         if (selectedColor != null) {
             WorkstationService.automateWorkstation(selectedColor);
+        }else{
+            List<Color> serverColors = WorkstationService.findDeployedAutomatedServers().stream().map(Server::getColor).toList();
+            List<Color> leftoverColors = Arrays.stream(Color.automatedColorValues()).filter(color -> !serverColors.contains(color)).toList();
+            if(! leftoverColors.isEmpty()) {
+                WorkstationService.automateWorkstation(leftoverColors.getFirst());
+            }
         }
         ((Stage)automationButton.getParent().getScene().getWindow()).close();
     }

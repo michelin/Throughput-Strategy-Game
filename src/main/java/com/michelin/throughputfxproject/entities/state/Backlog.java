@@ -18,8 +18,11 @@
  */
 package com.michelin.throughputfxproject.entities.state;
 
+import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Getter
 @Setter
 @ToString
@@ -34,7 +37,7 @@ public class Backlog implements Savable {
      * @param amount The number of items to add to the backlog. Must be non-negative.
      */
     public void addToBacklog(int amount) {
-        if (amount < 0) throw new AssertionError();
+        if (amount < 0) throw new ThroughputRuntimeException(new AssertionError("Amount to add cannot be negative"));
         backlogItemCount += amount;
     }
 
@@ -59,8 +62,9 @@ public class Backlog implements Savable {
      *               Must be non-negative and less than or equal to the current backlog item count.
      */
     public void subtractFromBacklog(int amount) {
-        if (amount < 0) throw new AssertionError();
-        if (amount > backlogItemCount) throw new AssertionError();
+        log.info("Subtracting {} from backlog item count {}", amount, backlogItemCount);
+        if (amount < 0) throw new ThroughputRuntimeException(new AssertionError("Amount to subtract cannot be negative"));
+        if (amount > backlogItemCount)throw new ThroughputRuntimeException(new AssertionError("Amount to subtract cannot be greater than backlog item count"));
         backlogItemCount -= amount;
     }
 

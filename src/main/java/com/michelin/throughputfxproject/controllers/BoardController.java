@@ -32,7 +32,7 @@ import com.michelin.throughputfxproject.entities.state.*;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
-import javafx.animation.*;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -70,6 +70,7 @@ import static com.michelin.throughputfxproject.entities.state.Board.*;
 public class BoardController {
 
     public static final String ACTION_EVENT = "Action Event: {}";
+    public static final int SERVER_RETRY_DELAY = 5000;
     private static final String COLUMN_WK = "Wk";
     private static final String COLUMN_EST = "Est";
     private static final String COLUMN_WIP = "WIP";
@@ -80,7 +81,6 @@ public class BoardController {
     private static final String PROPERTY_WORK_IN_PROCESS = "workInProcess";
     private static final String PROPERTY_FINISHED_GOODS = "finishedGoods";
     private static final String PROPERTY_SCORE = "score";
-    public static final int SERVER_RETRY_DELAY = 5000;
     @FXML
     private Button buttonLoadGame;
     @FXML
@@ -161,6 +161,12 @@ public class BoardController {
     private Label workstationLabel4;
     @FXML
     private Button buttonEndGame;
+    @FXML
+    private CheckBox timedRun;
+
+    private boolean runTimed = false;
+    private Timeline periodTimeline;
+    private Timeline runTurnTimeline;
 
 
     public BoardController() {
@@ -270,7 +276,7 @@ public class BoardController {
         Label[] workstationCounts = {workstationCount0, workstationCount1, workstationCount2, workstationCount3, workstationCount4};
         Label[] workstationLabels = {workstationLabel0, workstationLabel1, workstationLabel2, workstationLabel3, workstationLabel4};
         for (int i = 0; i < workstations.length; i++) {
-            if(workstationCounts[i] == null || workstationLabels[i] == null) {
+            if (workstationCounts[i] == null || workstationLabels[i] == null) {
                 log.warn("workstationCounts[{}] or workstationLabels[{}] is null", i, i);
                 continue;
             }
@@ -370,6 +376,16 @@ public class BoardController {
 
         // Add a margin to the in-training box
         VBox.setMargin(inTrainingBox, new Insets(0, 0, 0, 10));
+    }
+
+    public void toggleTimedRun(ActionEvent actionEvent) {
+        // Log the action event for debugging purposes
+        log.debug("Toggle Timed Run: " + ACTION_EVENT, actionEvent);
+
+        // Check if the timed run checkbox is selected
+        // If selected, disable the run button and enable the period button
+        // If not selected, enable the run button and disable the period button
+        runTimed = timedRun.isSelected();
     }
 
     /**
@@ -546,18 +562,21 @@ public class BoardController {
         countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
 
         // Initialize the timeline for the countdown
-        Timeline timeline = Board.getInstance().getFreshTimeline(2, countdownTimer);
+        periodTimeline = Board.getInstance().getFreshTimeline(2, countdownTimer);
 
         // Define the action to perform when the timer finishes
-        timeline.setOnFinished(_ -> {
+        periodTimeline.setOnFinished(_ -> Platform.runLater(() -> {
             countdownTimer.textProperty().unbind(); // Unbind the text property
             countdownTimer.setText("X"); // Display "X" when the timer ends
             countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
-            Platform.runLater(() -> runPeriod(actionEvent, timeline)); // Automatically call runPeriod
-        });
+            runPeriod(actionEvent, periodTimeline);
+            buildRunTurnTimer(actionEvent);
 
-        // Start the timer from the beginning
-        timeline.playFromStart();
+        })); // Automatically call runPeriod
+
+        periodTimeline.playFromStart();
+
+
     }
 
     private void buildRunTurnTimer(ActionEvent actionEvent) {
@@ -566,25 +585,29 @@ public class BoardController {
         countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
 
         // Initialize the timeline for the countdown
-        Timeline timeline = Board.getInstance().getFreshTimeline(3, countdownTimer);
+        runTurnTimeline = Board.getInstance().getFreshTimeline(3, countdownTimer);
+        int currentPeriod = Board.getInstance().getCurrentPeriod();
 
         // Define the action to perform when the timer finishes
-        timeline.setOnFinished(_ -> {
+        runTurnTimeline.setOnFinished(_ -> Platform.runLater(() -> {
             countdownTimer.textProperty().unbind(); // Unbind the text property
             countdownTimer.setText("X"); // Display "X" when the timer ends
             countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
-            Platform.runLater(() -> {
-                try {
-                    doRunTurn(actionEvent, timeline); // Automatically call run turn
-                } catch (InterruptedException | IOException e) {
-                    Thread.currentThread().interrupt(); // Preserve the interrupted status
-                    log.error("Thread was interrupted during turn execution", e);
-                }
-            });
-        });
+            try {
+                runTurn(actionEvent, runTurnTimeline); // Automatically call run turn
+            } catch (InterruptedException | IOException e) {
+                Thread.currentThread().interrupt(); // Preserve the interrupted status
+                log.error("Thread was interrupted during turn execution", e);
+            }
+            if ((currentPeriod == Board.getInstance().getCurrentPeriod()) && (Board.getInstance().getCurrentPeriod() <= Board.getInstance().getRunPeriods())) {
+                buildRunTurnTimer(actionEvent); // Automatically call buildPeriodTimer
+            } else if (Board.getInstance().getCurrentPeriod() <= Board.getInstance().getRunPeriods()) {
+                buildPeriodTimer(actionEvent); // call buildPeriodTimer for remaining periods
+            }
+        }));
 
         // Start the timer from the beginning
-        timeline.playFromStart();
+        runTurnTimeline.playFromStart();
     }
 
 
@@ -610,65 +633,9 @@ public class BoardController {
      */
     @FXML
     protected void doRunTurn(ActionEvent actionEvent) throws IOException, InterruptedException {
-        doRunTurn(actionEvent, null);
+        runTurn(actionEvent, runTurnTimeline);
     }
 
-
-    private void doRunTurn(ActionEvent actionEvent, Timeline timeline) throws IOException, InterruptedException {
-        // Log the action event if debugging is enabled
-        if (log.isDebugEnabled()) log.debug(actionEvent.toString());
-
-        // Stop the timer if it is active
-        if (timeline != null) timeline.stop();
-
-        // Log the current run turn
-        log.debug("Run Turn {}", Board.getInstance().getCurrentRunTurn());
-
-        // Disable buttons during the run
-        disableButtons(true);
-
-        // Highlight the backlog as the active workstation
-        highlightActiveWorkstation(-1);
-
-        // Get the team mood and move initial work items
-        int backlogItemCount = ScorecardService.BACKLOG.getBacklogItemCount();
-        int startValue = backlogItemCount > 0 ? Prompts.teamMood(gameDialogPane, Board.getInstance().getDieFaces()) : 0;
-        Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, backlogItemCount, gameBoardLog);
-        redrawBoard();
-
-        // Process each workstation
-        for (int stationIndex = 0; stationIndex < Board.getInstance().getStationCount(); stationIndex++) {
-            highlightActiveWorkstation(stationIndex);
-            runWorkstations(stationIndex);
-        }
-
-        // Re-enable buttons after all workstations are processed
-        disableButtons(false);
-
-        // Check if the current run turn is the last one
-        if (Board.getInstance().getCurrentRunTurn() == Board.getInstance().getRunTurns()) {
-            // Hide run buttons and publish the end of the period
-            hideRunButtons();
-            Prompts.publishEndPeriod(gameBoardLog);
-        }
-        // Move to the next run turn
-        Board.getInstance().augmentRunTurn();
-        highlightActiveWorkstation(100);
-        //Clear in training box
-        Board.getInstance().returnServerToOriginalWorkstation();
-        inTrainingBox.getChildren().clear();
-
-        // Check if the game is over
-        if (Board.getInstance().gameIsOver()) {
-            updateScorecardChart();
-            redrawBoard();
-            return;
-        }
-
-        // Handle the transition to the next run or period
-        handleNextRunOrPeriod();
-
-    }
 
     /**
      * Ends the game by publishing the end-of-game message, disabling the "End Game" button,
@@ -782,7 +749,6 @@ public class BoardController {
             buttonAddSkills.setDisable(false);
             redrawBoard();
             Prompts.publishStartPeriod(gameBoardLog, Board.getInstance().getCurrentPeriod());
-            buildPeriodTimer(new ActionEvent());
         }
 
         if (Board.getInstance().getCurrentRunTurn() <= Board.getInstance().getRunTurns()) {
@@ -791,7 +757,6 @@ public class BoardController {
             buttonServerMoves.setDisable(isVanilla());
             redrawBoard();
             Prompts.publishTurnStart(gameBoardLog, Board.getInstance().getCurrentPeriod(), Board.getInstance().getCurrentRunTurn());
-            buildRunTurnTimer(new ActionEvent());
         } else {
             // Throw an exception if the run turn is invalid
             throw new IllegalStateException("Run: " + Board.getInstance().getCurrentRunTurn() +
@@ -806,43 +771,6 @@ public class BoardController {
         turnButtonBar.setVisible(false);
         buttonRunTurn.setVisible(false);
         buttonServerMoves.setVisible(false);
-    }
-
-    /**
-     * Highlights the active workstation or count by updating the background and text colors
-     * of the corresponding UI elements. Resets all other workstations and counts to their default state.
-     *
-     * @param activeWorkstation The index of the active workstation to highlight.
-     *                          Use -1 to highlight the backlog count,
-     *                          100 to highlight the finished goods count,
-     *                          or a valid workstation index (0-4) to highlight a specific workstation.
-     */
-    private void highlightActiveWorkstation(int activeWorkstation) {
-        // Reset all workstation and count backgrounds to white
-        Background whiteBackground = new Background(new BackgroundFill(javafx.scene.paint.Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY));
-        List<Label> workstationCounts = List.of(workstationCount0, workstationCount1, workstationCount2, workstationCount3, workstationCount4);
-        workstationCounts.forEach(label -> {
-            label.setBackground(whiteBackground);
-            label.setTextFill(javafx.scene.paint.Color.BLACK);
-        });
-        backlogCount.setBackground(whiteBackground);
-        finishedGoodsCount.setBackground(whiteBackground);
-
-        // Highlight the active workstation or count
-        if (activeWorkstation == -1) {
-            // Highlight the backlog count
-            backlogCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
-        } else if (activeWorkstation >= 0 && activeWorkstation < workstationCounts.size()) {
-            // Highlight the specified workstation
-            Label activeLabel = workstationCounts.get(activeWorkstation);
-            javafx.scene.paint.Color bgColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFXColor();
-            javafx.scene.paint.Color fontColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFontColor();
-            activeLabel.setBackground(new Background(new BackgroundFill(bgColor, CornerRadii.EMPTY, Insets.EMPTY)));
-            activeLabel.setTextFill(fontColor);
-        } else if (activeWorkstation == 100) {
-            // Highlight the finished goods count
-            finishedGoodsCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
-        }
     }
 
     /**
@@ -1040,9 +968,11 @@ public class BoardController {
         buttonSaveGame.setDisable(false);
         buttonLoadGame.setDisable(true);
         buttonEndGame.setDisable(false);
-        // Start the period timer
-        buildPeriodTimer(actionEvent);
 
+        if(runTimed) {
+            // Build the period timer
+            buildPeriodTimer(actionEvent);
+        }
     }
 
     /**
@@ -1054,7 +984,7 @@ public class BoardController {
      */
     @FXML
     protected void runPeriod(ActionEvent actionEvent) {
-       runPeriod(actionEvent, null);
+        runPeriod(actionEvent, periodTimeline);
     }
 
     private void runPeriod(ActionEvent actionEvent, Timeline timeline) {
@@ -1092,8 +1022,103 @@ public class BoardController {
             throw new ThroughputRuntimeException(e);
         }
 
-        // Start a timer for the turn
-        buildRunTurnTimer(actionEvent);
+        log.info("Run TURN timer from period: {} Run: {}", Board.getInstance().getCurrentPeriod(), Board.getInstance().getCurrentRunTurn());
+    }
+
+    /**
+     * Highlights the active workstation or count by updating the background and text colors
+     * of the corresponding UI elements. Resets all other workstations and counts to their default state.
+     *
+     * @param activeWorkstation The index of the active workstation to highlight.
+     *                          Use -1 to highlight the backlog count,
+     *                          100 to highlight the finished goods count,
+     *                          or a valid workstation index (0-4) to highlight a specific workstation.
+     */
+    private void highlightActiveWorkstation(int activeWorkstation) {
+        // Reset all workstation and count backgrounds to white
+        Background whiteBackground = new Background(new BackgroundFill(javafx.scene.paint.Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY));
+        List<Label> workstationCounts = List.of(workstationCount0, workstationCount1, workstationCount2, workstationCount3, workstationCount4);
+        workstationCounts.forEach(label -> {
+            label.setBackground(whiteBackground);
+            label.setTextFill(javafx.scene.paint.Color.BLACK);
+        });
+        backlogCount.setBackground(whiteBackground);
+        finishedGoodsCount.setBackground(whiteBackground);
+
+        // Highlight the active workstation or count
+        if (activeWorkstation == -1) {
+            // Highlight the backlog count
+            backlogCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        } else if (activeWorkstation >= 0 && activeWorkstation < workstationCounts.size()) {
+            // Highlight the specified workstation
+            Label activeLabel = workstationCounts.get(activeWorkstation);
+            javafx.scene.paint.Color bgColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFXColor();
+            javafx.scene.paint.Color fontColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFontColor();
+            activeLabel.setBackground(new Background(new BackgroundFill(bgColor, CornerRadii.EMPTY, Insets.EMPTY)));
+            activeLabel.setTextFill(fontColor);
+        } else if (activeWorkstation == 100) {
+            // Highlight the finished goods count
+            finishedGoodsCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        }
+    }
+
+    private void runTurn(ActionEvent actionEvent, Timeline timeline) throws IOException, InterruptedException {
+        // Log the action event if debugging is enabled
+        if (log.isDebugEnabled()) log.debug(actionEvent.toString());
+
+        // Stop the timer if it is active
+        if (timeline != null) {
+            log.info("Timeline status {}", timeline.getStatus().name());
+            timeline.stop();
+        }
+
+        // Log the current run turn
+        log.debug("Run Turn {}", Board.getInstance().getCurrentRunTurn());
+
+        // Disable buttons during the run
+        disableButtons(true);
+
+        // Highlight the backlog as the active workstation
+        highlightActiveWorkstation(-1);
+
+        // Get the team mood and move initial work items
+        int backlogItemCount = ScorecardService.BACKLOG.getBacklogItemCount();
+        int startValue = backlogItemCount > 0 ? Prompts.teamMood(gameDialogPane, Board.getInstance().getDieFaces()) : 0;
+        Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, backlogItemCount, gameBoardLog);
+        redrawBoard();
+
+        // Process each workstation
+        for (int stationIndex = 0; stationIndex < Board.getInstance().getStationCount(); stationIndex++) {
+            highlightActiveWorkstation(stationIndex);
+            runWorkstations(stationIndex);
+        }
+
+        // Re-enable buttons after all workstations are processed
+        disableButtons(false);
+
+        // Check if the current run turn is the last one
+        if (Board.getInstance().getCurrentRunTurn() >= Board.getInstance().getRunTurns()) {
+            // Hide run buttons and publish the end of the period
+            hideRunButtons();
+            Prompts.publishEndPeriod(gameBoardLog);
+        }
+        // Move to the next run turn
+        Board.getInstance().augmentRunTurn();
+        highlightActiveWorkstation(100);
+        //Clear in training box
+        Board.getInstance().returnServerToOriginalWorkstation();
+        inTrainingBox.getChildren().clear();
+
+        // Check if the game is over
+        if (Board.getInstance().gameIsOver()) {
+            updateScorecardChart();
+            redrawBoard();
+            return;
+        }
+
+        // Handle the transition to the next run or period
+        handleNextRunOrPeriod();
+
     }
 
     /**
@@ -1123,7 +1148,7 @@ public class BoardController {
         // Filter out PairPartner servers from the workstation's server list
         List<Server> serverList = workstation.getServers().stream().filter(server -> !(server instanceof PairPartner)).toList();
         for (Server server : serverList) {
-            // Exit the loop if the game is over
+            // Exit the loop if the game is over - If days are lost due to BIT actions, the game may end
             if (Board.getInstance().gameIsOver()) break;
 
             // Log the current server being processed

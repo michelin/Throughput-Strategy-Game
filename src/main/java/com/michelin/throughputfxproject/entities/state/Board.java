@@ -69,7 +69,7 @@ public class Board implements Savable {
     private final int runPeriods;
     private final int runTurns;
     @Builder.Default
-    private Integer runTime = 20;
+    private Integer runTime = 5;
     @Builder.Default
     private Integer currentRunTurn = 1;
     @Builder.Default
@@ -326,7 +326,9 @@ public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) 
      * @return true if the current period exceeds the total run periods, false otherwise.
      */
     public boolean gameIsOver() {
-        return currentPeriod > runPeriods;
+        log.info("Checking if game is over: current period={}, run periods={}, current turn={}, run turns={}", currentPeriod, runPeriods, currentRunTurn, runTurns);
+        //|| (currentPeriod == runPeriods && currentRunTurn == runTurns)
+        return (currentPeriod > runPeriods);
     }
     
     /**
@@ -450,12 +452,13 @@ public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) 
 
         if(divisor <= 0) throw new ThroughputRuntimeException(new IllegalArgumentException("divisor must be > 0"));
         // Create a property to track the remaining time
-        IntegerProperty timeSeconds = new SimpleIntegerProperty(runTime / divisor);
+        IntegerProperty timeSeconds = new SimpleIntegerProperty(runTime);
 
         timerLabel.textProperty().bind(timeSeconds.asString());
 
         // Initialize the timeline for the countdown
         Timeline timeline = new Timeline();
+        timeline.setRate(divisor);
 
         // Add a keyframe to decrement the time to zero over the specified duration
         timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(runTime + 1.0), new KeyValue(timeSeconds, 0)));

@@ -61,6 +61,19 @@ public class WorkstationService {
         Objects.requireNonNull(getWorkstation(color)).getServers().add(Objects.requireNonNull(ServerService.getRobotServer(color)));
     }
 
+    public static Workstation findLowestCapacityWorkstation() {
+        Workstation lowest = null;
+        int minCapacity = Integer.MAX_VALUE;
+        for (Workstation workstation : getWorkstations()) {
+            int capacity = workstation.getCapacity();
+            if (lowest == null || capacity < minCapacity) {
+                lowest = workstation;
+                minCapacity = capacity;
+            }
+        }
+        return lowest;
+    }
+
     /**
      * Retrieves a workstation based on its color.
      *

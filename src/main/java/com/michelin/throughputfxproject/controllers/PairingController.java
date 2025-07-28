@@ -38,10 +38,16 @@ public class PairingController {
     @FXML
     private ComboBox<Color> workstationToPairWith;
 
+    private static final java.util.Random RANDOM = new java.util.Random();
+
     @FXML
     protected void moveToServer(ActionEvent ignoredActionEvent) {
 
         Color workstationColor = workstationToPairWith.getSelectionModel().getSelectedItem();
+        if (workstationColor == null) {
+            Color[] humanColors = Color.humanColorValues();
+            workstationColor = humanColors[RANDOM.nextInt(humanColors.length)];
+        }
         WorkstationService.pairWorkstation(workstationColor);
 
         ((Stage)pairButton.getParent().getScene().getWindow()).close();

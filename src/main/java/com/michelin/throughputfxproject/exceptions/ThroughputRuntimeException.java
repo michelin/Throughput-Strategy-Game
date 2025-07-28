@@ -44,6 +44,17 @@ public class ThroughputRuntimeException extends RuntimeException {
      */
     public ThroughputRuntimeException(Exception e) {
         super(e);
+        log.error("Generic Exception", e);
+    }
+
+    /**
+     * Constructs a new `ThroughputRuntimeException` with the specified error.
+     * Logs the exception as a generic error.
+     *
+     * @param e The error that caused this runtime exception.
+     */
+    public ThroughputRuntimeException(Error e) {
+        super(e);
         log.error("Generic Error", e);
     }
 

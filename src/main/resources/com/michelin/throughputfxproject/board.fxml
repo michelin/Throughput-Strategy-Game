@@ -8,7 +8,7 @@
 <?import javafx.scene.text.*?>
 <?import org.kordamp.ikonli.javafx.*?>
 
-<BorderPane prefHeight="1000.0" prefWidth="1000.0" styleClass="img-background" stylesheets="@css/throughput.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.BoardController">
+<BorderPane prefHeight="1000.0" prefWidth="1000.0" styleClass="img-background" stylesheets="@css/throughput.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.BoardController">
     <top>
         <VBox alignment="CENTER" styleClass="outer-title-box">
             <HBox>
@@ -35,14 +35,14 @@
                 </VBox>
             </HBox>
 
-            <ButtonBar fx:id="gameButtonBar" buttonMinWidth="0.0" maxWidth="600.0">
+            <ButtonBar fx:id="gameButtonBar" buttonMinWidth="0.0" maxWidth="743.0" prefHeight="33.0" prefWidth="743.0">
                 <buttons>
                     <Button fx:id="buttonRunGame" defaultButton="true" mnemonicParsing="false" onAction="#runGame" styleClass="button-lion-default" text="Run Game">
                         <graphic>
                             <FontIcon iconColor="midnightblue" iconLiteral="fas-running" />
                         </graphic>
                     </Button>
-                    <Button fx:id="buttonEndGame" mnemonicParsing="false" onAction="#endGame" prefWidth="150.0" styleClass="button-lion-default" text="End Game" textAlignment="CENTER"  disable="true"/>
+                    <Button fx:id="buttonEndGame" disable="true" mnemonicParsing="false" onAction="#endGame" prefWidth="150.0" styleClass="button-lion-default" text="End Game" textAlignment="CENTER" />
                     <Button maxWidth="40.0" mnemonicParsing="false" onAction="#showInfo">
                         <tooltip>
                             <Tooltip text="Information" />
@@ -66,17 +66,17 @@
                         </graphic>
                     </Button>
                     <Button fx:id="buttonSaveGame" disable="true" maxWidth="40.0" mnemonicParsing="false" onAction="#saveGame">
-                    <tooltip>
-                        <Tooltip text="Save" />
-                    </tooltip>
-                    <styleClass>
-                        <String fx:value="button-lion-default" />
-                    </styleClass>
-                    <graphic>
-                        <FontIcon iconColor="midnightblue" iconLiteral="fas-save" />
-                    </graphic>
-                </Button>
-                    <Button fx:id="buttonLoadGame"  maxWidth="40.0" mnemonicParsing="false" onAction="#loadGame">
+                        <tooltip>
+                            <Tooltip text="Save" />
+                        </tooltip>
+                        <styleClass>
+                            <String fx:value="button-lion-default" />
+                        </styleClass>
+                        <graphic>
+                            <FontIcon iconColor="midnightblue" iconLiteral="fas-save" />
+                        </graphic>
+                    </Button>
+                    <Button fx:id="buttonLoadGame" maxWidth="40.0" mnemonicParsing="false" onAction="#loadGame">
                         <tooltip>
                             <Tooltip text="Upload Saved Game" />
                         </tooltip>
@@ -87,6 +87,15 @@
                             <FontIcon iconColor="midnightblue" iconLiteral="fas-file-upload" />
                         </graphic>
                     </Button>
+                    <CheckBox fx:id="timedRun" mnemonicParsing="false" onAction="#toggleTimedRun" text="Timed?">
+                        <tooltip>
+                            <Tooltip
+                                    text="Select to run game in timed mode where run periods run automatically" />
+                        </tooltip>
+                        <styleClass>
+                            <String fx:value="button-lion-default" />
+                        </styleClass>
+                    </CheckBox>
                 </buttons>
                 <VBox.margin>
                     <Insets bottom="10.0" />
@@ -117,9 +126,9 @@
                     </padding>
                 </Label>
                 <Label fx:id="totalScore" styleClass="date-box" text="0" />
-            <VBox.margin>
-               <Insets right="10.0" />
-            </VBox.margin>
+                <VBox.margin>
+                    <Insets right="10.0" />
+                </VBox.margin>
             </HBox>
             <AnchorPane fx:id="gameDialogPane" prefHeight="24.0" prefWidth="685.0">
                 <ButtonBar fx:id="turnButtonBar" visible="false" AnchorPane.topAnchor="10.0">
@@ -165,9 +174,9 @@
                     <rowConstraints>
                         <RowConstraints />
                     </rowConstraints>
-               <padding>
-                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-               </padding>
+                    <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                    </padding>
                 </GridPane>
             </VBox>
         </VBox>

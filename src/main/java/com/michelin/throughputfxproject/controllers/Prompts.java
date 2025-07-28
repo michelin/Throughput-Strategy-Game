@@ -58,11 +58,12 @@ public class Prompts {
     private static final String THROUGHPUT = "Throughput";
     private static final String START_THE_WEEK = "Click on Run Week to start the week";
     private static final String WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE = "Workstation is empty, No moves are possible";
-    private static final int TIMEOUT_DURATION = 5;
-    public static final int MODAL_TIMEOUT_DURATION = 3;
-    public static final int ALERT_TIMEOUT_DURATION = 2;
-    public static final int END_PERIOD_TIMEOUT_DURATION = 10;
-    public static final int END_OF_GAME_TIMEOUT_DURATION = 20;
+    private static final int TIMEOUT_CONSTANT = 5;
+    private static final int TIMEOUT_DURATION = TIMEOUT_CONSTANT/2;
+    public static final int MODAL_TIMEOUT_DURATION = TIMEOUT_CONSTANT;
+    public static final int ALERT_TIMEOUT_DURATION = TIMEOUT_CONSTANT/2;
+    public static final int END_PERIOD_TIMEOUT_DURATION = TIMEOUT_CONSTANT/3;
+    public static final int END_OF_GAME_TIMEOUT_DURATION = TIMEOUT_CONSTANT/2;
 
 
     /**
@@ -123,7 +124,7 @@ public class Prompts {
         if (drawBitInt >= numberRequiredForSuccess) {
 
 
-            alertWithGameBoardUpdate("BIT", gameBoardLog, gameBoardLogText, 3000);
+            alertWithGameBoardUpdate("BIT", gameBoardLog, gameBoardLogText, MODAL_TIMEOUT_DURATION);
 
             BitCard bitCard = CardService.pickACardDestructively();
             Objects.requireNonNull(bitCard);
@@ -174,14 +175,14 @@ public class Prompts {
      * @param title                 The title of the alert dialog.
      * @param gameBoardLog          The log area to display the game-related message.
      * @param gameBoardLogText      The message to display in the game board log.
-     * @param timeoutDurationMillis The duration in milliseconds before the alert is automatically hidden.
+     * @param timeoutDuration       The duration in seconds before the alert is automatically hidden.
      */
     @SuppressWarnings({"java:S1190", "java:S117"})
-    private static void alertWithGameBoardUpdate(String title, @NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, int timeoutDurationMillis) {
+    private static void alertWithGameBoardUpdate(String title, @NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, int timeoutDuration) {
 
         Alert alert = makeAlert(title, gameBoardLogText);
 
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.millis(timeoutDurationMillis), _ -> {
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> {
             gameBoardLog.setText(gameBoardLogText);
             alert.setResult(ButtonType.OK);
             alert.hide();
@@ -211,6 +212,29 @@ public class Prompts {
         idleStage.playFromStart();
 
         stage.showAndWait();
+    }
+
+    /**
+     * Creates a modal dialog with a button that is automatically triggered after a timeout.
+     * The dialog is displayed with the specified title and content, and the button is fired
+     * when the timeout duration elapses.
+     *
+     * @param title     The title of the modal dialog.
+     * @param container The parent container for the modal dialog.
+     * @param root      The root node of the modal dialog's scene.
+     * @param button    The button to be triggered after the timeout.
+     */
+    @SuppressWarnings({"java:S1190", "java:S117"})
+    private static void createModalStageWithButton(@NonNull String title, @NonNull Pane container, @NonNull Parent root, Button button) {
+
+        Stage stage = createModalStageWithoutAction(title, container, root);
+
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(TIMEOUT_DURATION), _ -> button.fire()));
+        idleStage.setCycleCount(1);
+        idleStage.playFromStart();
+
+        stage.showAndWait();
+
     }
 
     /**
@@ -304,7 +328,7 @@ public class Prompts {
                 .toArray(Color[]::new));
 
         // Display the modal dialog
-        createModalStage("Paired Work", container, root, 15);
+        createModalStage("Paired Work", container, root, MODAL_TIMEOUT_DURATION);
     }
 
     /**
@@ -429,7 +453,7 @@ public class Prompts {
         log.debug("promptForPairRetry");
 
         String gameBoardLogText = "Your first try failed for Server " + server.getColor().name() + System.lineSeparator() + "Partner steps in to help with a retry";
-        alertWithGameBoardUpdate("Partner", gameBoardLog, gameBoardLogText, 30000);
+        alertWithGameBoardUpdate("Partner", gameBoardLog, gameBoardLogText, 30);
     }
 
     /**
@@ -470,7 +494,7 @@ public class Prompts {
 
         ((ServerMovesController) loader.getController()).setBoardController(boardController);
 
-        createModalStage("Server Moves", container, root, 15);
+        createModalStage("Server Moves", container, root, MODAL_TIMEOUT_DURATION);
     }
 
     /**
@@ -493,7 +517,7 @@ public class Prompts {
         alert.setTitle("Retry");
         alert.setHeaderText(null);
 
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(45), _ -> {
+        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(ALERT_TIMEOUT_DURATION), _ -> {
             alert.setResult(ButtonType.YES);
             alert.hide();
         }));
@@ -523,28 +547,7 @@ public class Prompts {
         createModalStageWithButton("Estimate your Week", container, root, submitButton);
     }
 
-    /**
-     * Creates a modal dialog with a button that is automatically triggered after a timeout.
-     * The dialog is displayed with the specified title and content, and the button is fired
-     * when the timeout duration elapses.
-     *
-     * @param title     The title of the modal dialog.
-     * @param container The parent container for the modal dialog.
-     * @param root      The root node of the modal dialog's scene.
-     * @param button    The button to be triggered after the timeout.
-     */
-    @SuppressWarnings({"java:S1190", "java:S117"})
-    private static void createModalStageWithButton(@NonNull String title, @NonNull Pane container, @NonNull Parent root, Button button) {
 
-        Stage stage = createModalStageWithoutAction(title, container, root);
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(TIMEOUT_DURATION), _ -> button.fire()));
-        idleStage.setCycleCount(1);
-        idleStage.playFromStart();
-
-        stage.showAndWait();
-
-    }
 
     /**
      * Prompts the user to move initial work items from the backlog to the first workstation.
@@ -562,7 +565,7 @@ public class Prompts {
 
         if (backlogCount <= 0) {
             String gameBoardLogText = "Backlog is Empty" + System.lineSeparator() + System.lineSeparator() + "No moves possible";
-            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, 6);
+            alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, ALERT_TIMEOUT_DURATION);
             return;
         }
 
@@ -586,6 +589,7 @@ public class Prompts {
         workstationMaxText.setText(String.valueOf(maxIntToMove));
 
         Button submitButton = ((InitialWorkItemsController) loader.getController()).getWorkItemMoveButton();
+        log.info("Work Item Initial Moves Modal launch with maxIntToMove: {}", maxIntToMove);
         createModalStageWithButton("Move Items", container, root, submitButton);
     }
 
@@ -607,6 +611,8 @@ public class Prompts {
 
         StringBuilder builder = new StringBuilder();
         final int maxIntToMove = Math.min(workstation.getCapacity(), workstation.getWorkItemCount());
+        log.info("maxIntToMove: {}  -- workstation capacity: {} -- work item count {}", maxIntToMove, workstation.getCapacity(), workstation.getWorkItemCount());
+
         builder.append("Choose how many items to move from the ")
                 .append(workstation.getColor().name())
                 .append(" workstation to the next.")
@@ -673,7 +679,7 @@ public class Prompts {
         buildColorComboBox(skillColorPicker, Color.humanColorValues());
 
         // Display the modal dialog
-        createModalStage("Add Skills to Server", container, root, 15);
+        createModalStage("Add Skills to Server", container, root, MODAL_TIMEOUT_DURATION);
     }
 
     /**
@@ -706,7 +712,7 @@ public class Prompts {
         buildColorComboBox(workstationToAddCapacity, Color.humanColorValues());
 
         // Display the modal dialog
-        createModalStage("Add Capacity", container, root, 15);
+        createModalStage("Add Capacity", container, root, MODAL_TIMEOUT_DURATION);
     }
 
     /**
@@ -779,7 +785,7 @@ public class Prompts {
         buildColorComboBox(serverWorkstationColorPicker, leftoverColors.toArray(Color[]::new));
 
         // Display the modal dialog
-        createModalStage("Automate Workstation", container, root, 20);
+        createModalStage("Automate Workstation", container, root, MODAL_TIMEOUT_DURATION + 5);
     }
 
     /**
@@ -1058,7 +1064,7 @@ public class Prompts {
         controller.getDieImage().setImage(new Image(Objects.requireNonNull(ThroughputApplication.class.getResource(getDieImage(teamMood))).openStream()));
 
         // Display the modal dialog
-        createModalStage("Team Mood", container, root, 6);
+        createModalStage("Team Mood", container, root, MODAL_TIMEOUT_DURATION);
 
         // Return the maximum number of items that can be moved
         return maxItemsToMove;
