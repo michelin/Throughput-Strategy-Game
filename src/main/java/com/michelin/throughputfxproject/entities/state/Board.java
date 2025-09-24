@@ -326,7 +326,7 @@ public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) 
      * @return true if the current period exceeds the total run periods, false otherwise.
      */
     public boolean gameIsOver() {
-        log.info("Checking if game is over: current period={}, run periods={}, current turn={}, run turns={}", currentPeriod, runPeriods, currentRunTurn, runTurns);
+        log.debug("Checking if game is over: current period={}, run periods={}, current turn={}, run turns={}", currentPeriod, runPeriods, currentRunTurn, runTurns);
         //|| (currentPeriod == runPeriods && currentRunTurn == runTurns)
         return (currentPeriod > runPeriods);
     }

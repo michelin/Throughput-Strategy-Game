@@ -152,6 +152,8 @@ feedback on how to improve it.
 Special thanks to Patricia Gilstrap for many hours of playtesting and feedback, and to Carl,  
 Carolyn and Mary Hamilton for their contributions to the game design and endless support.
 
+
+
 ## License
 
 This project is licensed under the Apache License, Version 2.0. See the [LICENSE](./LICENSE) file for details.

@@ -58,7 +58,7 @@ public class Prompts {
     private static final String THROUGHPUT = "Throughput";
     private static final String START_THE_WEEK = "Click on Run Week to start the week";
     private static final String WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE = "Workstation is empty, No moves are possible";
-    private static final int TIMEOUT_CONSTANT = 5;
+    private static final int TIMEOUT_CONSTANT = 30;
     private static final int TIMEOUT_DURATION = TIMEOUT_CONSTANT/2;
     public static final int MODAL_TIMEOUT_DURATION = TIMEOUT_CONSTANT;
     public static final int ALERT_TIMEOUT_DURATION = TIMEOUT_CONSTANT/2;
@@ -589,7 +589,7 @@ public class Prompts {
         workstationMaxText.setText(String.valueOf(maxIntToMove));
 
         Button submitButton = ((InitialWorkItemsController) loader.getController()).getWorkItemMoveButton();
-        log.info("Work Item Initial Moves Modal launch with maxIntToMove: {}", maxIntToMove);
+        log.debug("Work Item Initial Moves Modal launch with maxIntToMove: {}", maxIntToMove);
         createModalStageWithButton("Move Items", container, root, submitButton);
     }
 
@@ -611,7 +611,7 @@ public class Prompts {
 
         StringBuilder builder = new StringBuilder();
         final int maxIntToMove = Math.min(workstation.getCapacity(), workstation.getWorkItemCount());
-        log.info("maxIntToMove: {}  -- workstation capacity: {} -- work item count {}", maxIntToMove, workstation.getCapacity(), workstation.getWorkItemCount());
+        log.debug("maxIntToMove: {}  -- workstation capacity: {} -- work item count {}", maxIntToMove, workstation.getCapacity(), workstation.getWorkItemCount());
 
         builder.append("Choose how many items to move from the ")
                 .append(workstation.getColor().name())
