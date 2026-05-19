@@ -591,15 +591,16 @@ public class BoardController {
             countdownTimer.textProperty().unbind(); // Unbind the text property
             countdownTimer.setText("X"); // Display "X" when the timer ends
             countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
-            runTurn(actionEvent, runTurnTimeline); // Automatically call run turn
-            if ((currentPeriod == Board.getInstance().getCurrentPeriod()) && (Board.getInstance().getCurrentPeriod() <= Board.getInstance().getRunPeriods())) {
-                buildRunTurnTimer(actionEvent); // Automatically call buildPeriodTimer
-            } else if (Board.getInstance().getCurrentPeriod() <= Board.getInstance().getRunPeriods()) {
-                buildPeriodTimer(actionEvent); // call buildPeriodTimer for remaining periods
-            }
+            runTurn(actionEvent, runTurnTimeline, () -> { // Automatically call run turn; rebuild timer after task completes
+                if ((currentPeriod == Board.getInstance().getCurrentPeriod()) && (Board.getInstance().getCurrentPeriod() <= Board.getInstance().getRunPeriods())) {
+                    buildRunTurnTimer(actionEvent); // Automatically call buildPeriodTimer
+                } else if (Board.getInstance().getCurrentPeriod() <= Board.getInstance().getRunPeriods()) {
+                    buildPeriodTimer(actionEvent); // call buildPeriodTimer for remaining periods
+                }
+            });
         }));
 
-        // Start the timer from the beginning
+        // Start the timer from the b
         runTurnTimeline.playFromStart();
     }
 
@@ -1054,6 +1055,10 @@ public class BoardController {
     }
 
     private void runTurn(ActionEvent actionEvent, Timeline timeline) {
+        runTurn(actionEvent, timeline, null);
+    }
+
+    private void runTurn(ActionEvent actionEvent, Timeline timeline, Runnable afterTurn) {
         // Log the action event if debugging is enabled
         if (log.isDebugEnabled()) log.debug(actionEvent.toString());
 
@@ -1119,6 +1124,9 @@ public class BoardController {
             }
         };
 
+        task.setOnSucceeded(_ -> {
+            if (afterTurn != null) afterTurn.run();
+        });
         task.setOnFailed(_ -> {
             disableButtons(false);
             log.error("Game turn failed", task.getException());
