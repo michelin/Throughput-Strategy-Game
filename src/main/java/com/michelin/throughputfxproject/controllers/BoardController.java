@@ -33,6 +33,7 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -590,11 +591,7 @@ public class BoardController {
             countdownTimer.textProperty().unbind(); // Unbind the text property
             countdownTimer.setText("X"); // Display "X" when the timer ends
             countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
-            try {
-                runTurn(actionEvent, runTurnTimeline); // Automatically call run turn
-            } catch (IOException e) {
-                log.error("I/O error during turn execution", e);
-            }
+            runTurn(actionEvent, runTurnTimeline); // Automatically call run turn
             if ((currentPeriod == Board.getInstance().getCurrentPeriod()) && (Board.getInstance().getCurrentPeriod() <= Board.getInstance().getRunPeriods())) {
                 buildRunTurnTimer(actionEvent); // Automatically call buildPeriodTimer
             } else if (Board.getInstance().getCurrentPeriod() <= Board.getInstance().getRunPeriods()) {
@@ -627,7 +624,7 @@ public class BoardController {
      * @throws IOException If an I/O error occurs during the process.
      */
     @FXML
-    protected void doRunTurn(ActionEvent actionEvent) throws IOException {
+    protected void doRunTurn(ActionEvent actionEvent) {
         runTurn(actionEvent, runTurnTimeline);
     }
 
@@ -1056,7 +1053,7 @@ public class BoardController {
         }
     }
 
-    private void runTurn(ActionEvent actionEvent, Timeline timeline) throws IOException {
+    private void runTurn(ActionEvent actionEvent, Timeline timeline) {
         // Log the action event if debugging is enabled
         if (log.isDebugEnabled()) log.debug(actionEvent.toString());
 
@@ -1072,47 +1069,76 @@ public class BoardController {
         // Disable buttons during the run
         disableButtons(true);
 
-        // Highlight the backlog as the active workstation
-        highlightActiveWorkstation(BACKLOG_HIGHLIGHT);
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws IOException {
+                // Highlight the backlog as the active workstation
+                runFx(() -> highlightActiveWorkstation(BACKLOG_HIGHLIGHT));
 
-        // Get the team mood and move initial work items
-        int backlogItemCount = ScorecardService.BACKLOG.getBacklogItemCount();
-        int startValue = backlogItemCount > 0 ? Prompts.teamMood(gameDialogPane, Board.getInstance().getDieFaces()) : 0;
-        Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, backlogItemCount, gameBoardLog);
-        redrawBoard();
+                // Get the team mood and move initial work items
+                int backlogItemCount = ScorecardService.BACKLOG.getBacklogItemCount();
+                int startValue = backlogItemCount > 0 ? Prompts.teamMood(gameDialogPane, Board.getInstance().getDieFaces()) : 0;
+                Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, backlogItemCount, gameBoardLog);
+                runFx(BoardController.this::redrawBoard);
 
-        // Process each workstation
-        for (int stationIndex = 0; stationIndex < Board.getInstance().getStationCount(); stationIndex++) {
-            highlightActiveWorkstation(stationIndex);
-            runWorkstations(stationIndex);
+                // Process each workstation
+                for (int stationIndex = 0; stationIndex < Board.getInstance().getStationCount(); stationIndex++) {
+                    if (Board.getInstance().gameIsOver()) break;
+                    final int idx = stationIndex;
+                    runFx(() -> highlightActiveWorkstation(idx));
+                    runWorkstations(idx);
+                }
+
+                // Re-enable buttons after all workstations are processed
+                runFx(() -> disableButtons(false));
+
+                // Check if the current run turn is the last one
+                if (Board.getInstance().getCurrentRunTurn() >= Board.getInstance().getRunTurns()) {
+                    runFx(BoardController.this::hideRunButtons);
+                    Prompts.publishEndPeriod(gameBoardLog);
+                }
+
+                // Move to the next run turn
+                Board.getInstance().augmentRunTurn();
+                runFx(() -> highlightActiveWorkstation(FINISHED_GOODS_HIGHLIGHT));
+                Board.getInstance().returnServerToOriginalWorkstation();
+                runFx(() -> inTrainingBox.getChildren().clear());
+
+                // Check if the game is over
+                if (Board.getInstance().gameIsOver()) {
+                    runFx(() -> {
+                        updateScorecardChart();
+                        redrawBoard();
+                    });
+                } else {
+                    // Handle the transition to the next run or period
+                    runFx(BoardController.this::handleNextRunOrPeriod);
+                }
+
+                return null;
+            }
+        };
+
+        task.setOnFailed(_ -> {
+            disableButtons(false);
+            log.error("Game turn failed", task.getException());
+        });
+
+        Thread taskThread = new Thread(task, "game-turn-thread");
+        taskThread.setDaemon(true);
+        taskThread.start();
+    }
+
+    /**
+     * Runs a Runnable on the JavaFX Application Thread.
+     * If already on the FX thread, runs immediately; otherwise schedules via Platform.runLater.
+     */
+    private void runFx(Runnable action) {
+        if (Platform.isFxApplicationThread()) {
+            action.run();
+        } else {
+            Platform.runLater(action);
         }
-
-        // Re-enable buttons after all workstations are processed
-        disableButtons(false);
-
-        // Check if the current run turn is the last one
-        if (Board.getInstance().getCurrentRunTurn() >= Board.getInstance().getRunTurns()) {
-            // Hide run buttons and publish the end of the period
-            hideRunButtons();
-            Prompts.publishEndPeriod(gameBoardLog);
-        }
-        // Move to the next run turn
-        Board.getInstance().augmentRunTurn();
-        highlightActiveWorkstation(FINISHED_GOODS_HIGHLIGHT);
-        //Clear in training box
-        Board.getInstance().returnServerToOriginalWorkstation();
-        inTrainingBox.getChildren().clear();
-
-        // Check if the game is over
-        if (Board.getInstance().gameIsOver()) {
-            updateScorecardChart();
-            redrawBoard();
-            return;
-        }
-
-        // Handle the transition to the next run or period
-        handleNextRunOrPeriod();
-
     }
 
     /**
@@ -1131,13 +1157,13 @@ public class BoardController {
 
         // Check if the workstation is inactive
         if (!workstation.isActive()) {
-            // Show a timed alert (uses FX nested event loop, never blocks the rendering thread)
+            // Show a timed alert (background-thread safe; waits for full visual close before returning)
             Prompts.alertWithoutBoardUpdate(
                     workstation.getColor() + " Workstation Inactive",
                     workstation.getColor() + " workstation was inactive. It has been reactivated.",
                     SERVER_RETRY_DELAY);
             workstation.setActive(true);
-            redrawBoard();
+            runFx(this::redrawBoard);
             return;
         }
 
@@ -1175,7 +1201,7 @@ public class BoardController {
             bitActionsDetermined(position);
 
             // Redraw the board to reflect the updated state
-            redrawBoard();
+            runFx(this::redrawBoard);
         }
     }
 

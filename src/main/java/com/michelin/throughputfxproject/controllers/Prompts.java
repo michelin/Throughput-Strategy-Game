@@ -48,6 +48,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.michelin.throughputfxproject.services.DiceService.getDieImage;
@@ -74,13 +76,28 @@ public class Prompts {
      * @param timeoutDurationMillis The duration in milliseconds before the alert is automatically hidden.
      */
     public static void alertWithoutBoardUpdate(@NonNull String title, @NonNull String text, int timeoutDurationMillis) {
-        Alert alert = makeAlert(title, text);
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.millis(timeoutDurationMillis), _ -> alert.hide()));
-        idleStage.setCycleCount(1);
-        idleStage.playFromStart();
-
-        alert.showAndWait();
-        idleStage.stop();
+        if (Platform.isFxApplicationThread()) {
+            Alert alert = makeAlert(title, text);
+            Timeline idleStage = new Timeline(new KeyFrame(Duration.millis(timeoutDurationMillis), _ -> alert.hide()));
+            idleStage.setCycleCount(1);
+            idleStage.playFromStart();
+            alert.showAndWait();
+            idleStage.stop();
+        } else {
+            CompletableFuture<Void> closed = new CompletableFuture<>();
+            Platform.runLater(() -> {
+                Alert alert = makeAlert(title, text);
+                Timeline idleStage = new Timeline(new KeyFrame(Duration.millis(timeoutDurationMillis), _ -> alert.hide()));
+                idleStage.setCycleCount(1);
+                idleStage.playFromStart();
+                alert.setOnHidden(_ -> {
+                    idleStage.stop();
+                    Platform.runLater(() -> closed.complete(null));
+                });
+                alert.show();
+            });
+            awaitFuture(closed);
+        }
     }
 
     /**
@@ -99,6 +116,24 @@ public class Prompts {
         alert.setTitle(title);
         alert.setHeaderText(null);
         return alert;
+    }
+
+    /**
+     * Blocks the current background thread until the given future completes.
+     * Must NOT be called from the FX Application Thread.
+     */
+    private static <T> T awaitFuture(CompletableFuture<T> future) {
+        try {
+            return future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ThroughputRuntimeException(e);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException re) throw re;
+            if (cause instanceof Exception ex) throw new ThroughputRuntimeException(ex);
+            throw new ThroughputRuntimeException(new RuntimeException(cause));
+        }
     }
 
     /**
@@ -180,21 +215,33 @@ public class Prompts {
      */
     @SuppressWarnings({"java:S1190", "java:S117"})
     private static void alertWithGameBoardUpdate(String title, @NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, int timeoutDuration) {
-
-        gameBoardLog.setText(gameBoardLogText);
-
-        Alert alert = makeAlert(title, gameBoardLogText);
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> {
-            alert.setResult(ButtonType.OK);
-            alert.hide();
-        }));
-        idleStage.setCycleCount(1);
-        idleStage.playFromStart();
-
-        alert.showAndWait();
-        idleStage.stop();
-
+        if (Platform.isFxApplicationThread()) {
+            gameBoardLog.setText(gameBoardLogText);
+            Alert alert = makeAlert(title, gameBoardLogText);
+            Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> {
+                alert.setResult(ButtonType.OK);
+                alert.hide();
+            }));
+            idleStage.setCycleCount(1);
+            idleStage.playFromStart();
+            alert.showAndWait();
+            idleStage.stop();
+        } else {
+            CompletableFuture<Void> closed = new CompletableFuture<>();
+            Platform.runLater(() -> {
+                gameBoardLog.setText(gameBoardLogText);
+                Alert alert = makeAlert(title, gameBoardLogText);
+                Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> alert.hide()));
+                idleStage.setCycleCount(1);
+                idleStage.playFromStart();
+                alert.setOnHidden(_ -> {
+                    idleStage.stop();
+                    Platform.runLater(() -> closed.complete(null));
+                });
+                alert.show();
+            });
+            awaitFuture(closed);
+        }
     }
 
     /**
@@ -208,14 +255,28 @@ public class Prompts {
      */
     @SuppressWarnings({"java:S1190", "java:S117"})
     private static void createModalStage(@NonNull String title, @NonNull Pane container, @NonNull Parent root, int timeoutDuration) {
-        Stage stage = createModalStageWithoutAction(title, container, root);
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> stage.hide()));
-        idleStage.setCycleCount(1);
-        idleStage.playFromStart();
-
-        stage.showAndWait();
-        idleStage.stop();
+        if (Platform.isFxApplicationThread()) {
+            Stage stage = createModalStageWithoutAction(title, container, root);
+            Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> stage.hide()));
+            idleStage.setCycleCount(1);
+            idleStage.playFromStart();
+            stage.showAndWait();
+            idleStage.stop();
+        } else {
+            CompletableFuture<Void> closed = new CompletableFuture<>();
+            Platform.runLater(() -> {
+                Stage stage = createModalStageWithoutAction(title, container, root);
+                Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> stage.hide()));
+                idleStage.setCycleCount(1);
+                idleStage.playFromStart();
+                stage.setOnHidden(_ -> {
+                    idleStage.stop();
+                    Platform.runLater(() -> closed.complete(null));
+                });
+                stage.show();
+            });
+            awaitFuture(closed);
+        }
     }
 
     /**
@@ -230,16 +291,28 @@ public class Prompts {
      */
     @SuppressWarnings({"java:S1190", "java:S117"})
     private static void createModalStageWithButton(@NonNull String title, @NonNull Pane container, @NonNull Parent root, Button button) {
-
-        Stage stage = createModalStageWithoutAction(title, container, root);
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(TIMEOUT_DURATION), _ -> button.fire()));
-        idleStage.setCycleCount(1);
-        idleStage.playFromStart();
-
-        stage.showAndWait();
-        idleStage.stop();
-
+        if (Platform.isFxApplicationThread()) {
+            Stage stage = createModalStageWithoutAction(title, container, root);
+            Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(TIMEOUT_DURATION), _ -> button.fire()));
+            idleStage.setCycleCount(1);
+            idleStage.playFromStart();
+            stage.showAndWait();
+            idleStage.stop();
+        } else {
+            CompletableFuture<Void> closed = new CompletableFuture<>();
+            Platform.runLater(() -> {
+                Stage stage = createModalStageWithoutAction(title, container, root);
+                Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(TIMEOUT_DURATION), _ -> button.fire()));
+                idleStage.setCycleCount(1);
+                idleStage.playFromStart();
+                stage.setOnHidden(_ -> {
+                    idleStage.stop();
+                    Platform.runLater(() -> closed.complete(null));
+                });
+                stage.show();
+            });
+            awaitFuture(closed);
+        }
     }
 
     /**
@@ -497,24 +570,51 @@ public class Prompts {
     public static boolean promptForServerRetry(@NonNull Server server) {
         log.debug("promptForServerRetry");
 
-        Text text = new Text("Your first try failed for Server " + server.getColor().name() + System.lineSeparator() + "You have a Retry card, would you like to use it? 'Y/N'");
-        text.setWrappingWidth(105);
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.getDialogPane().setContent(text);
-        alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
-        alert.setTitle("Retry");
-        alert.setHeaderText(null);
+        String retryMessage = "Your first try failed for Server " + server.getColor().name()
+                + System.lineSeparator() + "You have a Retry card, would you like to use it? 'Y/N'";
 
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(ALERT_TIMEOUT_DURATION), _ -> {
-            alert.setResult(ButtonType.YES);
-            alert.hide();
-        }));
-        idleStage.setCycleCount(1);
-        idleStage.play();
-
-        ButtonType button = alert.showAndWait().orElse(null);
-
-        return button == null || button == ButtonType.YES;
+        if (Platform.isFxApplicationThread()) {
+            Text text = new Text(retryMessage);
+            text.setWrappingWidth(105);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.getDialogPane().setContent(text);
+            alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+            alert.setTitle("Retry");
+            alert.setHeaderText(null);
+            Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(ALERT_TIMEOUT_DURATION), _ -> {
+                alert.setResult(ButtonType.YES);
+                alert.hide();
+            }));
+            idleStage.setCycleCount(1);
+            idleStage.play();
+            ButtonType button = alert.showAndWait().orElse(null);
+            idleStage.stop();
+            return button == null || button == ButtonType.YES;
+        } else {
+            CompletableFuture<Boolean> result = new CompletableFuture<>();
+            Platform.runLater(() -> {
+                Text text = new Text(retryMessage);
+                text.setWrappingWidth(105);
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.getDialogPane().setContent(text);
+                alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+                alert.setTitle("Retry");
+                alert.setHeaderText(null);
+                Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(ALERT_TIMEOUT_DURATION), _ -> {
+                    alert.setResult(ButtonType.YES);
+                    alert.hide();
+                }));
+                idleStage.setCycleCount(1);
+                idleStage.play();
+                alert.setOnHidden(_ -> {
+                    idleStage.stop();
+                    ButtonType clicked = alert.getResult();
+                    Platform.runLater(() -> result.complete(clicked == null || clicked == ButtonType.YES));
+                });
+                alert.show();
+            });
+            return awaitFuture(result);
+        }
     }
 
     /**
