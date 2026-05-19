@@ -36,7 +36,11 @@ class BoardControllerTest {
     @BeforeEach
     void setUp() throws Exception {
         if (!javafxInitialized) {
-            Platform.startup(() -> {}); // This will start the JavaFX runtime
+            try {
+                Platform.startup(() -> {}); // This will start the JavaFX runtime
+            } catch (IllegalStateException _) {
+                // Toolkit already initialized by another test class
+            }
             javafxInitialized = true;
         }
         clearBoardSingleton();

@@ -32,7 +32,7 @@ import java.util.*;
 @Setter
 public class HumanServer implements Server {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(HumanServer.class.getName());
+    static final Logger LOGGER = LoggerFactory.getLogger(HumanServer.class);
     private final Color color;
     private final Set<Color> skills = HashSet.newHashSet(5);
     private String type = TYPE_HUMAN;

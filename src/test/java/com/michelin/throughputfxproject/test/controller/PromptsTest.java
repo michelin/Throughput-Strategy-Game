@@ -22,16 +22,22 @@ import com.michelin.throughputfxproject.entities.actions.Trap;
 import com.michelin.throughputfxproject.entities.cards.BitCard;
 import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import com.michelin.throughputfxproject.entities.servers.Server;
+import com.michelin.throughputfxproject.entities.state.Board;
 import com.michelin.throughputfxproject.entities.state.Die;
 import javafx.application.Platform;
+import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.junit.jupiter.api.*;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,14 +45,39 @@ import static org.junit.jupiter.api.Assertions.*;
 class PromptsTest {
 
     private static boolean javafxInitialized = false;
+    private static Stage testStage;
+    static Pane testContainer;
     CountDownLatch latch;
 
     @BeforeAll
-    static void initToolkit() {
+    static void initToolkit() throws InterruptedException {
         if (!javafxInitialized) {
-            Platform.startup(() -> {}); // This will start the JavaFX runtime
+            try {
+                Platform.startup(() -> {}); // This will start the JavaFX runtime
+            } catch (IllegalStateException _) {
+                // Toolkit already initialized by another test class
+            }
             javafxInitialized = true;
         }
+        // Initialize Board and create a test stage with scene for modal dialog tests
+        CountDownLatch setupLatch = new CountDownLatch(1);
+        Platform.runLater(() -> {
+            Board.initializeInstance(6, 3, 4, 5);
+            testStage = new Stage();
+            testContainer = new Pane();
+            testStage.setScene(new Scene(testContainer, 800, 600));
+            testStage.show();
+            setupLatch.countDown();
+        });
+        setupLatch.await(10, TimeUnit.SECONDS);
+    }
+
+    @AfterAll
+    static void cleanup() {
+        Platform.runLater(() -> {
+            Board.clearInstance();
+            if (testStage != null) testStage.close();
+        });
     }
 
     @Test
@@ -79,7 +110,7 @@ class PromptsTest {
     @Test
     void implementPairedProgramming_doesNotThrow() throws InterruptedException {
         Platform.runLater(() -> {
-            Pane pane = new Pane();
+            Pane pane = testContainer;
             TextArea area = new TextArea();
             assertDoesNotThrow(() -> Prompts.implementPairedProgramming(pane, area));
             latch.countDown();
@@ -131,8 +162,9 @@ class PromptsTest {
     @Test
     void promptForServerMoves_doesNotThrow() throws InterruptedException {
         Platform.runLater(() -> {
-            Pane pane = new Pane();
+            Pane pane = testContainer;
             HumanServer server = Mockito.mock(HumanServer.class);
+            Mockito.when(server.getColor()).thenReturn(Color.BLUE);
             BoardController controller = Mockito.mock(BoardController.class);
             assertDoesNotThrow(() -> Prompts.promptForServerMoves(pane, server, controller));
             latch.countDown();
@@ -155,7 +187,7 @@ class PromptsTest {
     @Test
     void promptForWorkItemEstimates_doesNotThrow() throws InterruptedException {
         Platform.runLater(() -> {
-            Pane pane = new Pane();
+            Pane pane = testContainer;
             assertDoesNotThrow(() -> Prompts.promptForWorkItemEstimates(pane));
             latch.countDown();
         });
@@ -166,5 +198,22 @@ class PromptsTest {
     void setUp() {
         // Reset the latch before each test
         latch = new CountDownLatch(1);
+        // Background thread to dismiss blocking dialogs after 300ms so tests don't hang
+        Thread dismisser = new Thread(() -> {
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException _) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            Platform.runLater(() ->
+                new ArrayList<>(Window.getWindows()).stream()
+                    .filter(Window::isShowing)
+                    .filter(w -> w != testStage)
+                    .forEach(Window::hide)
+            );
+        });
+        dismisser.setDaemon(true);
+        dismisser.start();
     }
 }

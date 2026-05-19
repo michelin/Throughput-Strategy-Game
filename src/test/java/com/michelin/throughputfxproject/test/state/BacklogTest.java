@@ -16,6 +16,7 @@
 package com.michelin.throughputfxproject.test.state;
 
 import com.michelin.throughputfxproject.entities.state.Backlog;
+import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,7 +31,7 @@ class BacklogTest {
     @Test
     void addToBacklog_negativeAmount_throwsAssertionError() {
         Backlog backlog = new Backlog();
-        assertThrows(AssertionError.class, () -> backlog.addToBacklog(-1));
+        assertThrows(ThroughputRuntimeException.class, () -> backlog.addToBacklog(-1));
     }
 
     @Test
@@ -53,14 +54,14 @@ class BacklogTest {
     void subtractFromBacklog_negativeAmount_throwsAssertionError() {
         Backlog backlog = new Backlog();
         backlog.setBacklogItemCount(5);
-        assertThrows(AssertionError.class, () -> backlog.subtractFromBacklog(-1));
+        assertThrows(ThroughputRuntimeException.class, () -> backlog.subtractFromBacklog(-1));
     }
 
     @Test
     void subtractFromBacklog_tooLargeAmount_throwsAssertionError() {
         Backlog backlog = new Backlog();
         backlog.setBacklogItemCount(2);
-        assertThrows(AssertionError.class, () -> backlog.subtractFromBacklog(3));
+        assertThrows(ThroughputRuntimeException.class, () -> backlog.subtractFromBacklog(3));
     }
 
     @Test
