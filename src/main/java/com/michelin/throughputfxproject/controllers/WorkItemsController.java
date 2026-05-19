@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 @Getter
 public class WorkItemsController {
-    public static final Logger LOGGER = LoggerFactory.getLogger(WorkItemsController.class.getName());
+    static final Logger LOGGER = LoggerFactory.getLogger(WorkItemsController.class);
 
     @FXML
     private Text txtWorkstationMax;

@@ -16,6 +16,7 @@
 
 module com.michelin.throughputfxproject {
     requires javafx.controls;
+    requires javafx.base;
     requires org.kordamp.bootstrapfx.core;
     requires org.apache.commons.lang3;
     requires static lombok;

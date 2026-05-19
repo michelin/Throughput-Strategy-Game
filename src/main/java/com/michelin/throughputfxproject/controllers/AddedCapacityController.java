@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 @Getter
 public class AddedCapacityController {
-    public static final Logger LOGGER = LoggerFactory.getLogger(AddedCapacityController.class.getName());
+    static final Logger LOGGER = LoggerFactory.getLogger(AddedCapacityController.class);
 
     @FXML
     public TextArea addCapacityText;

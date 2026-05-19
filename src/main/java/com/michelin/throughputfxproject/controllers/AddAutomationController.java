@@ -41,7 +41,7 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode
 public class AddAutomationController {
-    public static final Logger LOGGER = LoggerFactory.getLogger(AddAutomationController.class.getName());
+    static final Logger LOGGER = LoggerFactory.getLogger(AddAutomationController.class);
 
     @FXML
     private TextArea addAutomationText;

@@ -33,7 +33,7 @@ import java.util.Objects;
 
 @Getter
 public class ServerMovesController {
-    public static final Logger LOGGER = LoggerFactory.getLogger(ServerMovesController.class.getName());
+    static final Logger LOGGER = LoggerFactory.getLogger(ServerMovesController.class);
 
     @FXML
     private TextArea serverMovesText;
