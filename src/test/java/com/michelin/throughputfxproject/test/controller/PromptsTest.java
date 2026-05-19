@@ -202,7 +202,7 @@ class PromptsTest {
         Thread dismisser = new Thread(() -> {
             try {
                 Thread.sleep(300);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException _) {
                 Thread.currentThread().interrupt();
                 return;
             }

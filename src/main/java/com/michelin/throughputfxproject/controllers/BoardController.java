@@ -59,8 +59,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.michelin.throughputfxproject.ThroughputApplication.*;
 import static com.michelin.throughputfxproject.entities.state.Board.*;
 
-@EqualsAndHashCode
-@ToString
 @Slf4j
 @Getter
 @Setter
@@ -68,6 +66,8 @@ public class BoardController {
 
     public static final String ACTION_EVENT = "Action Event: {}";
     public static final int SERVER_RETRY_DELAY = 5000;
+    private static final int BACKLOG_HIGHLIGHT = -1;
+    private static final int FINISHED_GOODS_HIGHLIGHT = 100;
     private static final String COLUMN_WK = "Wk";
     private static final String COLUMN_EST = "Est";
     private static final String COLUMN_WIP = "WIP";
@@ -205,7 +205,7 @@ public class BoardController {
                 }
             }
             case ANY_SERVER -> {
-                if (trap.duration().equals(RUN)) {
+                if (trap.duration().equals(RUN)) { // NOSONAR java:S6916 - 'when' guards require type patterns, not enum constants
                     int nextWorkstation = (currentWorkstation + 1) % Board.getInstance().getStationCount();
                     WorkstationService.getWorkstation(nextWorkstation).setActive(false);
                 }
@@ -223,7 +223,7 @@ public class BoardController {
     @FXML
     public void addOrRemoveSkillsForServers(ActionEvent actionEvent) throws IOException {
         // Log the action event for debugging purposes
-        log.debug("Remove skill " + ACTION_EVENT, actionEvent);
+        log.debug("Remove skill - Action Event: {}", actionEvent);
 
         // Check if the game is not in vanilla mode and prompt the user to draw a skills card
         if (!isVanilla() && Prompts.promptToDrawSkillsCard(gameDialogPane)) {
@@ -377,7 +377,7 @@ public class BoardController {
 
     public void toggleTimedRun(ActionEvent actionEvent) {
         // Log the action event for debugging purposes
-        log.debug("Toggle Timed Run: " + ACTION_EVENT, actionEvent);
+        log.debug("Toggle Timed Run - Action Event: {}", actionEvent);
 
         // Check if the timed run checkbox is selected
         // If selected, disable the run button and enable the period button
@@ -668,7 +668,7 @@ public class BoardController {
      */
     @FXML
     protected void saveGame(ActionEvent actionEvent) {
-        log.debug("Save Game: " + ACTION_EVENT, actionEvent);
+        log.debug("Save Game - Action Event: {}", actionEvent);
 
         try {
             String gameState = Board.getInstance().toJSON();
@@ -832,7 +832,7 @@ public class BoardController {
     @FXML
     protected void loadGame(ActionEvent actionEvent) {
         // Log the action event for debugging purposes
-        log.debug("Load Game: " + ACTION_EVENT, actionEvent);
+        log.debug("Load Game - Action Event: {}", actionEvent);
 
         try {
             // Prompt the user to upload a previously saved game file
@@ -1002,9 +1002,10 @@ public class BoardController {
             // Redraw the game board to reflect the updated state
             redrawBoard();
             // Highlight the backlog as the active workstation
-            highlightActiveWorkstation(-1);
+            highlightActiveWorkstation(BACKLOG_HIGHLIGHT);
 
             // Skills addition is triggered by a button push
+
 
             // Show buttons to run the turn
             turnButtonBar.setVisible(true);
@@ -1043,7 +1044,7 @@ public class BoardController {
         finishedGoodsCount.setBackground(whiteBackground);
 
         // Highlight the active workstation or count
-        if (activeWorkstation == -1) {
+        if (activeWorkstation == BACKLOG_HIGHLIGHT) {
             // Highlight the backlog count
             backlogCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
         } else if (activeWorkstation >= 0 && activeWorkstation < workstationCounts.size()) {
@@ -1053,7 +1054,7 @@ public class BoardController {
             javafx.scene.paint.Color fontColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFontColor();
             activeLabel.setBackground(new Background(new BackgroundFill(bgColor, CornerRadii.EMPTY, Insets.EMPTY)));
             activeLabel.setTextFill(fontColor);
-        } else if (activeWorkstation == 100) {
+        } else if (activeWorkstation == FINISHED_GOODS_HIGHLIGHT) {
             // Highlight the finished goods count
             finishedGoodsCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
         }
@@ -1076,7 +1077,7 @@ public class BoardController {
         disableButtons(true);
 
         // Highlight the backlog as the active workstation
-        highlightActiveWorkstation(-1);
+        highlightActiveWorkstation(BACKLOG_HIGHLIGHT);
 
         // Get the team mood and move initial work items
         int backlogItemCount = ScorecardService.BACKLOG.getBacklogItemCount();
@@ -1101,7 +1102,7 @@ public class BoardController {
         }
         // Move to the next run turn
         Board.getInstance().augmentRunTurn();
-        highlightActiveWorkstation(100);
+        highlightActiveWorkstation(FINISHED_GOODS_HIGHLIGHT);
         //Clear in training box
         Board.getInstance().returnServerToOriginalWorkstation();
         inTrainingBox.getChildren().clear();

@@ -415,31 +415,14 @@ public class Prompts {
 
     /**
      * Displays an alert with a game board update and automatically hides it after a timeout.
-     * Delegates to the overloaded `alertWithGameBoardUpdate` method with a default title.
+     * Delegates to the overloaded {@code alertWithGameBoardUpdate} method with a default title.
      *
      * @param gameBoardLog     The log area to display the game-related message.
      * @param gameBoardLogText The message to display in the game board log.
-     * @param timeoutDuration  The duration in milliseconds before the alert is automatically hidden.
+     * @param timeoutDuration  The duration in seconds before the alert is automatically hidden.
      */
     private static void alertWithGameBoardUpdate(@NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, int timeoutDuration) {
-
-        Text alertText = new Text(gameBoardLogText);
-        alertText.setWrappingWidth(100);
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.getDialogPane().setContent(alertText);
-        alert.getButtonTypes().set(0, ButtonType.OK);
-        alert.setTitle(THROUGHPUT);
-        alert.setHeaderText(null);
-
-        Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> {
-            gameBoardLog.setText(gameBoardLogText);
-            alert.setResult(ButtonType.OK);
-            alert.hide();
-        }));
-        idleStage.setCycleCount(1);
-        idleStage.play();
-
-        alert.showAndWait();
+        alertWithGameBoardUpdate(THROUGHPUT, gameBoardLog, gameBoardLogText, timeoutDuration);
     }
 
     /**
