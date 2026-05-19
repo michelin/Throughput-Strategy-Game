@@ -592,9 +592,8 @@ public class BoardController {
             countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
             try {
                 runTurn(actionEvent, runTurnTimeline); // Automatically call run turn
-            } catch (InterruptedException | IOException e) {
-                Thread.currentThread().interrupt(); // Preserve the interrupted status
-                log.error("Thread was interrupted during turn execution", e);
+            } catch (IOException e) {
+                log.error("I/O error during turn execution", e);
             }
             if ((currentPeriod == Board.getInstance().getCurrentPeriod()) && (Board.getInstance().getCurrentPeriod() <= Board.getInstance().getRunPeriods())) {
                 buildRunTurnTimer(actionEvent); // Automatically call buildPeriodTimer
@@ -625,11 +624,10 @@ public class BoardController {
      * processing workstations, updating the game state, and handling the transition to the next turn or period.
      *
      * @param actionEvent The action event triggered by the user.
-     * @throws IOException          If an I/O error occurs during the process.
-     * @throws InterruptedException If the thread is interrupted during execution.
+     * @throws IOException If an I/O error occurs during the process.
      */
     @FXML
-    protected void doRunTurn(ActionEvent actionEvent) throws IOException, InterruptedException {
+    protected void doRunTurn(ActionEvent actionEvent) throws IOException {
         runTurn(actionEvent, runTurnTimeline);
     }
 
@@ -746,9 +744,7 @@ public class BoardController {
             buttonAddSkills.setDisable(false);
             redrawBoard();
             Prompts.publishStartPeriod(gameBoardLog, Board.getInstance().getCurrentPeriod());
-        }
-
-        if (Board.getInstance().getCurrentRunTurn() <= Board.getInstance().getRunTurns()) {
+        } else if (Board.getInstance().getCurrentRunTurn() <= Board.getInstance().getRunTurns()) {
             // Enable turn-related buttons and publish the start of the turn
             buttonRunTurn.setDisable(false);
             buttonServerMoves.setDisable(isVanilla());
@@ -1060,7 +1056,7 @@ public class BoardController {
         }
     }
 
-    private void runTurn(ActionEvent actionEvent, Timeline timeline) throws IOException, InterruptedException {
+    private void runTurn(ActionEvent actionEvent, Timeline timeline) throws IOException {
         // Log the action event if debugging is enabled
         if (log.isDebugEnabled()) log.debug(actionEvent.toString());
 
@@ -1126,18 +1122,20 @@ public class BoardController {
      * Additionally, it determines and executes any bit actions and redraws the board after each server's action.
      *
      * @param position The index of the workstation to process.
-     * @throws IOException          If an I/O error occurs during server actions or prompts.
-     * @throws InterruptedException If the thread is interrupted during the sleep operation.
+     * @throws IOException If an I/O error occurs during server actions or prompts.
      */
-    private void runWorkstations(int position) throws IOException, InterruptedException {
+    private void runWorkstations(int position) throws IOException {
         // Retrieve the workstation at the specified position
         Workstation workstation = WorkstationService.getWorkstation(position);
         Objects.requireNonNull(workstation);
 
         // Check if the workstation is inactive
         if (!workstation.isActive()) {
-            // Wait for 5 seconds, reactivate the workstation, and redraw the board
-            Thread.sleep(SERVER_RETRY_DELAY);
+            // Show a timed alert (uses FX nested event loop, never blocks the rendering thread)
+            Prompts.alertWithoutBoardUpdate(
+                    workstation.getColor() + " Workstation Inactive",
+                    workstation.getColor() + " workstation was inactive. It has been reactivated.",
+                    SERVER_RETRY_DELAY);
             workstation.setActive(true);
             redrawBoard();
             return;

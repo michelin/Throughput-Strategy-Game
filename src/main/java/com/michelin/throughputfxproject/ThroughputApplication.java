@@ -56,11 +56,11 @@ public class ThroughputApplication extends Application {
     public static void main(String[] args) {
 
       Options options = new Options();
-      options.addOption("sides", false, "Die Sides");
-      options.addOption("stations", false, "Number Workstations");
-      options.addOption("periods", false, "Number Periods");
-      options.addOption("turns", false, "Number Turns");
-      options.addOption("configType", false, "Configuration Type (e.g., 'restaurant', 'management')");
+      options.addOption(Option.builder().longOpt("sides").hasArg().desc("Die Sides").build());
+      options.addOption(Option.builder().longOpt("stations").hasArg().desc("Number Workstations").build());
+      options.addOption(Option.builder().longOpt("periods").hasArg().desc("Number Periods").build());
+      options.addOption(Option.builder().longOpt("turns").hasArg().desc("Number Turns").build());
+      options.addOption(Option.builder().longOpt("configType").hasArg().desc("Configuration Type (e.g., 'restaurant', 'management')").build());
 
       CommandLine cmd;
       try {
@@ -139,6 +139,7 @@ public class ThroughputApplication extends Application {
         Scene scene = new Scene(fxmlLoader.load(), 1000, 1000);
         scene.getStylesheets().add(Objects.requireNonNull(ThroughputApplication.class.getResource("css/throughput.css")).toExternalForm());
         stage.setTitle("Throughput");
+        stage.setResizable(true);
         stage.setScene(scene);
         stage.show();
     }

@@ -80,6 +80,7 @@ public class Prompts {
         idleStage.playFromStart();
 
         alert.showAndWait();
+        idleStage.stop();
     }
 
     /**
@@ -160,7 +161,7 @@ public class Prompts {
             // Create a popup and add the stack pane to it
             createModalStage("Booster, Inoculation, Trap", container, root, MODAL_TIMEOUT_DURATION);
 
-            gameBoardLog.getBackground().getImages().clear();
+            gameBoardLog.setBackground(Background.EMPTY);
             //Follow the instructions on BIT card. If we get a hold card put in weekly hold or game hold.
             //Execute work item traps immediately, otherwise return traps for future execution.
             return bitCard;
@@ -180,10 +181,11 @@ public class Prompts {
     @SuppressWarnings({"java:S1190", "java:S117"})
     private static void alertWithGameBoardUpdate(String title, @NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, int timeoutDuration) {
 
+        gameBoardLog.setText(gameBoardLogText);
+
         Alert alert = makeAlert(title, gameBoardLogText);
 
         Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> {
-            gameBoardLog.setText(gameBoardLogText);
             alert.setResult(ButtonType.OK);
             alert.hide();
         }));
@@ -191,6 +193,7 @@ public class Prompts {
         idleStage.playFromStart();
 
         alert.showAndWait();
+        idleStage.stop();
 
     }
 
@@ -212,6 +215,7 @@ public class Prompts {
         idleStage.playFromStart();
 
         stage.showAndWait();
+        idleStage.stop();
     }
 
     /**
@@ -234,6 +238,7 @@ public class Prompts {
         idleStage.playFromStart();
 
         stage.showAndWait();
+        idleStage.stop();
 
     }
 

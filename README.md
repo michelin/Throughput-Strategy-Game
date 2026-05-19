@@ -112,27 +112,35 @@ Depending on what you are making, it can be a good idea to include screenshots o
 
 ## Run the Game
 
-To start the `ThroughputApplication`, follow these steps:
+To start the `ThroughputApplication`, use the JavaFX Maven plugin. Running via `java -jar` is not supported because JavaFX requires its modules to be on the module path, which the plugin handles automatically.
 
-1. **Command Line Arguments**:
+1. **Build the project**:
+
+   ```bash
+   ./mvnw clean package -DskipTests
+   ```
+
+2. **Run with default settings**:
+
+   ```bash
+   ./mvnw javafx:run
+   ```
+
+3. **Run with custom arguments**:
    - The application accepts the following optional arguments:
      - `sides`: Specifies the number of sides for the die.
      - `stations`: Specifies the number of workstations.
      - `periods`: Specifies the number of periods.
      - `turns`: Specifies the number of turns.
-   - Example command:
-  
+   - Pass them via `-Djavafx.args`:
+
      ```bash
-     java -jar throughputfxproject.jar --sides 6 --stations 5 --periods 5 --turns 5
+     ./mvnw javafx:run -Djavafx.args="--sides 6 --stations 5 --periods 5 --turns 5"
      ```
 
-2. **System Variables**:
+4. **System Variables**:
    - The application loads system properties from a `config.properties` file located in the same directory as the application.
    - These properties are added to `System.getProperties()` and can be used throughout the application.
-
-3. **Execution**:
-   - The `main` method initializes the application by parsing the command-line arguments, loading the configuration file, and setting up the application state.
-   - Finally, it launches the JavaFX application using `launch()`.
 
 Ensure the `config.properties` file is present and accessible, and provide valid arguments to customize the application's behavior.
 

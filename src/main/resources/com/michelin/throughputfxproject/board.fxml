@@ -156,8 +156,8 @@
                 </VBox.margin>
             </AnchorPane>
             <VBox>
-                <Pane prefHeight="300.0" prefWidth="665.0">
-                    <TextArea fx:id="gameBoardLog" editable="false" maxWidth="665.0" prefHeight="300.0" styleClass="read-only-textarea" text="Welcome to Throughput!&#10;&#10;Select the information button above to read more about the game objectives or the rules button to learn more about the rules.&#10;&#10;Click on the Run Game button to get started." wrapText="true">
+                <Pane prefHeight="300.0" prefWidth="-Infinity" HBox.hgrow="ALWAYS">
+                    <TextArea fx:id="gameBoardLog" editable="false" maxWidth="Infinity" prefHeight="300.0" styleClass="read-only-textarea" text="Welcome to Throughput!&#10;&#10;Select the information button above to read more about the game objectives or the rules button to learn more about the rules.&#10;&#10;Click on the Run Game button to get started." wrapText="true">
                         <padding>
                             <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />
                         </padding>
