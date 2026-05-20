@@ -47,6 +47,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
+import javafx.stage.Stage;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -384,6 +385,7 @@ public class BoardController {
         // If selected, disable the run button and enable the period button
         // If not selected, enable the run button and disable the period button
         runTimed = timedRun.isSelected();
+        Prompts.setTimedRun(runTimed);
     }
 
     /**
@@ -763,6 +765,8 @@ public class BoardController {
         if (Board.getInstance().gameIsOver()) {
             updateScorecardChart();
             redrawBoard();
+            endGame(null);
+            ((Stage) gameDialogPane.getScene().getWindow()).close();
         } else {
             handleNextRunOrPeriod();
         }
@@ -804,6 +808,9 @@ public class BoardController {
 
         // Update the scorecard table
         updateScorecardTable();
+
+        // Ensure prompts start in manual (non-timed) mode
+        Prompts.setTimedRun(false);
     }
 
     /**
