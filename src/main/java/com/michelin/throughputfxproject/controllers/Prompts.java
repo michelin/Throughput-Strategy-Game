@@ -27,7 +27,10 @@ import com.michelin.throughputfxproject.entities.state.Workstation;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.*;
 import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -82,6 +85,53 @@ public class Prompts {
      */
     public static void setTimedRun(boolean timed) {
         timedRun = timed;
+    }
+
+    /**
+     * Reference to the board's countdown timer label so dialogs can show their remaining time.
+     * Set once on startup via {@link #setCountdownTimer}; read from any thread.
+     */
+    private static volatile Label countdownTimer = null;
+
+    /**
+     * Sets the board's countdown timer label so timed dialogs can display their remaining time.
+     *
+     * @param label the {@code countdownTimer} label from the board FXML
+     */
+    public static void setCountdownTimer(Label label) {
+        countdownTimer = label;
+    }
+
+    /**
+     * Starts a visual countdown on the board timer label for {@code durationSeconds} seconds.
+     * Must be called on the FX application thread.
+     *
+     * @return the running {@link Timeline}, or {@code null} if no label is registered
+     */
+    private static Timeline startCountdownTimer(int durationSeconds) {
+        if (countdownTimer == null) return null;
+        IntegerProperty timeSeconds = new SimpleIntegerProperty(durationSeconds);
+        countdownTimer.textProperty().bind(timeSeconds.asString());
+        countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
+        Timeline countdown = new Timeline();
+        countdown.getKeyFrames().add(new KeyFrame(Duration.seconds(durationSeconds + 1.0), new KeyValue(timeSeconds, 0)));
+        countdown.setCycleCount(1);
+        countdown.playFromStart();
+        return countdown;
+    }
+
+    /**
+     * Stops a running countdown and resets the board timer label to "X" in red.
+     * Must be called on the FX application thread.
+     *
+     * @param countdown the Timeline returned by {@link #startCountdownTimer}, may be {@code null}
+     */
+    private static void stopCountdownTimer(Timeline countdown) {
+        if (countdownTimer == null) return;
+        if (countdown != null) countdown.stop();
+        countdownTimer.textProperty().unbind();
+        countdownTimer.setText("X");
+        countdownTimer.setTextFill(javafx.scene.paint.Color.RED);
     }
 
 
@@ -236,6 +286,7 @@ public class Prompts {
             gameBoardLog.setText(gameBoardLogText);
             Alert alert = makeAlert(title, gameBoardLogText);
             if (timedRun) {
+                Timeline countdownAnim = startCountdownTimer(timeoutDuration);
                 Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> {
                     alert.setResult(ButtonType.OK);
                     alert.hide();
@@ -244,6 +295,7 @@ public class Prompts {
                 idleStage.playFromStart();
                 alert.showAndWait();
                 idleStage.stop();
+                stopCountdownTimer(countdownAnim);
             } else {
                 alert.showAndWait();
             }
@@ -253,11 +305,13 @@ public class Prompts {
                 gameBoardLog.setText(gameBoardLogText);
                 Alert alert = makeAlert(title, gameBoardLogText);
                 if (timedRun) {
+                    Timeline countdownAnim = startCountdownTimer(timeoutDuration);
                     Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> alert.hide()));
                     idleStage.setCycleCount(1);
                     idleStage.playFromStart();
                     alert.setOnHidden(_ -> {
                         idleStage.stop();
+                        stopCountdownTimer(countdownAnim);
                         Platform.runLater(() -> closed.complete(null));
                     });
                 } else {
@@ -283,11 +337,13 @@ public class Prompts {
         if (Platform.isFxApplicationThread()) {
             Stage stage = createModalStageWithoutAction(title, container, root);
             if (timedRun) {
+                Timeline countdownAnim = startCountdownTimer(timeoutDuration);
                 Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> stage.hide()));
                 idleStage.setCycleCount(1);
                 idleStage.playFromStart();
                 stage.showAndWait();
                 idleStage.stop();
+                stopCountdownTimer(countdownAnim);
             } else {
                 stage.showAndWait();
             }
@@ -296,11 +352,13 @@ public class Prompts {
             Platform.runLater(() -> {
                 Stage stage = createModalStageWithoutAction(title, container, root);
                 if (timedRun) {
+                    Timeline countdownAnim = startCountdownTimer(timeoutDuration);
                     Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(timeoutDuration), _ -> stage.hide()));
                     idleStage.setCycleCount(1);
                     idleStage.playFromStart();
                     stage.setOnHidden(_ -> {
                         idleStage.stop();
+                        stopCountdownTimer(countdownAnim);
                         Platform.runLater(() -> closed.complete(null));
                     });
                 } else {
@@ -327,11 +385,13 @@ public class Prompts {
         if (Platform.isFxApplicationThread()) {
             Stage stage = createModalStageWithoutAction(title, container, root);
             if (timedRun) {
+                Timeline countdownAnim = startCountdownTimer(TIMEOUT_DURATION);
                 Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(TIMEOUT_DURATION), _ -> button.fire()));
                 idleStage.setCycleCount(1);
                 idleStage.playFromStart();
                 stage.showAndWait();
                 idleStage.stop();
+                stopCountdownTimer(countdownAnim);
             } else {
                 stage.showAndWait();
             }
@@ -340,11 +400,13 @@ public class Prompts {
             Platform.runLater(() -> {
                 Stage stage = createModalStageWithoutAction(title, container, root);
                 if (timedRun) {
+                    Timeline countdownAnim = startCountdownTimer(TIMEOUT_DURATION);
                     Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(TIMEOUT_DURATION), _ -> button.fire()));
                     idleStage.setCycleCount(1);
                     idleStage.playFromStart();
                     stage.setOnHidden(_ -> {
                         idleStage.stop();
+                        stopCountdownTimer(countdownAnim);
                         Platform.runLater(() -> closed.complete(null));
                     });
                 } else {
@@ -623,6 +685,7 @@ public class Prompts {
             alert.setTitle("Retry");
             alert.setHeaderText(null);
             if (timedRun) {
+                Timeline countdownAnim = startCountdownTimer(ALERT_TIMEOUT_DURATION);
                 Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(ALERT_TIMEOUT_DURATION), _ -> {
                     alert.setResult(ButtonType.YES);
                     alert.hide();
@@ -631,6 +694,7 @@ public class Prompts {
                 idleStage.play();
                 ButtonType button = alert.showAndWait().orElse(null);
                 idleStage.stop();
+                stopCountdownTimer(countdownAnim);
                 return button == null || button == ButtonType.YES;
             } else {
                 ButtonType button = alert.showAndWait().orElse(null);
@@ -647,6 +711,7 @@ public class Prompts {
                 alert.setTitle("Retry");
                 alert.setHeaderText(null);
                 if (timedRun) {
+                    Timeline countdownAnim = startCountdownTimer(ALERT_TIMEOUT_DURATION);
                     Timeline idleStage = new Timeline(new KeyFrame(Duration.seconds(ALERT_TIMEOUT_DURATION), _ -> {
                         alert.setResult(ButtonType.YES);
                         alert.hide();
@@ -655,6 +720,7 @@ public class Prompts {
                     idleStage.play();
                     alert.setOnHidden(_ -> {
                         idleStage.stop();
+                        stopCountdownTimer(countdownAnim);
                         ButtonType clicked = alert.getResult();
                         Platform.runLater(() -> result.complete(clicked == null || clicked == ButtonType.YES));
                     });

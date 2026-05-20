@@ -809,8 +809,9 @@ public class BoardController {
         // Update the scorecard table
         updateScorecardTable();
 
-        // Ensure prompts start in manual (non-timed) mode
+        // Ensure prompts start in manual (non-timed) mode and know about the countdown label
         Prompts.setTimedRun(false);
+        Prompts.setCountdownTimer(countdownTimer);
     }
 
     /**
