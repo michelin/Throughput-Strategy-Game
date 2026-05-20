@@ -600,7 +600,7 @@ public class BoardController {
             });
         }));
 
-        // Star
+        // Start the timer from the beginning
         runTurnTimeline.playFromStart();
     }
 
