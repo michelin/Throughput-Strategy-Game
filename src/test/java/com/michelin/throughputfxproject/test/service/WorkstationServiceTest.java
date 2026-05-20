@@ -20,15 +20,16 @@ import com.michelin.throughputfxproject.entities.servers.HumanServer;
 import com.michelin.throughputfxproject.entities.state.Board;
 import com.michelin.throughputfxproject.entities.state.Workstation;
 import com.michelin.throughputfxproject.services.WorkstationService;
+import com.michelin.throughputfxproject.test.TestUtils;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WorkstationServiceTest {
     @BeforeEach
     void setup() {
-        // Reset Board and WorkstationService state if possible
+        // Reset Board and WorkstationService state
+        TestUtils.resetServiceState();
         Board.initializeInstance(6,3,6,5);
-        // Reflection or direct reset may be needed for static workstations
     }
 
     @Test

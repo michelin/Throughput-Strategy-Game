@@ -59,6 +59,7 @@ class PromptsTest {
             }
             javafxInitialized = true;
         }
+        Platform.setImplicitExit(false);
         // Initialize Board and create a test stage with scene for modal dialog tests
         CountDownLatch setupLatch = new CountDownLatch(1);
         Platform.runLater(() -> {
