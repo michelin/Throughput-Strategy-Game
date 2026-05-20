@@ -69,7 +69,7 @@ public class Board implements Savable {
     private final int runPeriods;
     private final int runTurns;
     @Builder.Default
-    private Integer runTime = 5;
+    private Integer runTime = 30;
     @Builder.Default
     private Integer currentRunTurn = 1;
     @Builder.Default
@@ -177,6 +177,7 @@ public class Board implements Savable {
    * updates the scorecard, increments the run period, and resets the run turns.
    */
   public void augmentRunTurn() {
+      if (gameIsOver()) return;
       currentRunTurn++;
       if (currentRunTurn > runTurns) {
           this.getPeriodHoldCards().clear();

@@ -62,12 +62,13 @@ public class WorkItemsController {
 
            Workstation workstation =  WorkstationService.getWorkstations()[workstationPosition];
 
+            int moveAmount = Math.min(workstationMovesInt, Math.min(workstationMaxMovesInt, workstation.getWorkItemCount()));
             if (workstationPosition == 4) {
-                ScorecardService.FINISHED_GOODS.addToFinishedGoods(Math.min(workstationMovesInt,workstationMaxMovesInt));
+                ScorecardService.FINISHED_GOODS.addToFinishedGoods(moveAmount);
             } else {
-                WorkstationService.getWorkstation(workstationPosition+ 1).addToWorkItemCount(Math.min(workstationMovesInt,workstationMaxMovesInt));
+                WorkstationService.getWorkstation(workstationPosition+ 1).addToWorkItemCount(moveAmount);
             }
-            workstation.subtractFromWorkItemCount(Math.min(workstationMovesInt,workstationMaxMovesInt));
+            workstation.subtractFromWorkItemCount(moveAmount);
 
         } catch (NumberFormatException e) {
             LOGGER.error("WorkItems", e);

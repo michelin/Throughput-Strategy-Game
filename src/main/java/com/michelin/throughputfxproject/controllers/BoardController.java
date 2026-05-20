@@ -591,16 +591,16 @@ public class BoardController {
             countdownTimer.textProperty().unbind(); // Unbind the text property
             countdownTimer.setText("X"); // Display "X" when the timer ends
             countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
-            runTurn(actionEvent, runTurnTimeline, () -> { // Automatically call run turn; rebuild timer after task completes
+            runTurn(actionEvent, runTurnTimeline, () -> {
                 if ((currentPeriod == Board.getInstance().getCurrentPeriod()) && (Board.getInstance().getCurrentPeriod() <= Board.getInstance().getRunPeriods())) {
-                    buildRunTurnTimer(actionEvent); // Automatically call buildPeriodTimer
+                    buildRunTurnTimer(actionEvent); // Rebuild timer for the next turn in same period
                 } else if (Board.getInstance().getCurrentPeriod() <= Board.getInstance().getRunPeriods()) {
-                    buildPeriodTimer(actionEvent); // call buildPeriodTimer for remaining periods
+                    buildPeriodTimer(actionEvent); // Start period timer for the next period
                 }
             });
         }));
 
-        // Start the timer from the b
+        // Star
         runTurnTimeline.playFromStart();
     }
 
@@ -756,6 +756,19 @@ public class BoardController {
     }
 
     /**
+     * Handles the end-of-turn state by either showing the final scorecard
+     * when the game is over, or transitioning to the next run or period.
+     */
+    private void handleEndOfTurnState() {
+        if (Board.getInstance().gameIsOver()) {
+            updateScorecardChart();
+            redrawBoard();
+        } else {
+            handleNextRunOrPeriod();
+        }
+    }
+
+    /**
      * Hides the buttons related to running a turn.
      */
     private void hideRunButtons() {
@@ -895,6 +908,7 @@ public class BoardController {
         boolean retry = Prompts.promptForServerRetry(server);
         if (retry) {
             // Remove the first period hold card and update the hold card box
+            if (Board.getInstance().getPeriodHoldCards().isEmpty()) return;
             Board.getInstance().getPeriodHoldCards().removeFirst();
             updateHoldCardBox();
 
@@ -1110,15 +1124,7 @@ public class BoardController {
                 runFx(() -> inTrainingBox.getChildren().clear());
 
                 // Check if the game is over
-                if (Board.getInstance().gameIsOver()) {
-                    runFx(() -> {
-                        updateScorecardChart();
-                        redrawBoard();
-                    });
-                } else {
-                    // Handle the transition to the next run or period
-                    runFx(BoardController.this::handleNextRunOrPeriod);
-                }
+                runFx(BoardController.this::handleEndOfTurnState);
 
                 return null;
             }
