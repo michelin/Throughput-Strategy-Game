@@ -918,7 +918,7 @@ public class BoardController {
             // Remove the first period hold card and update the hold card box
             if (Board.getInstance().getPeriodHoldCards().isEmpty()) return;
             Board.getInstance().getPeriodHoldCards().removeFirst();
-            updateHoldCardBox();
+            runFx(this::updateHoldCardBox);
 
             // Attempt the server action and handle the result
             ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, workstation, gameBoardLog);
