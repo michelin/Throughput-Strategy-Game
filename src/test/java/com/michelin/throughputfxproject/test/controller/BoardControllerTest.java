@@ -18,13 +18,20 @@ package com.michelin.throughputfxproject.test.controller;
 import com.michelin.throughputfxproject.controllers.BoardController;
 import com.michelin.throughputfxproject.entities.state.Board;
 import com.michelin.throughputfxproject.entities.state.ScoreCard;
+import com.michelin.throughputfxproject.test.TestUtils;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BoardControllerTest {
@@ -105,5 +112,58 @@ class BoardControllerTest {
         controller.setHoldCardBox(new Pane());
         // ...add more mocks as needed for a full test
         assertDoesNotThrow(controller::redrawBoard);
+    }
+
+    /**
+     * Verifies the fix in retryWithCard(): routing updateHoldCardBox() through runFx() from a
+     * background thread ensures the scene-graph mutation is dispatched to the FX Application
+     * Thread and does NOT throw IllegalStateException.
+     *
+     * <p>Before the fix, retryWithCard() called updateHoldCardBox() directly from the
+     * game-turn-thread, which causes JavaFX to throw when the node is part of an active scene.
+     * The fix changed this to runFx(this::updateHoldCardBox), which is what this test exercises.
+     */
+    @Test
+    void updateHoldCardBox_viaRunFx_fromBackgroundThread_executesOnFxThread()
+            throws Exception {
+        TestUtils.resetServiceState();
+        Board.initializeInstance(6, 5, 5, 5);
+        controller.setHoldCardBox(new GridPane());
+
+        Method runFxMethod = BoardController.class.getDeclaredMethod("runFx", Runnable.class);
+        runFxMethod.setAccessible(true);
+        Method updateMethod = BoardController.class.getDeclaredMethod("updateHoldCardBox");
+        updateMethod.setAccessible(true);
+
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Throwable> thrown = new AtomicReference<>();
+        AtomicReference<Boolean> ranOnFxThread = new AtomicReference<>(false);
+
+        Thread bgThread = new Thread(() -> {
+            try {
+                // This mirrors the fix: runFx(this::updateHoldCardBox)
+                runFxMethod.invoke(controller, (Runnable) () -> {
+                    try {
+                        ranOnFxThread.set(Platform.isFxApplicationThread());
+                        updateMethod.invoke(controller);
+                    } catch (InvocationTargetException e) {
+                        thrown.set(e.getCause());
+                    } catch (Exception e) {
+                        thrown.set(e);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            } catch (Exception e) {
+                thrown.set(e);
+                latch.countDown();
+            }
+        }, "test-bg-thread");
+        bgThread.start();
+        bgThread.join(3_000);
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS), "FX runnable did not execute within timeout");
+        assertNull(thrown.get(), "Expected no exception, but got: " + thrown.get());
+        assertTrue(ranOnFxThread.get(), "updateHoldCardBox was not executed on the FX Application Thread");
     }
 }
