@@ -47,6 +47,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
+import org.kordamp.ikonli.javafx.FontIcon;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -80,6 +82,8 @@ public class BoardController {
     private static final String PROPERTY_WORK_IN_PROCESS = "workInProcess";
     private static final String PROPERTY_FINISHED_GOODS = "finishedGoods";
     private static final String PROPERTY_SCORE = "score";
+    private static final String STYLE_SCORE_BOX_LABEL = "score-box-label";
+    private static final String STYLE_WORKSTATION_CARD_ROW = "workstation-card-row";
     @FXML
     private Button buttonLoadGame;
     @FXML
@@ -127,37 +131,15 @@ public class BoardController {
     @FXML
     private Label backlogCount;
     @FXML
+    private Label backlogHeader;
+    @FXML
+    private Label finishedGoodsHeader;
+    @FXML
     private Label finishedGoodsCount;
     @FXML
-    private VBox servers00;
+    private HBox workstationContainer;
     @FXML
-    private VBox servers10;
-    @FXML
-    private VBox servers20;
-    @FXML
-    private VBox servers30;
-    @FXML
-    private VBox servers40;
-    @FXML
-    private Label workstationCount0;
-    @FXML
-    private Label workstationCount1;
-    @FXML
-    private Label workstationCount2;
-    @FXML
-    private Label workstationCount3;
-    @FXML
-    private Label workstationCount4;
-    @FXML
-    private Label workstationLabel0;
-    @FXML
-    private Label workstationLabel1;
-    @FXML
-    private Label workstationLabel2;
-    @FXML
-    private Label workstationLabel3;
-    @FXML
-    private Label workstationLabel4;
+    private HBox outerScoreBox;
     @FXML
     private Button buttonEndGame;
     @FXML
@@ -166,6 +148,19 @@ public class BoardController {
     private boolean runTimed = false;
     private Timeline periodTimeline;
     private Timeline runTurnTimeline;
+    private final List<Pane> workstationServerPanes = new ArrayList<>();
+    private final List<VBox> workstationCards = new ArrayList<>();
+    private final List<Label> workstationLabels = new ArrayList<>();
+    private final List<Label> workstationInputLabels = new ArrayList<>();
+    private final List<Label> workstationWorkersLabels = new ArrayList<>();
+    private final List<Label> workstationUpgradeLabels = new ArrayList<>();
+    private final List<Label> workstationAttemptsLabels = new ArrayList<>();
+    private final List<Label> workstationCapacityLabels = new ArrayList<>();
+    private final List<Label> workstationStatusLabels = new ArrayList<>();
+    private final List<Label> workstationOutputLabels = new ArrayList<>();
+    private final List<Label> queueCountLabels = new ArrayList<>();
+    private final List<Label> queueCapacityLabels = new ArrayList<>();
+    private final List<Label> queueDotLabels = new ArrayList<>();
 
 
     public BoardController() {
@@ -254,15 +249,13 @@ public class BoardController {
     public void redrawBoard() {
         // Retrieve the list of workstations
         Workstation[] workstations = WorkstationService.getWorkstations();
+        Board.getInstance().ensureQueueStateInitialized();
+        ensureWorkstationUi(workstations.length);
 
         try {
             // Update the server cards for each workstation
-            Pane[] serverPanes = {servers00, servers10, servers20, servers30, servers40};
             for (int i = 0; i < workstations.length; i++) {
-                if (serverPanes[i] == null) {
-                    continue;
-                }
-                buildServerCards(workstations[i].getServers(), serverPanes[i]);
+                buildServerCards(workstations[i].getServers(), workstationServerPanes.get(i));
             }
             // Update the in-training server card
             buildInTrainingCard(Board.getInstance().getInTrainingServer(), inTrainingBox);
@@ -271,16 +264,17 @@ public class BoardController {
             throw new ThroughputRuntimeException(e);
         }
 
-        // Update the workstation counts and labels
-        Label[] workstationCounts = {workstationCount0, workstationCount1, workstationCount2, workstationCount3, workstationCount4};
-        Label[] workstationLabels = {workstationLabel0, workstationLabel1, workstationLabel2, workstationLabel3, workstationLabel4};
+        // Update workstation labels and queue labels
         for (int i = 0; i < workstations.length; i++) {
-            if (workstationCounts[i] == null || workstationLabels[i] == null) {
-                log.warn("workstationCounts[{}] or workstationLabels[{}] is null", i, i);
-                continue;
+            updateWorkstationLabel(workstations, i);
+            if (i < queueCountLabels.size()) {
+                int queueCount = Board.getInstance().getQueueCount(i);
+                queueCountLabels.get(i).setText(String.valueOf(queueCount));
+                queueCapacityLabels.get(i).setText(String.valueOf(Board.getInstance().getQueueCapacity(i)));
+                if (i < queueDotLabels.size()) {
+                    queueDotLabels.get(i).setText(buildQueueDots(queueCount));
+                }
             }
-            workstationCounts[i].setText(StringUtils.leftPad(String.valueOf(workstations[i].getWorkItemCount()), 3, '0'));
-            workstationLabels[i].setText(workstations[i].getColor().name() + ": " + workstations[i].getCapacity());
         }
 
         // Update the backlog and finished goods counts
@@ -295,6 +289,12 @@ public class BoardController {
         // Refresh the scorecard table and hold card box
         updateScorecardTable();
         updateHoldCardBox();
+
+        log.info("Board redraw complete: stations={}, workstationNodes={}, backlog={}, finishedGoods={}",
+            workstations.length,
+            workstationContainer != null ? workstationContainer.getChildren().size() : -1,
+            backlogCount != null ? backlogCount.getText() : "n/a",
+            finishedGoodsCount != null ? finishedGoodsCount.getText() : "n/a");
     }
 
     /**
@@ -481,6 +481,10 @@ public class BoardController {
         // Create a rectangle for each skill and add it to the VBox
         server.getSkills().forEach(color -> {
             Rectangle rectangle = new Rectangle(10, (boxHeight / skillsCount), color.lookupFXColor());
+            rectangle.getStyleClass().add("server-skill-chip");
+            if (server.getColor().equals(color)) {
+                rectangle.getStyleClass().add("server-skill-required");
+            }
             vBox.getChildren().add(rectangle);
         });
 
@@ -560,6 +564,7 @@ public class BoardController {
 
         // Set the text color of the countdown timer to dark blue
         countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
+        setCountdownGraphicVisible(true);
 
         // Initialize the timeline for the countdown
         periodTimeline = Board.getInstance().getFreshTimeline(2, countdownTimer);
@@ -569,6 +574,7 @@ public class BoardController {
             countdownTimer.textProperty().unbind(); // Unbind the text property
             countdownTimer.setText("X"); // Display "X" when the timer ends
             countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
+            setCountdownGraphicVisible(false);
             runPeriod(actionEvent, periodTimeline);
             buildRunTurnTimer(actionEvent);
 
@@ -583,6 +589,7 @@ public class BoardController {
 
         // Set the text color of the countdown timer to dark blue
         countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
+        setCountdownGraphicVisible(true);
 
         // Initialize the timeline for the countdown
         runTurnTimeline = Board.getInstance().getFreshTimeline(3, countdownTimer);
@@ -593,6 +600,7 @@ public class BoardController {
             countdownTimer.textProperty().unbind(); // Unbind the text property
             countdownTimer.setText("X"); // Display "X" when the timer ends
             countdownTimer.setTextFill(javafx.scene.paint.Color.RED); // Change text color to red
+            setCountdownGraphicVisible(false);
             runTurn(actionEvent, runTurnTimeline, () -> {
                 if ((currentPeriod == Board.getInstance().getCurrentPeriod()) && (Board.getInstance().getCurrentPeriod() <= Board.getInstance().getRunPeriods())) {
                     buildRunTurnTimer(actionEvent); // Rebuild timer for the next turn in same period
@@ -788,13 +796,19 @@ public class BoardController {
      */
     @FXML
     protected void initialize() {
-        // Initialize workstation counts and labels
-        initializeWorkstationCounts();
-        initializeWorkstationLabels();
+        log.info("BoardController.initialize start: stationCount={}, period={}, runTurn={}",
+            Board.getInstance().getStationCount(),
+            Board.getInstance().getCurrentPeriod(),
+            Board.getInstance().getCurrentRunTurn());
+
+        // Build workstation UI from the configured station count.
+        initializeWorkstationUi();
 
         // Initialize backlog and finished goods counts
+        setEndpointHeaderText(backlogHeader, "BACKLOG");
         backlogCount.setText("000");
         backlogCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        setEndpointHeaderText(finishedGoodsHeader, "FINISHED GOODS");
         finishedGoodsCount.setText("000");
 
         // Initialize run and period labels
@@ -806,23 +820,31 @@ public class BoardController {
         // Initialize total score
         totalScore.setText("000");
 
+        // Apply column policy in code; FXML string coercion for callback policies is brittle across JavaFX versions.
+        scoreTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+
         // Update the scorecard table
         updateScorecardTable();
+
+        // Render the initial board state immediately so workstation UI is visible on startup.
+        redrawBoard();
 
         // Ensure prompts start in manual (non-timed) mode and know about the countdown label
         Prompts.setTimedRun(false);
         Prompts.setCountdownTimer(countdownTimer);
+        setCountdownGraphicVisible(false);
+
+        log.info("BoardController.initialize complete: workstationNodes={}, holdCards={}, inTrainingNodes={}",
+            workstationContainer != null ? workstationContainer.getChildren().size() : -1,
+            holdCardBox != null ? holdCardBox.getChildren().size() : -1,
+            inTrainingBox != null ? inTrainingBox.getChildren().size() : -1);
     }
 
     /**
      * Initializes the workstation counts by setting their text values to "000".
      */
     private void initializeWorkstationCounts() {
-        workstationCount0.setText("000");
-        workstationCount1.setText("000");
-        workstationCount2.setText("000");
-        workstationCount3.setText("000");
-        workstationCount4.setText("000");
+        // No-op: queue labels are initialized dynamically per queue.
     }
 
     /**
@@ -830,11 +852,22 @@ public class BoardController {
      * of their respective colors.
      */
     private void initializeWorkstationLabels() {
-        workstationLabel0.setText(Color.BLUE.name());
-        workstationLabel1.setText(Color.GREEN.name());
-        workstationLabel2.setText(Color.ROSE.name());
-        workstationLabel3.setText(Color.YELLOW.name());
-        workstationLabel4.setText(Color.VIOLET.name());
+        Workstation[] workstations = WorkstationService.getWorkstations();
+        for (int i = 0; i < workstations.length; i++) {
+            updateWorkstationLabel(workstations, i);
+        }
+    }
+
+    private void initializeQueueLabels() {
+        Board.getInstance().ensureQueueStateInitialized();
+        for (int i = 0; i < queueCountLabels.size(); i++) {
+            int queueCount = Board.getInstance().getQueueCount(i);
+            queueCountLabels.get(i).setText(String.valueOf(queueCount));
+            queueCapacityLabels.get(i).setText(String.valueOf(Board.getInstance().getQueueCapacity(i)));
+            if (i < queueDotLabels.size()) {
+                queueDotLabels.get(i).setText(buildQueueDots(queueCount));
+            }
+        }
     }
 
     /**
@@ -1007,6 +1040,7 @@ public class BoardController {
         }
         // Stop the timer if it is active
         if (timeline != null) timeline.stop();
+        setCountdownGraphicVisible(false);
         try {
             // Hide period-related buttons
             periodButtonBar.setVisible(false);
@@ -1049,13 +1083,9 @@ public class BoardController {
      *                          or a valid workstation index (0-4) to highlight a specific workstation.
      */
     private void highlightActiveWorkstation(int activeWorkstation) {
-        // Reset all workstation and count backgrounds to white
+        // Reset active card state and count backgrounds
+        workstationCards.forEach(card -> card.getStyleClass().remove("workstation-card-active"));
         Background whiteBackground = new Background(new BackgroundFill(javafx.scene.paint.Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY));
-        List<Label> workstationCounts = List.of(workstationCount0, workstationCount1, workstationCount2, workstationCount3, workstationCount4);
-        workstationCounts.forEach(label -> {
-            label.setBackground(whiteBackground);
-            label.setTextFill(javafx.scene.paint.Color.BLACK);
-        });
         backlogCount.setBackground(whiteBackground);
         finishedGoodsCount.setBackground(whiteBackground);
 
@@ -1063,13 +1093,8 @@ public class BoardController {
         if (activeWorkstation == BACKLOG_HIGHLIGHT) {
             // Highlight the backlog count
             backlogCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
-        } else if (activeWorkstation >= 0 && activeWorkstation < workstationCounts.size()) {
-            // Highlight the specified workstation
-            Label activeLabel = workstationCounts.get(activeWorkstation);
-            javafx.scene.paint.Color bgColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFXColor();
-            javafx.scene.paint.Color fontColor = WorkstationService.getWorkstations()[activeWorkstation].getColor().lookupFontColor();
-            activeLabel.setBackground(new Background(new BackgroundFill(bgColor, CornerRadii.EMPTY, Insets.EMPTY)));
-            activeLabel.setTextFill(fontColor);
+        } else if (activeWorkstation >= 0 && activeWorkstation < workstationLabels.size()) {
+            workstationCards.get(activeWorkstation).getStyleClass().add("workstation-card-active");
         } else if (activeWorkstation == FINISHED_GOODS_HIGHLIGHT) {
             // Highlight the finished goods count
             finishedGoodsCount.setBackground(new Background(new BackgroundFill(javafx.scene.paint.Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
@@ -1089,6 +1114,7 @@ public class BoardController {
             log.info("Timeline status {}", timeline.getStatus().name());
             timeline.stop();
         }
+        setCountdownGraphicVisible(false);
 
         // Log the current run turn
         log.debug("Run Turn {}", Board.getInstance().getCurrentRunTurn());
@@ -1101,12 +1127,6 @@ public class BoardController {
             protected Void call() throws IOException {
                 // Highlight the backlog as the active workstation
                 runFx(() -> highlightActiveWorkstation(BACKLOG_HIGHLIGHT));
-
-                // Get the team mood and move initial work items
-                int backlogItemCount = ScorecardService.BACKLOG.getBacklogItemCount();
-                int startValue = backlogItemCount > 0 ? Prompts.teamMood(gameDialogPane, Board.getInstance().getDieFaces()) : 0;
-                Prompts.promptForWorkItemInitialMoves(gameDialogPane, startValue, backlogItemCount, gameBoardLog);
-                runFx(BoardController.this::redrawBoard);
 
                 // Process each workstation
                 for (int stationIndex = 0; stationIndex < Board.getInstance().getStationCount(); stationIndex++) {
@@ -1149,6 +1169,14 @@ public class BoardController {
         Thread taskThread = new Thread(task, "game-turn-thread");
         taskThread.setDaemon(true);
         taskThread.start();
+    }
+
+    private void setCountdownGraphicVisible(boolean visible) {
+        if (countdownTimer == null || countdownTimer.getGraphic() == null) {
+            return;
+        }
+        countdownTimer.getGraphic().setVisible(visible);
+        countdownTimer.getGraphic().setManaged(visible);
     }
 
     /**
@@ -1202,8 +1230,17 @@ public class BoardController {
             ChanceResult result = Prompts.serverChanceCardPlay(gameDialogPane, server, workstation, gameBoardLog);
             switch (result) {
                 case SUCCESS:
-                    // Prompt for moving work items within the workstation
-                    Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
+                    if (position == 0) {
+                        // Workstation 0 pulls from backlog into queue 0 only after a successful chance roll.
+                        int backlogItemCount = ScorecardService.BACKLOG.getBacklogItemCount();
+                        int queueMaxMoves = Board.getInstance().getStationCount() > 1
+                                ? Math.min(workstation.getCapacity(), Board.getInstance().getQueueSpaceRemaining(0))
+                                : Math.min(workstation.getCapacity(), backlogItemCount);
+                        Prompts.promptForWorkItemInitialMoves(gameDialogPane, queueMaxMoves, backlogItemCount, gameBoardLog);
+                    } else {
+                        // Prompt for moving work items within the workstation
+                        Prompts.promptForWorkItemWorkstationMoves(gameDialogPane, workstation, position);
+                    }
                     break;
                 case FAILED:
                     // Retry the action using a period hold card or a partner if available
@@ -1309,6 +1346,385 @@ public class BoardController {
 
         // Add the populated series to the chart
         scoreLineChart.getData().add(series);
+    }
+
+    private void initializeWorkstationUi() {
+        Workstation[] workstations = WorkstationService.getWorkstations();
+        Board.getInstance().ensureQueueStateInitialized();
+        ensureWorkstationUi(workstations.length);
+        initializeWorkstationCounts();
+        initializeWorkstationLabels();
+        initializeQueueLabels();
+    }
+
+    private void ensureWorkstationUi(int workstationCount) {
+        if (workstationContainer == null) {
+            throw new ThroughputRuntimeException(new IllegalStateException("workstationContainer is not wired from FXML"));
+        }
+        if (workstationServerPanes.size() == workstationCount
+                && workstationLabels.size() == workstationCount) {
+            return;
+        }
+
+        workstationContainer.getChildren().clear();
+        workstationContainer.setSpacing(14.0);
+        workstationServerPanes.clear();
+        workstationCards.clear();
+        workstationLabels.clear();
+        workstationInputLabels.clear();
+        workstationWorkersLabels.clear();
+        workstationUpgradeLabels.clear();
+        workstationAttemptsLabels.clear();
+        workstationCapacityLabels.clear();
+        workstationStatusLabels.clear();
+        workstationOutputLabels.clear();
+        queueCountLabels.clear();
+        queueCapacityLabels.clear();
+        queueDotLabels.clear();
+
+        for (int i = 0; i < workstationCount; i++) {
+            final int queueIndex = i;
+            VBox servers = new VBox();
+            servers.setId("servers" + i + "0");
+                servers.getStyleClass().add("workstation-workers-pane");
+
+            Label workstationNameLabel = new Label();
+                workstationNameLabel.getStyleClass().add("workstation-card-title");
+            workstationNameLabel.setWrapText(true);
+                workstationNameLabel.setMaxWidth(Double.MAX_VALUE);
+
+                Label inputLabel = new Label();
+                inputLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW, "workstation-card-input");
+
+                Label workersLabel = new Label();
+                workersLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW);
+
+                Label upgradesLabel = new Label();
+                upgradesLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW);
+
+                Label attemptsLabel = new Label();
+                attemptsLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW);
+
+                Label capacityLabel = new Label();
+                capacityLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW);
+
+                Label statusLabel = new Label();
+                statusLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW, "workstation-card-status");
+
+                Label outputLabel = new Label();
+                outputLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW, "workstation-card-output");
+
+                Separator dividerTop = new Separator();
+                dividerTop.getStyleClass().add("workstation-card-divider");
+
+                Separator dividerBottom = new Separator();
+                dividerBottom.getStyleClass().add("workstation-card-divider");
+
+                VBox workstationCard = new VBox(
+                    workstationNameLabel,
+                    inputLabel,
+                    dividerTop,
+                    workersLabel,
+                    servers,
+                    upgradesLabel,
+                    attemptsLabel,
+                    capacityLabel,
+                    statusLabel,
+                    dividerBottom,
+                    outputLabel
+                );
+                workstationCard.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+                workstationCard.setId("workstation" + i);
+                workstationCard.getStyleClass().add("workstation-card");
+
+            if (i < workstationCount - 1) {
+                Label queueTitleLabel = new Label();
+                queueTitleLabel.getStyleClass().add("queue-side-title");
+                queueTitleLabel.setMaxWidth(Double.MAX_VALUE);
+                queueTitleLabel.setAlignment(javafx.geometry.Pos.CENTER);
+                queueTitleLabel.setTextAlignment(TextAlignment.CENTER);
+                queueTitleLabel.setWrapText(false);
+                queueTitleLabel.setTextOverrun(OverrunStyle.CLIP);
+
+                Label queueCountLabel = new Label();
+                queueCountLabel.getStyleClass().add("queue-side-count");
+                queueCountLabel.setMaxWidth(Double.MAX_VALUE);
+                queueCountLabel.setAlignment(javafx.geometry.Pos.CENTER);
+
+                Label queueDotsLabel = new Label();
+                queueDotsLabel.getStyleClass().add("queue-side-dots");
+                queueDotsLabel.setWrapText(true);
+                queueDotsLabel.setMaxWidth(Double.MAX_VALUE);
+                queueDotsLabel.setAlignment(javafx.geometry.Pos.CENTER);
+
+                Label queueCapacityLabel = new Label();
+                queueCapacityLabel.getStyleClass().add("capacity-box-label");
+                queueCapacityLabel.setMinWidth(22.0);
+                queueCapacityLabel.setPrefWidth(22.0);
+                queueCapacityLabel.setMaxWidth(22.0);
+                queueCapacityLabel.setMinHeight(16.0);
+                queueCapacityLabel.setPrefHeight(16.0);
+                queueCapacityLabel.setMaxHeight(16.0);
+                queueCapacityLabel.setAlignment(javafx.geometry.Pos.CENTER);
+
+                Button decrementButton = new Button();
+                Button incrementButton = new Button();
+                decrementButton.getStyleClass().add("button-increment-default");
+                incrementButton.getStyleClass().add("button-increment-default");
+                decrementButton.setGraphic(new FontIcon("fas-minus"));
+                incrementButton.setGraphic(new FontIcon("fas-plus"));
+                decrementButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                incrementButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                decrementButton.setGraphicTextGap(0);
+                incrementButton.setGraphicTextGap(0);
+                decrementButton.setPadding(Insets.EMPTY);
+                incrementButton.setPadding(Insets.EMPTY);
+                decrementButton.setFocusTraversable(false);
+                incrementButton.setFocusTraversable(false);
+                decrementButton.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-border-color: transparent; -fx-border-width: 0; -fx-padding: 0;");
+                incrementButton.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-border-color: transparent; -fx-border-width: 0; -fx-padding: 0;");
+                decrementButton.setMinSize(6.0, 6.0);
+                decrementButton.setPrefSize(10.0, 10.0);
+                decrementButton.setMaxSize(14.0, 14.0);
+                incrementButton.setMinSize(6.0, 6.0);
+                incrementButton.setPrefSize(10.0, 10.0);
+                incrementButton.setMaxSize(14.0, 14.0);
+                decrementButton.setOnAction(event -> adjustQueueCapacity(queueIndex, -1));
+                incrementButton.setOnAction(event -> adjustQueueCapacity(queueIndex, 1));
+
+                HBox queueButtons = new HBox(1, decrementButton, queueCapacityLabel, incrementButton);
+                queueButtons.setAlignment(javafx.geometry.Pos.CENTER);
+                queueButtons.getStyleClass().add("queue-side-controls");
+
+                Separator queueDivider = new Separator();
+                queueDivider.getStyleClass().add("queue-side-divider");
+
+                VBox queueCenter = new VBox(1, queueCountLabel, queueDotsLabel);
+                queueCenter.setAlignment(javafx.geometry.Pos.CENTER);
+
+                Region upperSpacer = new Region();
+                Region lowerSpacer = new Region();
+                VBox.setVgrow(upperSpacer, Priority.ALWAYS);
+                VBox.setVgrow(lowerSpacer, Priority.ALWAYS);
+
+                VBox queueVBox = new VBox(2, queueTitleLabel, upperSpacer, queueCenter, lowerSpacer, queueDivider, queueButtons);
+                queueVBox.setAlignment(javafx.geometry.Pos.TOP_CENTER);
+                queueVBox.setFillWidth(true);
+                queueVBox.setId("queue" + i);
+                queueVBox.getStyleClass().add("queue-side-box");
+
+                Color queueColor = WorkstationService.getWorkstation(i).getColor();
+                setQueueHeaderText(queueTitleLabel, queueColor.name() + " QUEUE");
+                applyQueueBoxColor(queueVBox, queueColor);
+
+                Label queueFlowArrow = new Label();
+                queueFlowArrow.getStyleClass().add("queue-flow-arrow");
+                queueFlowArrow.setGraphic(new FontIcon("fas-arrow-right"));
+                queueFlowArrow.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                queueFlowArrow.setAlignment(javafx.geometry.Pos.CENTER);
+                applyQueueFlowArrowColor(queueFlowArrow, queueColor);
+
+                Label queueOutboundArrow = new Label();
+                queueOutboundArrow.getStyleClass().add("queue-flow-arrow");
+                queueOutboundArrow.setGraphic(new FontIcon("fas-arrow-right"));
+                queueOutboundArrow.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                queueOutboundArrow.setAlignment(javafx.geometry.Pos.CENTER);
+                applyQueueFlowArrowColor(queueOutboundArrow, queueColor);
+
+                HBox queueBridge = new HBox(10, queueFlowArrow, queueVBox, queueOutboundArrow);
+                queueBridge.setAlignment(javafx.geometry.Pos.CENTER);
+                queueBridge.getStyleClass().add("queue-bridge");
+
+                workstationContainer.getChildren().add(workstationCard);
+                workstationContainer.getChildren().add(queueBridge);
+                queueCountLabels.add(queueCountLabel);
+                queueCapacityLabels.add(queueCapacityLabel);
+                queueDotLabels.add(queueDotsLabel);
+            } else {
+                workstationContainer.getChildren().add(workstationCard);
+            }
+
+            workstationServerPanes.add(servers);
+            workstationCards.add(workstationCard);
+            workstationLabels.add(workstationNameLabel);
+            workstationInputLabels.add(inputLabel);
+            workstationWorkersLabels.add(workersLabel);
+            workstationUpgradeLabels.add(upgradesLabel);
+            workstationAttemptsLabels.add(attemptsLabel);
+            workstationCapacityLabels.add(capacityLabel);
+            workstationStatusLabels.add(statusLabel);
+            workstationOutputLabels.add(outputLabel);
+        }
+    }
+
+    private void updateWorkstationLabel(Workstation[] workstations, int index) {
+        Workstation workstation = workstations[index];
+        Label workstationLabel = workstationLabels.get(index);
+        Label inputLabel = workstationInputLabels.get(index);
+        Label workersLabel = workstationWorkersLabels.get(index);
+        Label upgradesLabel = workstationUpgradeLabels.get(index);
+        Label attemptsLabel = workstationAttemptsLabels.get(index);
+        Label capacityLabel = workstationCapacityLabels.get(index);
+        Label statusLabel = workstationStatusLabels.get(index);
+        Label outputLabel = workstationOutputLabels.get(index);
+        VBox workstationCard = workstationCards.get(index);
+
+        boolean hasAutoUpgrade = workstation.getServers().stream().anyMatch(AutomatedServer.class::isInstance);
+        boolean hasPairUpgrade = workstation.getServers().stream().anyMatch(PairPartner.class::isInstance);
+        long visibleWorkersCount = workstation.getServers().stream().filter(server -> !(server instanceof PairPartner)).count();
+
+        workstationLabel.setText(workstation.getColor().name() + " WORKSTATION");
+        inputLabel.setText(resolveWorkstationInput(workstations, index));
+        workersLabel.setText("Workers (" + visibleWorkersCount + ")");
+        upgradesLabel.setText("Upgrades:"
+                + (hasAutoUpgrade ? " AUTO" : "")
+                + (hasPairUpgrade ? " PAIR" : "")
+                + (!hasAutoUpgrade && !hasPairUpgrade ? " NONE" : ""));
+        attemptsLabel.setText("Attempts: " + (hasPairUpgrade ? 2 : 1));
+            capacityLabel.setText("Cap: " + workstation.getCapacity());
+        statusLabel.setText("Status: " + (workstation.isActive() ? "Working" : "Paused"));
+        outputLabel.setText(resolveWorkstationOutput(workstations, index));
+
+        applyWorkstationCardColor(workstationCard, workstation.getColor());
+    }
+
+    private String resolveWorkstationInput(Workstation[] workstations, int index) {
+        if (index == 0) {
+            return "Input: Backlog";
+        }
+        return "Input: " + workstations[index - 1].getColor().name() + " Queue";
+    }
+
+    private String resolveWorkstationOutput(Workstation[] workstations, int index) {
+        if (index == workstations.length - 1) {
+            return "Output: Finished Goods";
+        }
+        return "Output: " + workstations[index].getColor().name() + " Queue";
+    }
+
+    private void applyWorkstationCardColor(VBox workstationCard, Color color) {
+        workstationCard.getStyleClass().removeIf(styleClass -> styleClass.startsWith("workstation-card-"));
+        workstationCard.getStyleClass().add("workstation-card-" + color.name().toLowerCase());
+    }
+
+    private void applyQueueBoxColor(VBox queueBox, Color color) {
+        queueBox.getStyleClass().removeIf(styleClass -> styleClass.startsWith("queue-side-box-"));
+        queueBox.getStyleClass().add("queue-side-box-" + color.name().toLowerCase());
+    }
+
+    private void applyQueueFlowArrowColor(Label queueFlowArrow, Color color) {
+        queueFlowArrow.getStyleClass().removeIf(styleClass -> styleClass.startsWith("queue-flow-arrow-"));
+        queueFlowArrow.getStyleClass().add("queue-flow-arrow-" + color.name().toLowerCase());
+    }
+
+    private void setQueueHeaderText(Label queueTitleLabel, String text) {
+        queueTitleLabel.setText(text);
+
+        // Keep the queue name on one line by shrinking font size to fit header width.
+        final double maxWidth = 96.0;
+        final double maxFontSize = 10.0;
+        final double minFontSize = 7.0;
+
+        double selectedFontSize = minFontSize;
+        for (double fontSize = maxFontSize; fontSize >= minFontSize; fontSize -= 0.25) {
+            Text measure = new Text(text);
+            measure.setFont(Font.font("Michelin", FontWeight.BOLD, fontSize));
+            if (measure.getLayoutBounds().getWidth() <= maxWidth) {
+                selectedFontSize = fontSize;
+                break;
+            }
+        }
+        queueTitleLabel.setFont(Font.font("Michelin", FontWeight.BOLD, selectedFontSize));
+    }
+
+    private void setEndpointHeaderText(Label endpointHeaderLabel, String text) {
+        if (endpointHeaderLabel == null) {
+            return;
+        }
+
+        endpointHeaderLabel.setText(text);
+        endpointHeaderLabel.setAlignment(javafx.geometry.Pos.CENTER);
+        endpointHeaderLabel.setTextAlignment(TextAlignment.CENTER);
+
+        // Keep endpoint title on one centered line by shrinking the font to fit card width.
+        final double maxWidth = 120.0;
+        final double maxFontSize = 11.0;
+        final double minFontSize = 7.5;
+
+        double selectedFontSize = minFontSize;
+        for (double fontSize = maxFontSize; fontSize >= minFontSize; fontSize -= 0.25) {
+            Text measured = new Text(text);
+            measured.setFont(Font.font("Michelin", FontWeight.BOLD, fontSize));
+            if (measured.getLayoutBounds().getWidth() <= maxWidth) {
+                selectedFontSize = fontSize;
+                break;
+            }
+        }
+
+        endpointHeaderLabel.setFont(Font.font("Michelin", FontWeight.BOLD, selectedFontSize));
+    }
+
+    private String buildQueueDots(int queueCount) {
+        if (queueCount <= 0) {
+            return "";
+        }
+        int visibleDots = Math.min(queueCount, 6);
+        String dots = "● ".repeat(visibleDots).trim();
+        if (queueCount > visibleDots) {
+            return dots + " +";
+        }
+        return dots;
+    }
+
+    private void adjustQueueCapacity(int queueIndex, int delta) {
+        Board.getInstance().adjustQueueCapacity(queueIndex, delta);
+        redrawBoard();
+    }
+
+    /**
+     * Resizes the primary stage so the score row content (backlog, workstations/queues,
+     * and finished goods) fits without horizontal scrolling when possible.
+     *
+     * If the required width exceeds the available screen width, the stage is capped
+     * at the visual bounds and the existing ScrollPane provides overflow behavior.
+     */
+    public void resizeStageToFitOuterScoreBox() {
+        if (outerScoreBox == null || gameDialogPane == null || gameDialogPane.getScene() == null) {
+            return;
+        }
+
+        Stage stage = (Stage) gameDialogPane.getScene().getWindow();
+        if (stage == null) {
+            return;
+        }
+
+        Region root = gameDialogPane.getScene().getRoot() instanceof Region region ? region : null;
+        if (root != null) {
+            root.applyCss();
+            root.layout();
+        }
+
+        double requiredSceneWidth = outerScoreBox.prefWidth(-1) + 24;
+        double currentSceneWidth = gameDialogPane.getScene().getWidth();
+        double targetSceneWidth = Math.max(requiredSceneWidth, currentSceneWidth);
+
+        double currentSceneHeight = gameDialogPane.getScene().getHeight();
+        double requiredSceneHeight = root != null ? root.prefHeight(targetSceneWidth) + 24 : currentSceneHeight;
+        double targetSceneHeight = Math.max(requiredSceneHeight, currentSceneHeight);
+
+        double chromeWidth = stage.getWidth() - currentSceneWidth;
+        double chromeHeight = stage.getHeight() - currentSceneHeight;
+        double maxStageWidth = Screen.getPrimary().getVisualBounds().getWidth();
+        double maxStageHeight = Screen.getPrimary().getVisualBounds().getHeight();
+        double targetStageWidth = Math.min(targetSceneWidth + chromeWidth, maxStageWidth);
+        double targetStageHeight = Math.min(targetSceneHeight + chromeHeight, maxStageHeight);
+
+        if (targetStageWidth > stage.getWidth()) {
+            stage.setWidth(targetStageWidth);
+        }
+        if (targetStageHeight > stage.getHeight()) {
+            stage.setHeight(targetStageHeight);
+        }
     }
 
 }

@@ -152,7 +152,7 @@ Use examples liberally, and show the expected output if you can. It's helpful to
 
 For problems or enhancement requests, please open an issue in the GitLab project ([issue tracker link placeholder]).
 
-For user requests, you can email louis.burroughs@michelin.com.
+For user requests, you can email [louis.burroughs@michelin.com](mailto:louis.burroughs@michelin.com).
 
 ## Roadmap
 
@@ -183,4 +183,4 @@ This project is licensed under the Apache License, Version 2.0. See the [LICENSE
 This project is currently in the **Alpha** stage. It is functional but may still have bugs and incomplete features. We are actively working on improvements and welcome contributions from the community.
 I do not have plans to improve the javafx version of the game, but I will continue to maintain it.
 The next iteration will be a web version of the game. If you are interested in contributing to the
-web version, please reach out to (mailto:louis.burroughs@michelin.com).
+web version, please reach out to [louis.burroughs@michelin.com](mailto:louis.burroughs@michelin.com).

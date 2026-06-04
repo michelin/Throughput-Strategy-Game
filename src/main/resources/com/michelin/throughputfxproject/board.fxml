@@ -4,16 +4,15 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 <?import org.kordamp.ikonli.javafx.*?>
 
-<BorderPane prefHeight="1000.0" prefWidth="1000.0" styleClass="img-background" stylesheets="@css/throughput.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.BoardController">
+<BorderPane styleClass="img-background" stylesheets="@css/throughput.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.michelin.throughputfxproject.controllers.BoardController">
     <top>
-        <VBox alignment="CENTER" styleClass="outer-title-box">
-            <HBox>
-                <Label fx:id="countdownTimer" alignment="CENTER" contentDisplay="CENTER" prefHeight="97.0" prefWidth="130.0" styleClass="countdown-timer-label" text="0" />
-                <Pane minWidth="75.0" />
+        <StackPane maxWidth="Infinity" styleClass="outer-title-box">
+            <VBox alignment="CENTER" spacing="10.0">
                 <VBox alignment="CENTER" styleClass="inner-title-box">
                     <Text id="header" layoutX="235.0" styleClass="title-header" text="Throughput" textAlignment="CENTER">
                         <VBox.margin>
@@ -21,7 +20,6 @@
                         </VBox.margin>
                     </Text>
                     <Text id="header1" styleClass="sub-header" text="::  A Strategy Game  ::" textAlignment="CENTER">
-
                         <VBox.margin>
                             <Insets bottom="10.0" />
                         </VBox.margin>
@@ -29,79 +27,88 @@
                     <padding>
                         <Insets left="20.0" right="20.0" />
                     </padding>
-                    <HBox.margin>
-                        <Insets bottom="10.0" />
-                    </HBox.margin>
                 </VBox>
-            </HBox>
 
-            <ButtonBar fx:id="gameButtonBar" buttonMinWidth="0.0" maxWidth="743.0" prefHeight="33.0" prefWidth="743.0">
-                <buttons>
-                    <Button fx:id="buttonRunGame" defaultButton="true" mnemonicParsing="false" onAction="#runGame" styleClass="button-lion-default" text="Run Game">
-                        <graphic>
-                            <FontIcon iconColor="midnightblue" iconLiteral="fas-running" />
-                        </graphic>
-                    </Button>
-                    <Button fx:id="buttonEndGame" disable="true" mnemonicParsing="false" onAction="#endGame" prefWidth="150.0" styleClass="button-lion-default" text="End Game" textAlignment="CENTER" />
-                    <Button maxWidth="40.0" mnemonicParsing="false" onAction="#showInfo">
-                        <tooltip>
-                            <Tooltip text="Information" />
-                        </tooltip>
-                        <styleClass>
-                            <String fx:value="button-lion-default" />
-                        </styleClass>
-                        <graphic>
-                            <FontIcon iconColor="midnightblue" iconLiteral="fas-info" />
-                        </graphic>
-                    </Button>
-                    <Button maxWidth="40.0" mnemonicParsing="false" onAction="#showRules">
-                        <tooltip>
-                            <Tooltip text="Rules" />
-                        </tooltip>
-                        <styleClass>
-                            <String fx:value="button-lion-default" />
-                        </styleClass>
-                        <graphic>
-                            <FontIcon iconColor="midnightblue" iconLiteral="fas-gavel" />
-                        </graphic>
-                    </Button>
-                    <Button fx:id="buttonSaveGame" disable="true" maxWidth="40.0" mnemonicParsing="false" onAction="#saveGame">
-                        <tooltip>
-                            <Tooltip text="Save" />
-                        </tooltip>
-                        <styleClass>
-                            <String fx:value="button-lion-default" />
-                        </styleClass>
-                        <graphic>
-                            <FontIcon iconColor="midnightblue" iconLiteral="fas-save" />
-                        </graphic>
-                    </Button>
-                    <Button fx:id="buttonLoadGame" maxWidth="40.0" mnemonicParsing="false" onAction="#loadGame">
-                        <tooltip>
-                            <Tooltip text="Upload Saved Game" />
-                        </tooltip>
-                        <styleClass>
-                            <String fx:value="button-lion-default" />
-                        </styleClass>
-                        <graphic>
-                            <FontIcon iconColor="midnightblue" iconLiteral="fas-file-upload" />
-                        </graphic>
-                    </Button>
-                    <CheckBox fx:id="timedRun" mnemonicParsing="false" onAction="#toggleTimedRun" text="Timed?">
-                        <tooltip>
-                            <Tooltip
-                                    text="Select to run game in timed mode where run periods run automatically" />
-                        </tooltip>
-                        <styleClass>
-                            <String fx:value="button-lion-default" />
-                        </styleClass>
-                    </CheckBox>
-                </buttons>
-                <VBox.margin>
-                    <Insets bottom="10.0" />
-                </VBox.margin>
-            </ButtonBar>
-        </VBox>
+                <ButtonBar fx:id="gameButtonBar" buttonMinWidth="0.0" maxWidth="743.0" prefHeight="33.0" prefWidth="743.0">
+                    <buttons>
+                        <Button fx:id="buttonRunGame" defaultButton="true" mnemonicParsing="false" onAction="#runGame" styleClass="button-lion-default" text="Run Game">
+                            <graphic>
+                                <FontIcon iconColor="midnightblue" iconLiteral="fas-running" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="buttonEndGame" disable="true" mnemonicParsing="false" onAction="#endGame" prefWidth="150.0" styleClass="button-lion-default" text="End Game" textAlignment="CENTER" />
+                        <Button maxWidth="40.0" mnemonicParsing="false" onAction="#showInfo">
+                            <tooltip>
+                                <Tooltip text="Information" />
+                            </tooltip>
+                            <styleClass>
+                                <String fx:value="button-lion-default" />
+                            </styleClass>
+                            <graphic>
+                                <FontIcon iconColor="midnightblue" iconLiteral="fas-info" />
+                            </graphic>
+                        </Button>
+                        <Button maxWidth="40.0" mnemonicParsing="false" onAction="#showRules">
+                            <tooltip>
+                                <Tooltip text="Rules" />
+                            </tooltip>
+                            <styleClass>
+                                <String fx:value="button-lion-default" />
+                            </styleClass>
+                            <graphic>
+                                <FontIcon iconColor="midnightblue" iconLiteral="fas-gavel" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="buttonSaveGame" disable="true" maxWidth="40.0" mnemonicParsing="false" onAction="#saveGame">
+                            <tooltip>
+                                <Tooltip text="Save" />
+                            </tooltip>
+                            <styleClass>
+                                <String fx:value="button-lion-default" />
+                            </styleClass>
+                            <graphic>
+                                <FontIcon iconColor="midnightblue" iconLiteral="fas-save" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="buttonLoadGame" maxWidth="40.0" mnemonicParsing="false" onAction="#loadGame">
+                            <tooltip>
+                                <Tooltip text="Upload Saved Game" />
+                            </tooltip>
+                            <styleClass>
+                                <String fx:value="button-lion-default" />
+                            </styleClass>
+                            <graphic>
+                                <FontIcon iconColor="midnightblue" iconLiteral="fas-file-upload" />
+                            </graphic>
+                        </Button>
+                        <CheckBox fx:id="timedRun" mnemonicParsing="false" onAction="#toggleTimedRun" text="Timed?">
+                            <tooltip>
+                                <Tooltip text="Select to run game in timed mode where run periods run automatically" />
+                            </tooltip>
+                            <styleClass>
+                                <String fx:value="button-lion-default" />
+                            </styleClass>
+                        </CheckBox>
+                    </buttons>
+                    <VBox.margin>
+                        <Insets bottom="10.0" />
+                    </VBox.margin>
+                </ButtonBar>
+            </VBox>
+
+            <Label fx:id="countdownTimer" alignment="CENTER" contentDisplay="TOP" prefHeight="120.0" prefWidth="130.0" styleClass="countdown-timer-label" text="0" StackPane.alignment="TOP_LEFT">
+                <graphic>
+                    <ImageView fitHeight="30.0" fitWidth="30.0" managed="false" pickOnBounds="true" preserveRatio="true" visible="false">
+                        <image>
+                            <Image url="@images/clock-running.gif" />
+                        </image>
+                    </ImageView>
+                </graphic>
+                <StackPane.margin>
+                    <Insets left="4.0" top="4.0" />
+                </StackPane.margin>
+            </Label>
+        </StackPane>
     </top>
     <center>
         <VBox>
@@ -130,8 +137,8 @@
                     <Insets right="10.0" />
                 </VBox.margin>
             </HBox>
-            <AnchorPane fx:id="gameDialogPane" prefHeight="24.0" prefWidth="685.0">
-                <ButtonBar fx:id="turnButtonBar" visible="false" AnchorPane.topAnchor="10.0">
+            <AnchorPane fx:id="gameDialogPane" maxWidth="Infinity" prefHeight="24.0">
+                <ButtonBar fx:id="turnButtonBar" visible="false" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="10.0">
                     <buttons>
                         <Button fx:id="buttonServerMoves" minWidth="275.0" mnemonicParsing="false" onAction="#serverMoves" prefWidth="300.0" styleClass="button-lion-default" text="Server Moves" />
                         <Button fx:id="buttonRunTurn" minWidth="150.0" mnemonicParsing="false" onAction="#doRunTurn" prefWidth="150.0" styleClass="button-lion-default" text="Run Day" textAlignment="CENTER" textOverrun="CLIP">
@@ -141,7 +148,7 @@
                         </Button>
                     </buttons>
                 </ButtonBar>
-                <ButtonBar fx:id="periodButtonBar" visible="false" AnchorPane.topAnchor="20.0">
+                <ButtonBar fx:id="periodButtonBar" visible="false" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0">
                     <buttons>
                         <Button fx:id="buttonAddSkills" minWidth="275.0" mnemonicParsing="false" onAction="#addOrRemoveSkillsForServers" prefWidth="300.0" styleClass="button-lion-default" text="Add Skill" />
                         <Button fx:id="buttonRunPeriod" minWidth="150.0" mnemonicParsing="false" onAction="#runPeriod" prefWidth="150.0" styleClass="button-lion-default" text="Run Week" textAlignment="CENTER" textOverrun="CLIP">
@@ -156,8 +163,8 @@
                 </VBox.margin>
             </AnchorPane>
             <VBox>
-                <Pane prefHeight="300.0" prefWidth="-Infinity" HBox.hgrow="ALWAYS">
-                    <TextArea fx:id="gameBoardLog" editable="false" maxWidth="Infinity" prefHeight="300.0" styleClass="read-only-textarea" text="Welcome to Throughput!&#10;&#10;Select the information button above to read more about the game objectives or the rules button to learn more about the rules.&#10;&#10;Click on the Run Game button to get started." wrapText="true">
+                <AnchorPane prefHeight="300.0" maxWidth="Infinity" VBox.vgrow="ALWAYS">
+                    <TextArea fx:id="gameBoardLog" editable="false" maxWidth="Infinity" prefHeight="300.0" styleClass="read-only-textarea" text="Welcome to Throughput!&#10;&#10;Select the information button above to read more about the game objectives or the rules button to learn more about the rules.&#10;&#10;Click on the Run Game button to get started." wrapText="true" AnchorPane.topAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
                         <padding>
                             <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />
                         </padding>
@@ -165,7 +172,7 @@
                     <VBox.margin>
                         <Insets bottom="20.0" left="10.0" right="10.0" top="10.0" />
                     </VBox.margin>
-                </Pane>
+                </AnchorPane>
                 <Label styleClass="board-label" text="Inoculations" />
                 <GridPane fx:id="holdCardBox" gridLinesVisible="true" hgap="5.0" vgap="5.0">
                     <columnConstraints>
@@ -183,53 +190,148 @@
     </center>
     <bottom>
         <VBox>
-            <HBox alignment="CENTER" spacing="40" styleClass="outer-score-box">
-                <VBox id="backlogBox" alignment="BOTTOM_CENTER">
-                    <Label fx:id="backlogCount" styleClass="score-box" text="000" />
-                    <Label styleClass="score-box-label" text="BackLog" />
-                </VBox>
+            <ScrollPane fitToHeight="true" fitToWidth="false" hbarPolicy="AS_NEEDED" pannable="true" styleClass="outer-score-scroll" vbarPolicy="NEVER">
+                <content>
+                    <HBox fx:id="outerScoreBox" alignment="CENTER" spacing="40" styleClass="outer-score-box">
+                        <VBox id="backlogBox" alignment="TOP_CENTER" styleClass="endpoint-card,endpoint-card-backlog">
+                            <Label fx:id="backlogHeader" maxWidth="Infinity" styleClass="endpoint-card-header" text="BACKLOG" />
+                            <Region VBox.vgrow="ALWAYS" />
+                            <Label fx:id="backlogCount" maxWidth="Infinity" styleClass="endpoint-card-value" text="000" />
+                            <Label maxWidth="Infinity" styleClass="endpoint-card-icon">
+                                <graphic>
+                                    <FontIcon iconColor="#334155" iconLiteral="fas-clipboard" />
+                                </graphic>
+                            </Label>
+                            <Region VBox.vgrow="ALWAYS" />
+                        </VBox>
+                        <Label styleClass="endpoint-flow-arrow">
+                            <graphic>
+                                <FontIcon iconLiteral="fas-arrow-right" />
+                            </graphic>
+                        </Label>
+                        <HBox fx:id="workstationContainer" alignment="CENTER" spacing="40" />
+                        <Label styleClass="endpoint-flow-arrow">
+                            <graphic>
+                                <FontIcon iconLiteral="fas-arrow-right" />
+                            </graphic>
+                        </Label>
 
-                <VBox id="workstation0" alignment="BOTTOM_CENTER">
-                    <VBox fx:id="servers00" />
-                    <Label fx:id="workstationCount0" styleClass="score-box" text="000" />
-                    <Label fx:id="workstationLabel0" styleClass="score-box-label" text="WK00" />
-                </VBox>
-                <VBox id="workstation1" alignment="BOTTOM_CENTER">
-                    <VBox fx:id="servers10" />
-                    <Label fx:id="workstationCount1" styleClass="score-box" text="000" />
-                    <Label fx:id="workstationLabel1" styleClass="score-box-label" text="WK01" />
-                </VBox>
-                <VBox id="workstation2" alignment="BOTTOM_CENTER">
-                    <VBox fx:id="servers20" />
-                    <Label fx:id="workstationCount2" styleClass="score-box" text="000">
-                    </Label>
-                    <Label fx:id="workstationLabel2" styleClass="score-box-label" text="WK02" />
-                </VBox>
-                <VBox id="workstation3" alignment="BOTTOM_CENTER">
-                    <VBox fx:id="servers30" />
-                    <Label fx:id="workstationCount3" styleClass="score-box" text="000">
-                    </Label>
-                    <Label fx:id="workstationLabel3" styleClass="score-box-label" text="WK03" />
-                </VBox>
-                <VBox id="workstation4" alignment="BOTTOM_CENTER">
-                    <VBox fx:id="servers40" />
-                    <Label fx:id="workstationCount4" styleClass="score-box" text="000" />
-                    <Label fx:id="workstationLabel4" styleClass="score-box-label" text="WK04" />
-                </VBox>
+                        <VBox id="finishedGoodsBox" alignment="TOP_CENTER" styleClass="endpoint-card,endpoint-card-finished">
+                            <Label fx:id="finishedGoodsHeader" maxWidth="Infinity" styleClass="endpoint-card-header" text="FINISHED GOODS" />
+                            <Region VBox.vgrow="ALWAYS" />
+                            <Label fx:id="finishedGoodsCount" maxWidth="Infinity" styleClass="endpoint-card-value" text="000" />
+                            <Label maxWidth="Infinity" styleClass="endpoint-card-icon">
+                                <graphic>
+                                    <FontIcon iconColor="#1d4ed8" iconLiteral="fas-box-open" />
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Finished Goods" />
+                                </tooltip>
+                            </Label>
+                            <Region VBox.vgrow="ALWAYS" />
+                        </VBox>
+                    </HBox>
+                </content>
+            </ScrollPane>
+            <VBox styleClass="board-legend-box">
+                <GridPane hgap="14.0" styleClass="board-legend-grid" vgap="10.0">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="16.666" />
+                        <ColumnConstraints percentWidth="16.666" />
+                        <ColumnConstraints percentWidth="16.666" />
+                        <ColumnConstraints percentWidth="16.666" />
+                        <ColumnConstraints percentWidth="16.666" />
+                        <ColumnConstraints percentWidth="16.666" />
+                    </columnConstraints>
 
-                <VBox id="finishedGoodsBox" alignment="BOTTOM_CENTER">
-                    <Label fx:id="finishedGoodsCount" styleClass="score-box" text="000">
-                    </Label>
-                    <Label style="-fx-font-size: 9pt;" styleClass="score-box-label" text="Finished">
-                        <graphic>
-                            <FontIcon iconColor="midnightblue" iconLiteral="far-check-square" />
-                        </graphic>
-                        <tooltip>
-                            <Tooltip text="Finished Goods" />
-                        </tooltip>
-                    </Label>
-                </VBox>
-            </HBox>
+                    <VBox alignment="TOP_LEFT" styleClass="board-legend-section" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label styleClass="board-legend-title" text="ENDPOINTS" />
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                            <HBox alignment="CENTER_LEFT" spacing="6.0">
+                                <Label>
+                                    <graphic>
+                                        <FontIcon iconColor="#334155" iconLiteral="fas-clipboard" />
+                                    </graphic>
+                                </Label>
+                                <Label>
+                                    <graphic>
+                                        <FontIcon iconColor="#1d4ed8" iconLiteral="fas-box-open" />
+                                    </graphic>
+                                </Label>
+                            </HBox>
+                            <Label styleClass="board-legend-text" text="Backlog source and Finished Goods destination" wrapText="true" />
+                        </HBox>
+                    </VBox>
+
+                    <VBox alignment="TOP_LEFT" styleClass="board-legend-section" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label styleClass="board-legend-title" text="QUEUES" />
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                            <Label styleClass="queue-side-dots" text="● ● ●" />
+                            <Label styleClass="board-legend-text" text="Buffers that hold work between workstations" wrapText="true" />
+                        </HBox>
+                    </VBox>
+
+                    <VBox alignment="TOP_LEFT" styleClass="board-legend-section" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                        <Label styleClass="board-legend-title" text="WORKSTATIONS" />
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                            <ImageView fitHeight="30.0" fitWidth="30.0" preserveRatio="true">
+                                <image>
+                                    <Image url="@images/workstations.png" />
+                                </image>
+                            </ImageView>
+                            <Label styleClass="board-legend-text" text="Processors that pull input and push output" wrapText="true" />
+                        </HBox>
+                    </VBox>
+
+                    <VBox alignment="TOP_LEFT" styleClass="board-legend-section" GridPane.columnIndex="3" GridPane.rowIndex="0">
+                        <Label styleClass="board-legend-title" text="SERVERS" />
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                            <ImageView fitHeight="36.0" fitWidth="36.0" preserveRatio="true">
+                                <image>
+                                    <Image url="@servers/server_black.jpg" />
+                                </image>
+                            </ImageView>
+                            <Label styleClass="board-legend-text" text="Human and automated workers that run attempts" wrapText="true" />
+                        </HBox>
+                    </VBox>
+
+                    <VBox alignment="TOP_LEFT" styleClass="board-legend-section" GridPane.columnIndex="4" GridPane.rowIndex="0">
+                        <Label styleClass="board-legend-title" text="UPGRADES" />
+                        <VBox spacing="4.0">
+                            <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                <ImageView fitHeight="28.0" fitWidth="28.0" preserveRatio="true">
+                                    <image>
+                                        <Image url="@servers/robot_green.jpg" />
+                                    </image>
+                                </ImageView>
+                                <Label styleClass="board-legend-text" text="AUTO" />
+                                <ImageView fitHeight="28.0" fitWidth="28.0" preserveRatio="true">
+                                    <image>
+                                        <Image url="@servers/server_pair.jpg" />
+                                    </image>
+                                </ImageView>
+                                <Label styleClass="board-legend-text" text="PAIR" />
+                            </HBox>
+                            <Label styleClass="board-legend-text" text="AUTO adds automation; PAIR grants a second attempt" wrapText="true" />
+                        </VBox>
+                    </VBox>
+
+                    <VBox alignment="TOP_LEFT" styleClass="board-legend-section" GridPane.columnIndex="5" GridPane.rowIndex="0">
+                        <Label styleClass="board-legend-title" text="FLOW" />
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                            <Label styleClass="endpoint-flow-arrow">
+                                <graphic>
+                                    <FontIcon iconLiteral="fas-arrow-right" />
+                                </graphic>
+                            </Label>
+                            <Label styleClass="board-legend-text" text="Work flows left to right across stations and queues" wrapText="true" />
+                        </HBox>
+                    </VBox>
+                </GridPane>
+                <VBox.margin>
+                    <Insets left="10.0" right="10.0" top="8.0" bottom="8.0" />
+                </VBox.margin>
+            </VBox>
             <Label text="Copyright Michelin Inc - 2024">
                 <graphic>
                     <FontIcon iconColor="midnightblue" iconLiteral="far-copyright" />
@@ -238,8 +340,8 @@
         </VBox>
     </bottom>
     <right>
-        <VBox>
-            <TableView fx:id="scoreTableView" layoutX="-37.0" prefHeight="180.0" prefWidth="200.0" styleClass="score-table-box" AnchorPane.rightAnchor="-18.0">
+        <VBox prefWidth="240.0" minWidth="240.0">
+            <TableView fx:id="scoreTableView" maxWidth="Infinity" prefHeight="180.0" prefWidth="240.0" styleClass="score-table-box">
                 <columns>
                     <TableColumn prefWidth="35.0" text="Wk" />
                     <TableColumn prefWidth="35.0" text="Est" />

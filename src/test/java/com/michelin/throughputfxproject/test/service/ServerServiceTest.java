@@ -53,6 +53,12 @@ class ServerServiceTest {
     }
 
     @Test
+    void humanServerImage_isUniversalNonGrayAsset() {
+        HumanServer humanServer = new HumanServer(Color.GREEN);
+        assertEquals("servers/server_black.jpg", humanServer.getImage());
+    }
+
+    @Test
     void recreateServerFromMap_createsCorrectServer() {
         Map<String, Object> map = new HashMap<>();
         map.put("color", "GREEN");

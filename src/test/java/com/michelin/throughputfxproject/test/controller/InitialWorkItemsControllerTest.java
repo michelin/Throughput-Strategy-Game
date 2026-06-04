@@ -19,7 +19,6 @@ import com.michelin.throughputfxproject.test.TestUtils;
 import com.michelin.throughputfxproject.entities.state.Board;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.controllers.InitialWorkItemsController;
-import com.michelin.throughputfxproject.services.WorkstationService;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.Scene;
@@ -45,7 +44,9 @@ class InitialWorkItemsControllerTest {
     @BeforeEach
     void setUp() {
         if (!javafxInitialized) {
-            try { Platform.startup(() -> {}); } catch (IllegalStateException ignored) {}
+            try { Platform.startup(() -> {}); } catch (IllegalStateException _) {
+                //It's a test, so we can ignore this exception which just means FX is already running.
+            }
             javafxInitialized = true;
         }
         Platform.setImplicitExit(false);
@@ -82,10 +83,10 @@ class InitialWorkItemsControllerTest {
     }
 
     @Test
-    void moveInitialWorkItems_movesItemsToWorkstationZero() throws Exception {
+    void moveInitialWorkItems_movesItemsToFirstQueue() throws Exception {
         int max = 3;
         int move = 2;
-        int wsBefore = WorkstationService.getWorkstation(0).getWorkItemCount();
+        int queueBefore = Board.getInstance().getQueueCount(0);
         int backlogBefore = ScorecardService.BACKLOG.getBacklogItemCount();
 
         InitialWorkItemsController controller = new InitialWorkItemsController();
@@ -107,7 +108,7 @@ class InitialWorkItemsControllerTest {
         });
 
         int expected = Math.min(max, move);
-        assertEquals(wsBefore + expected, WorkstationService.getWorkstation(0).getWorkItemCount());
+        assertEquals(queueBefore + expected, Board.getInstance().getQueueCount(0));
         assertEquals(backlogBefore - expected, ScorecardService.BACKLOG.getBacklogItemCount());
     }
 
@@ -115,7 +116,7 @@ class InitialWorkItemsControllerTest {
     void moveInitialWorkItems_capsAtMaxWhenMoveExceedsMax() throws Exception {
         int max = 2;
         int move = 10; // exceeds max
-        int wsBefore = WorkstationService.getWorkstation(0).getWorkItemCount();
+        int queueBefore = Board.getInstance().getQueueCount(0);
 
         InitialWorkItemsController controller = new InitialWorkItemsController();
         Button button = new Button();
@@ -135,12 +136,12 @@ class InitialWorkItemsControllerTest {
             callMethod(controller, "moveInitialWorkItems");
         });
 
-        assertEquals(wsBefore + max, WorkstationService.getWorkstation(0).getWorkItemCount());
+        assertEquals(queueBefore + max, Board.getInstance().getQueueCount(0));
     }
 
     @Test
-    void moveInitialWorkItems_withInvalidInput_doesNotChangeWorkstation() throws Exception {
-        int wsBefore = WorkstationService.getWorkstation(0).getWorkItemCount();
+    void moveInitialWorkItems_withInvalidInput_doesNotChangeQueue() throws Exception {
+        int queueBefore = Board.getInstance().getQueueCount(0);
 
         InitialWorkItemsController controller = new InitialWorkItemsController();
         Button button = new Button();
@@ -160,6 +161,6 @@ class InitialWorkItemsControllerTest {
             callMethod(controller, "moveInitialWorkItems");
         });
 
-        assertEquals(wsBefore, WorkstationService.getWorkstation(0).getWorkItemCount());
+        assertEquals(queueBefore, Board.getInstance().getQueueCount(0));
     }
 }

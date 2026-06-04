@@ -17,6 +17,7 @@ package com.michelin.throughputfxproject.test.controller;
 
 import com.michelin.throughputfxproject.test.TestUtils;
 import com.michelin.throughputfxproject.entities.state.Board;
+import com.michelin.throughputfxproject.entities.state.Workstation;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.controllers.WorkItemsController;
 import com.michelin.throughputfxproject.services.WorkstationService;
@@ -45,19 +46,25 @@ class WorkItemsControllerTest {
     @BeforeEach
     void setUp() {
         if (!javafxInitialized) {
-            try { Platform.startup(() -> {}); } catch (IllegalStateException ignored) {}
+            try { Platform.startup(() -> {}); } catch (IllegalStateException _) {//It's a test, so we can ignore this exception which just means FX is already running.
+            }
             javafxInitialized = true;
         }
         Platform.setImplicitExit(false);
         TestUtils.resetServiceState();
         Board.clearInstance();
         Board.initializeInstance(6, 5, 6, 5);
-        // Seed workstations with work items
-        WorkstationService.getWorkstation(0).addToWorkItemCount(10);
-        WorkstationService.getWorkstation(1).addToWorkItemCount(10);
-        WorkstationService.getWorkstation(2).addToWorkItemCount(10);
-        WorkstationService.getWorkstation(3).addToWorkItemCount(10);
-        WorkstationService.getWorkstation(4).addToWorkItemCount(10);
+
+        // Keep capacities deterministic for queue-flow assertions.
+        for (Workstation workstation : WorkstationService.getWorkstations()) {
+            workstation.setCapacity(20);
+        }
+
+        // Seed source queues for workstation positions 1..4.
+        Board.getInstance().addToQueueCount(0, 10);
+        Board.getInstance().addToQueueCount(1, 10);
+        Board.getInstance().addToQueueCount(2, 10);
+        Board.getInstance().addToQueueCount(3, 10);
     }
 
     private static void setField(Object target, String name, Object value) throws Exception {
@@ -97,12 +104,12 @@ class WorkItemsControllerTest {
     }
 
     @Test
-    void moveWorkItems_movesItemsToNextWorkstation() throws Exception {
-        int position = 0;
+    void moveWorkItems_movesItemsToNextQueue() throws Exception {
+        int position = 1;
         int max = 5;
         int move = 3;
-        int ws0Before = WorkstationService.getWorkstation(0).getWorkItemCount();
-        int ws1Before = WorkstationService.getWorkstation(1).getWorkItemCount();
+        int sourceBefore = Board.getInstance().getQueueCount(position - 1);
+        int destinationBefore = Board.getInstance().getQueueCount(position);
 
         WorkItemsController controller = buildController(max, move, position);
         Button button = controller.getWorkItemMoveButton();
@@ -115,18 +122,18 @@ class WorkItemsControllerTest {
             callMethod(controller, "moveWorkItems");
         });
 
-        int moved = Math.min(move, Math.min(max, ws0Before));
-        assertEquals(ws0Before - moved, WorkstationService.getWorkstation(0).getWorkItemCount());
-        assertEquals(ws1Before + moved, WorkstationService.getWorkstation(1).getWorkItemCount());
+        int moved = Math.min(move, Math.min(max, sourceBefore));
+        assertEquals(sourceBefore - moved, Board.getInstance().getQueueCount(position - 1));
+        assertEquals(destinationBefore + moved, Board.getInstance().getQueueCount(position));
     }
 
     @Test
     void moveWorkItems_capsAtMaxWhenMoveExceedsMax() throws Exception {
-        int position = 1;
+        int position = 2;
         int max = 2;
         int move = 8; // exceeds max
-        int ws1Before = WorkstationService.getWorkstation(1).getWorkItemCount();
-        int ws2Before = WorkstationService.getWorkstation(2).getWorkItemCount();
+        int sourceBefore = Board.getInstance().getQueueCount(position - 1);
+        int destinationBefore = Board.getInstance().getQueueCount(position);
 
         WorkItemsController controller = buildController(max, move, position);
         Button button = controller.getWorkItemMoveButton();
@@ -139,8 +146,8 @@ class WorkItemsControllerTest {
             callMethod(controller, "moveWorkItems");
         });
 
-        assertEquals(ws1Before - max, WorkstationService.getWorkstation(1).getWorkItemCount());
-        assertEquals(ws2Before + max, WorkstationService.getWorkstation(2).getWorkItemCount());
+        assertEquals(sourceBefore - max, Board.getInstance().getQueueCount(position - 1));
+        assertEquals(destinationBefore + max, Board.getInstance().getQueueCount(position));
     }
 
     @Test
@@ -148,7 +155,7 @@ class WorkItemsControllerTest {
         int position = 4; // last workstation
         int max = 5;
         int move = 4;
-        int ws4Before = WorkstationService.getWorkstation(4).getWorkItemCount();
+        int sourceBefore = Board.getInstance().getQueueCount(position - 1);
         int fgBefore = ScorecardService.FINISHED_GOODS.getFinishedGoodsTally();
 
         WorkItemsController controller = buildController(max, move, position);
@@ -162,14 +169,14 @@ class WorkItemsControllerTest {
             callMethod(controller, "moveWorkItems");
         });
 
-        int moved = Math.min(move, Math.min(max, ws4Before));
-        assertEquals(ws4Before - moved, WorkstationService.getWorkstation(4).getWorkItemCount());
+        int moved = Math.min(move, Math.min(max, sourceBefore));
+        assertEquals(sourceBefore - moved, Board.getInstance().getQueueCount(position - 1));
         assertEquals(fgBefore + moved, ScorecardService.FINISHED_GOODS.getFinishedGoodsTally());
     }
 
     @Test
     void moveWorkItems_withInvalidInput_showsErrorAndClosesWindow() throws Exception {
-        int position = 0;
+        int position = 1;
         WorkItemsController controller = new WorkItemsController();
         Button button = new Button();
         setField(controller, "workItemMoveButton", button);
@@ -178,7 +185,7 @@ class WorkItemsControllerTest {
         setField(controller, "txtWorkstationPosition", new Text(String.valueOf(position)));
         setField(controller, "workItemMoveText", new TextArea());
 
-        int ws0Before = WorkstationService.getWorkstation(0).getWorkItemCount();
+        int sourceBefore = Board.getInstance().getQueueCount(position - 1);
 
         runOnFx(() -> {
             StackPane root = new StackPane(button);
@@ -189,7 +196,7 @@ class WorkItemsControllerTest {
             callMethod(controller, "moveWorkItems");
         });
 
-        // Workstation should be unchanged on parse error
-        assertEquals(ws0Before, WorkstationService.getWorkstation(0).getWorkItemCount());
+        // Source queue should be unchanged on parse error.
+        assertEquals(sourceBefore, Board.getInstance().getQueueCount(position - 1));
     }
 }

@@ -21,7 +21,10 @@ import com.michelin.throughputfxproject.entities.state.ScoreCard;
 import com.michelin.throughputfxproject.test.TestUtils;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.*;
@@ -63,8 +66,10 @@ class BoardControllerTest {
                 else if (type == javafx.scene.control.TextArea.class) value = new javafx.scene.control.TextArea();
                 else if (type == javafx.scene.layout.Pane.class) value = new javafx.scene.layout.Pane();
                 else if (type == javafx.scene.layout.VBox.class) value = new javafx.scene.layout.VBox();
+                else if (type == javafx.scene.layout.HBox.class) value = new javafx.scene.layout.HBox();
                 else if (type == javafx.scene.chart.LineChart.class) value = Mockito.mock(javafx.scene.chart.LineChart.class);
                 else if (type == javafx.scene.control.ButtonBar.class) value = new javafx.scene.control.ButtonBar();
+                else if (type == javafx.scene.control.CheckBox.class) value = new CheckBox();
                 else if (type == javafx.scene.control.TableView.class) {
                     @SuppressWarnings("unchecked")
                     TableView<ScoreCard> tableView = Mockito.mock(javafx.scene.control.TableView.class);
@@ -112,6 +117,58 @@ class BoardControllerTest {
         controller.setHoldCardBox(new Pane());
         // ...add more mocks as needed for a full test
         assertDoesNotThrow(controller::redrawBoard);
+    }
+
+    @Test
+    void initialize_buildsWorkstationUi_usingConfiguredStationCount() throws Exception {
+        TestUtils.resetServiceState();
+        Board.clearInstance();
+        Board.initializeInstance(6, 3, 5, 5);
+
+        controller.setWorkstationContainer(new HBox());
+
+        Method initializeMethod = BoardController.class.getDeclaredMethod("initialize");
+        initializeMethod.setAccessible(true);
+
+        runOnFxThreadAndWait(() -> {
+            try {
+                initializeMethod.invoke(controller);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        int stationCount = Board.getInstance().getStationCount();
+        int expectedNodeCount = (stationCount * 2) - 1;
+        assertEquals(expectedNodeCount, controller.getWorkstationContainer().getChildren().size());
+    }
+
+    @Test
+    void redrawBoard_formatsWorkstationInfoAsCardRows() throws Exception {
+        TestUtils.resetServiceState();
+        Board.clearInstance();
+        Board.initializeInstance(6, 3, 5, 5);
+
+        controller.setWorkstationContainer(new HBox());
+
+        Method initializeMethod = BoardController.class.getDeclaredMethod("initialize");
+        initializeMethod.setAccessible(true);
+
+        runOnFxThreadAndWait(() -> {
+            try {
+                initializeMethod.invoke(controller);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        assertFalse(controller.getWorkstationLabels().isEmpty());
+        Label firstLabel = controller.getWorkstationLabels().get(0);
+        assertNotNull(firstLabel.getText());
+        assertTrue(firstLabel.getText().contains("WORKSTATION"));
+        assertTrue(controller.getWorkstationInputLabels().get(0).getText().contains("Input: Backlog"));
+        assertTrue(controller.getWorkstationOutputLabels().get(0).getText().contains("Output:"));
+        assertTrue(controller.getWorkstationStatusLabels().get(0).getText().contains("Status:"));
     }
 
     /**
@@ -165,5 +222,25 @@ class BoardControllerTest {
         assertTrue(latch.await(3, TimeUnit.SECONDS), "FX runnable did not execute within timeout");
         assertNull(thrown.get(), "Expected no exception, but got: " + thrown.get());
         assertTrue(ranOnFxThread.get(), "updateHoldCardBox was not executed on the FX Application Thread");
+    }
+
+    private void runOnFxThreadAndWait(Runnable action) throws InterruptedException {
+        if (Platform.isFxApplicationThread()) {
+            action.run();
+            return;
+        }
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Throwable> thrown = new AtomicReference<>();
+        Platform.runLater(() -> {
+            try {
+                action.run();
+            } catch (Throwable t) {
+                thrown.set(t);
+            } finally {
+                latch.countDown();
+            }
+        });
+        assertTrue(latch.await(3, TimeUnit.SECONDS), "FX action did not complete in time");
+        assertNull(thrown.get(), "FX action failed: " + thrown.get());
     }
 }

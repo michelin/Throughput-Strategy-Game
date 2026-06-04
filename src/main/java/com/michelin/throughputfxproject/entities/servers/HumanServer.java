@@ -33,6 +33,7 @@ import java.util.*;
 public class HumanServer implements Server {
 
     static final Logger LOGGER = LoggerFactory.getLogger(HumanServer.class);
+    private static final String DEFAULT_HUMAN_IMAGE = "servers/server_black.jpg";
     private final Color color;
     private final Set<Color> skills = HashSet.newHashSet(5);
     private String type = TYPE_HUMAN;
@@ -52,13 +53,7 @@ public class HumanServer implements Server {
 
     @Override
     public String getImage() {
-        return switch (color) {
-            case BLUE -> "servers/server_blue.jpg";
-            case GREEN -> "servers/server_green.jpg";
-            case YELLOW -> "servers/server_yellow.jpg";
-            case VIOLET -> "servers/server_violet.jpg";
-            default -> "servers/server_rose.jpg";
-        };
+        return DEFAULT_HUMAN_IMAGE;
     }
 
 

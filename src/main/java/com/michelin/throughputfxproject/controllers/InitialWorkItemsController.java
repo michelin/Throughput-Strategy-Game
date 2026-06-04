@@ -15,6 +15,7 @@
  */
 package com.michelin.throughputfxproject.controllers;
 
+import com.michelin.throughputfxproject.entities.state.Board;
 import com.michelin.throughputfxproject.entities.state.Workstation;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
@@ -54,10 +55,17 @@ public class InitialWorkItemsController {
             String moveValueText = workItemMoveResponseText.getText();
             int initialMoveFromBacklog = Integer.parseInt(moveValueText);
 
-            final Workstation workstationZero = WorkstationService.getWorkstation(0);
-            workstationZero.addToWorkItemCount(Math.min(workstationMaxMovesInt,initialMoveFromBacklog));
+            int queueMoveAmount = Math.min(workstationMaxMovesInt, initialMoveFromBacklog);
 
-            ScorecardService.BACKLOG.subtractFromBacklog(Math.min(workstationMaxMovesInt,initialMoveFromBacklog));
+            // Queue 0 is the output queue for workstation 0.
+            if (Board.getInstance().getStationCount() > 1) {
+                Board.getInstance().addToQueueCount(0, queueMoveAmount);
+            } else {
+                final Workstation workstationZero = WorkstationService.getWorkstation(0);
+                workstationZero.addToWorkItemCount(queueMoveAmount);
+            }
+
+            ScorecardService.BACKLOG.subtractFromBacklog(queueMoveAmount);
 
         } catch (NumberFormatException e) {
             LOGGER.error("InitialWorkItems", e);

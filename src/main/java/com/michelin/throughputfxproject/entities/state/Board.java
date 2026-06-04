@@ -64,6 +64,10 @@ public class Board implements Savable {
     private final List<BitCard> periodHoldCards= new ArrayList<>(10);
     @Builder.Default
     private final List<BitCard> gameHoldCards= new ArrayList<>(10);
+    @Builder.Default
+    private final List<Integer> queueCounts = new ArrayList<>();
+    @Builder.Default
+    private final List<Integer> queueCapacities = new ArrayList<>();
     private final int dieFaces;
     private final int stationCount;
     private final int runPeriods;
@@ -111,6 +115,7 @@ public class Board implements Savable {
      * @param runTurns The number of turns in a game run.
      */
     public static Board initializeInstance(int dieFaces, int stationCount, int runPeriods, int runTurns) {
+        validateStationCount(stationCount);
         instance = Board.builder().dieFaces(dieFaces).stationCount(stationCount).runPeriods(runPeriods).runTurns(runTurns).build();
         return instance;
     }
@@ -141,7 +146,9 @@ public class Board implements Savable {
 
         Board.BoardBuilder builder = Board.builder();
         builder.dieFaces((Integer) reloadGameJson.get("dieFaces"));
-        builder.stationCount((Integer) reloadGameJson.get("stationCount"));
+        Integer stationCount = (Integer) reloadGameJson.get("stationCount");
+        validateStationCount(stationCount);
+        builder.stationCount(stationCount);
         builder.runPeriods((Integer) reloadGameJson.get("runPeriods"));
         builder.runTurns((Integer) reloadGameJson.get("runTurns"));
         builder.inTrainingServer((HumanServer) ServerService.recreateServerFromMap((Map<String, Object>) reloadGameJson.get("inTrainingServer")));
@@ -149,6 +156,8 @@ public class Board implements Savable {
         builder.currentPeriod((Integer) reloadGameJson.get("currentPeriod"));
         builder.periodHoldCards(CardService.reloadHoldCards((List<Object>) reloadGameJson.get("periodHoldCards")));
         builder.gameHoldCards(CardService.reloadHoldCards((List<Object>) reloadGameJson.get("gameHoldCards")));
+        builder.queueCounts(toIntegerList(reloadGameJson.get("queueCounts")));
+        builder.queueCapacities(toIntegerList(reloadGameJson.get("queueCapacities")));
 
         // Reload services
         WorkstationService.reloadWorkstations((Map<String, Object>) reloadGameJson.get("workstationService"));
@@ -157,6 +166,71 @@ public class Board implements Savable {
 
         // Reload board
         instance = builder.build();
+        instance.ensureQueueStateInitialized();
+    }
+
+    public void ensureQueueStateInitialized() {
+        int queueCount = Math.max(0, stationCount - 1);
+        Workstation[] workstations = WorkstationService.getWorkstations();
+
+        if (queueCounts.size() == queueCount && queueCapacities.size() == queueCount) {
+            return;
+        }
+
+        queueCounts.clear();
+        queueCapacities.clear();
+
+        for (int queueIndex = 0; queueIndex < queueCount; queueIndex++) {
+            queueCounts.add(0);
+            int trailingCapacity = workstations[queueIndex + 1].getCapacity();
+            queueCapacities.add(Math.clamp(trailingCapacity, 1, 20));
+        }
+    }
+
+    public int getQueueCount(int index) {
+        ensureQueueStateInitialized();
+        return queueCounts.get(index);
+    }
+
+    public int getQueueCapacity(int index) {
+        ensureQueueStateInitialized();
+        return queueCapacities.get(index);
+    }
+
+    public int getQueueSpaceRemaining(int index) {
+        ensureQueueStateInitialized();
+        return Math.max(0, queueCapacities.get(index) - queueCounts.get(index));
+    }
+
+    public void setQueueCapacity(int index, int capacity) {
+        ensureQueueStateInitialized();
+        queueCapacities.set(index, Math.clamp(capacity, 1, 20));
+    }
+
+    public void adjustQueueCapacity(int index, int delta) {
+        setQueueCapacity(index, getQueueCapacity(index) + delta);
+    }
+
+    public void addToQueueCount(int index, int amount) {
+        ensureQueueStateInitialized();
+        if (amount < 0) throw new IllegalArgumentException("amount must be non-negative");
+        queueCounts.set(index, queueCounts.get(index) + amount);
+    }
+
+    public void subtractFromQueueCount(int index, int amount) {
+        ensureQueueStateInitialized();
+        if (amount < 0 || amount > queueCounts.get(index)) throw new IllegalArgumentException("invalid queue amount");
+        queueCounts.set(index, queueCounts.get(index) - amount);
+    }
+
+    private static void validateStationCount(int stationCount) {
+        if (stationCount <= 0) {
+            throw new ThroughputRuntimeException(new IllegalArgumentException("stationCount must be > 0"));
+        }
+        if (stationCount > Color.values().length) {
+            throw new ThroughputRuntimeException(
+                    new IllegalArgumentException("stationCount must be <= " + Color.values().length));
+        }
     }
 
   /**
@@ -424,6 +498,8 @@ public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) 
                 ",\"inTrainingServer\":" + inTrainingServer +
                 ",\"periodHoldCards\":" + collectionToJson(Collections.unmodifiableCollection(periodHoldCards)) +
                 ",\"gameHoldCards\":" + collectionToJson(Collections.unmodifiableCollection(gameHoldCards)) +
+                ",\"queueCounts\":" + integerCollectionToJson(queueCounts) +
+                ",\"queueCapacities\":" + integerCollectionToJson(queueCapacities) +
                 "," +
                 WorkstationService.toJSON() +
                 "," +
@@ -447,6 +523,24 @@ public BoardAction discoverBitActions(BitCard bitCard, int runDay, int runWeek) 
         json.append(String.join(",", stringList));
         json.append("]");
         return json.toString();
+    }
+
+    private static List<Integer> toIntegerList(Object rawValue) {
+        if (!(rawValue instanceof Collection<?> rawCollection)) {
+            return new ArrayList<>();
+        }
+
+        List<Integer> values = new ArrayList<>();
+        for (Object element : rawCollection) {
+            if (element instanceof Number number) {
+                values.add(number.intValue());
+            }
+        }
+        return values;
+    }
+
+    private static String integerCollectionToJson(Collection<Integer> collection) {
+        return "[" + String.join(",", collection.stream().map(String::valueOf).toList()) + "]";
     }
 
     public Timeline getFreshTimeline(int divisor, Label timerLabel){

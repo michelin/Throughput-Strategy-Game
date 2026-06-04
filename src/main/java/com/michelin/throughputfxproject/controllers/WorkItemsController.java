@@ -15,6 +15,7 @@
  */
 package com.michelin.throughputfxproject.controllers;
 
+import com.michelin.throughputfxproject.entities.state.Board;
 import com.michelin.throughputfxproject.entities.state.Workstation;
 import com.michelin.throughputfxproject.services.ScorecardService;
 import com.michelin.throughputfxproject.services.WorkstationService;
@@ -62,13 +63,22 @@ public class WorkItemsController {
 
            Workstation workstation =  WorkstationService.getWorkstations()[workstationPosition];
 
-            int moveAmount = Math.min(workstationMovesInt, Math.min(workstationMaxMovesInt, workstation.getWorkItemCount()));
-            if (workstationPosition == 4) {
+            int stationCount = Board.getInstance().getStationCount();
+            int sourceAvailable = Board.getInstance().getQueueCount(workstationPosition - 1);
+            int maxByFlow = Math.min(workstation.getCapacity(), sourceAvailable);
+
+            if (workstationPosition < stationCount - 1) {
+                maxByFlow = Math.min(maxByFlow, Board.getInstance().getQueueSpaceRemaining(workstationPosition));
+            }
+
+            int moveAmount = Math.min(workstationMovesInt, Math.min(workstationMaxMovesInt, maxByFlow));
+            Board.getInstance().subtractFromQueueCount(workstationPosition - 1, moveAmount);
+
+            if (workstationPosition == stationCount - 1) {
                 ScorecardService.FINISHED_GOODS.addToFinishedGoods(moveAmount);
             } else {
-                WorkstationService.getWorkstation(workstationPosition+ 1).addToWorkItemCount(moveAmount);
+                Board.getInstance().addToQueueCount(workstationPosition, moveAmount);
             }
-            workstation.subtractFromWorkItemCount(moveAmount);
 
         } catch (NumberFormatException e) {
             LOGGER.error("WorkItems", e);

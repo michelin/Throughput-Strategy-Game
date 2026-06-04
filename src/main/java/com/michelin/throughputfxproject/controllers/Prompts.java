@@ -23,6 +23,7 @@ import com.michelin.throughputfxproject.entities.Color;
 import com.michelin.throughputfxproject.entities.actions.Trap;
 import com.michelin.throughputfxproject.entities.cards.*;
 import com.michelin.throughputfxproject.entities.servers.*;
+import com.michelin.throughputfxproject.entities.state.Board;
 import com.michelin.throughputfxproject.entities.state.Workstation;
 import com.michelin.throughputfxproject.exceptions.ThroughputRuntimeException;
 import com.michelin.throughputfxproject.services.*;
@@ -91,7 +92,7 @@ public class Prompts {
      * Reference to the board's countdown timer label so dialogs can show their remaining time.
      * Set once on startup via {@link #setCountdownTimer}; read from any thread.
      */
-    private static volatile Label countdownTimer = null;
+    private static final AtomicReference<Label> countdownTimer = new AtomicReference<>();
 
     /**
      * Sets the board's countdown timer label so timed dialogs can display their remaining time.
@@ -99,7 +100,7 @@ public class Prompts {
      * @param label the {@code countdownTimer} label from the board FXML
      */
     public static void setCountdownTimer(Label label) {
-        countdownTimer = label;
+        countdownTimer.set(label);
     }
 
     /**
@@ -109,10 +110,12 @@ public class Prompts {
      * @return the running {@link Timeline}, or {@code null} if no label is registered
      */
     private static Timeline startCountdownTimer(int durationSeconds) {
-        if (countdownTimer == null) return null;
+        Label timerLabel = countdownTimer.get();
+        if (timerLabel == null) return null;
         IntegerProperty timeSeconds = new SimpleIntegerProperty(durationSeconds);
-        countdownTimer.textProperty().bind(timeSeconds.asString());
-        countdownTimer.setTextFill(javafx.scene.paint.Color.DARKBLUE);
+        timerLabel.textProperty().bind(timeSeconds.asString());
+        timerLabel.setTextFill(javafx.scene.paint.Color.DARKBLUE);
+        setCountdownGraphicVisible(timerLabel, true);
         Timeline countdown = new Timeline();
         countdown.getKeyFrames().add(new KeyFrame(Duration.seconds(durationSeconds + 1.0), new KeyValue(timeSeconds, 0)));
         countdown.setCycleCount(1);
@@ -127,11 +130,21 @@ public class Prompts {
      * @param countdown the Timeline returned by {@link #startCountdownTimer}, may be {@code null}
      */
     private static void stopCountdownTimer(Timeline countdown) {
-        if (countdownTimer == null) return;
+        Label timerLabel = countdownTimer.get();
+        if (timerLabel == null) return;
         if (countdown != null) countdown.stop();
-        countdownTimer.textProperty().unbind();
-        countdownTimer.setText("X");
-        countdownTimer.setTextFill(javafx.scene.paint.Color.RED);
+        timerLabel.textProperty().unbind();
+        timerLabel.setText("X");
+        timerLabel.setTextFill(javafx.scene.paint.Color.RED);
+        setCountdownGraphicVisible(timerLabel, false);
+    }
+
+    private static void setCountdownGraphicVisible(Label timerLabel, boolean visible) {
+        if (timerLabel.getGraphic() == null) {
+            return;
+        }
+        timerLabel.getGraphic().setVisible(visible);
+        timerLabel.getGraphic().setManaged(visible);
     }
 
 
@@ -757,7 +770,7 @@ public class Prompts {
 
 
     /**
-     * Prompts the user to move initial work items from the backlog to the first workstation.
+     * Prompts the user to move initial work items from the backlog to the first queue.
      * Displays a modal dialog where the user can specify the number of items to move.
      * If the backlog is empty, a message is displayed, and no action is taken.
      *
@@ -780,11 +793,11 @@ public class Prompts {
         Parent root = loader.load();
 
         final int maxIntToMove = Math.min(startValue, backlogCount);
-        String builder = "Choose how many items to move to your 1st workstation from the backlog" +
+        String builder = "Choose how many items to move from the backlog to queue 1" +
                 System.lineSeparator() + System.lineSeparator() +
                 "At prompting please enter any number <= " + startValue + "." +
                 System.lineSeparator() + System.lineSeparator() +
-                "Example:   '" + maxIntToMove + "' will move " + maxIntToMove + " work items to the 1st workstation";
+            "Example:   '" + maxIntToMove + "' will move " + maxIntToMove + " work items to queue 1";
 
         TextArea node = ((InitialWorkItemsController) loader.getController()).getWorkItemMoveText();
         node.setText(builder);
@@ -801,9 +814,10 @@ public class Prompts {
     }
 
     /**
-     * Prompts the user to move work items from a specified workstation to the next.
+     * Prompts the user to move work items from a specified workstation to its output destination.
      * Displays a modal dialog where the user can specify the number of items to move.
-     * If the workstation is the last one (position 4), the items are moved to finished goods.
+     * For non-final workstations the destination is the next queue; for the final workstation
+     * the destination is finished goods.
      *
      * @param container           The parent container for the modal dialog.
      * @param workstation         The workstation from which the items are being moved.
@@ -817,8 +831,14 @@ public class Prompts {
         Parent root = loader.load();
 
         StringBuilder builder = new StringBuilder();
-        final int maxIntToMove = Math.min(workstation.getCapacity(), workstation.getWorkItemCount());
-        log.debug("maxIntToMove: {}  -- workstation capacity: {} -- work item count {}", maxIntToMove, workstation.getCapacity(), workstation.getWorkItemCount());
+        int stationCount = Board.getInstance().getStationCount();
+        int sourceAvailable = Board.getInstance().getQueueCount(workstationPosition - 1);
+        int maxIntToMove = Math.min(workstation.getCapacity(), sourceAvailable);
+        if (workstationPosition < stationCount - 1) {
+            maxIntToMove = Math.min(maxIntToMove, Board.getInstance().getQueueSpaceRemaining(workstationPosition));
+        }
+        log.debug("maxIntToMove: {} -- capacity: {} -- source queue available: {}",
+            maxIntToMove, workstation.getCapacity(), sourceAvailable);
 
         builder.append("Choose how many items to move from the ")
                 .append(workstation.getColor().name())
@@ -831,10 +851,10 @@ public class Prompts {
                 .append("' will move '")
                 .append(maxIntToMove);
 
-        if (workstationPosition == 4) {
+        if (workstationPosition == stationCount - 1) {
             builder.append("' work items to finished goods");
         } else {
-            builder.append("' work items to the next workstation");
+            builder.append("' work items to queue ").append(workstationPosition + 1);
         }
 
         TextArea node = ((WorkItemsController) loader.getController()).getWorkItemMoveText();
@@ -1147,8 +1167,16 @@ public class Prompts {
      */
     protected static ChanceResult serverChanceCardPlay(@NonNull Pane container, @NonNull Server server, Workstation workstation, @NonNull TextArea gameBoardLog) throws IOException {
 
-        // Check if the workstation has no work items
-        if (workstation.getWorkItemCount() == 0) {
+        int workstationPosition = WorkstationService.getWorkstationIndex(workstation.getColor());
+        int sourceItemCount;
+        if (workstationPosition == 0) {
+            sourceItemCount = ScorecardService.BACKLOG.getBacklogItemCount();
+        } else {
+            sourceItemCount = Board.getInstance().getQueueCount(workstationPosition - 1);
+        }
+
+        // Check if the workstation has no source items available.
+        if (sourceItemCount == 0) {
             String gameBoardLogText = "No Moves." + System.lineSeparator() + workstation.getColor() + " " + WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE;
             alertWithGameBoardUpdate(gameBoardLog, gameBoardLogText, ALERT_TIMEOUT_DURATION);
             return ChanceResult.EMPTY;
