@@ -18,7 +18,7 @@
     -fx-border-color: yellow;
     -fx-text-alignment: center;
     -fx-padding: 10px 10px 10px 10px;
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-size: 18pt;
     -fx-text-fill: darkblue;
  }
@@ -63,20 +63,20 @@
 }
 
 .board-legend-title {
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-size: 12pt;
     -fx-font-weight: bold;
     -fx-text-fill: #1e3a8a;
 }
 
 .board-legend-text {
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-size: 10.5pt;
     -fx-text-fill: #1f2937;
 }
 
 .score-box-label{
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-size: 10pt;
     -fx-text-fill: darkblue;
 }
@@ -97,7 +97,7 @@
 }
 
 .endpoint-card-header {
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-size: 11pt;
     -fx-font-weight: bold;
     -fx-text-fill: #0f172a;
@@ -109,7 +109,7 @@
 }
 
 .endpoint-card-value {
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-size: 30pt;
     -fx-font-weight: bold;
     -fx-text-fill: #1d4ed8;
@@ -175,7 +175,7 @@
 }
 
 .workstation-card-title {
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-size: 12pt;
     -fx-font-weight: bold;
     -fx-text-fill: white;
@@ -234,7 +234,7 @@
 }
 
 .queue-side-title {
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-size: 9.5pt;
     -fx-font-weight: bold;
     -fx-text-fill: white;
@@ -246,7 +246,7 @@
 }
 
 .queue-side-count {
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-size: 23pt;
     -fx-font-weight: bold;
     -fx-text-fill: #1d4ed8;
@@ -255,7 +255,7 @@
 }
 
 .queue-side-dots {
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-size: 11pt;
     -fx-font-weight: bold;
     -fx-text-fill: #1d4ed8;
@@ -525,7 +525,7 @@
 }
 
 .capacity-box-label{
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-size: 8pt;
     -fx-text-fill: darkblue;
 }
@@ -537,7 +537,7 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0.0, 0.0);
 }
 .title-header{
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 50pt;
     -fx-font-weight: bolder;
     -fx-fill: darkblue;
@@ -547,7 +547,7 @@
 }
 
 .sub-header{
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 22pt;
     -fx-font-weight: bold;
     -fx-fill: darkblue;
@@ -566,13 +566,13 @@
     -fx-background-color: lightgray;
     -fx-text-alignment: center;
     -fx-padding: 0px 5px 0px 5px;
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-weight: bold;
     -fx-font-size: 16pt;
     -fx-text-fill: darkblue;
 }
 .date-box-label{
-    -fx-font-family: Michelin, sans-serif;
+    -fx-font-family: Nunito, sans-serif;
     -fx-font-size: 14pt;
     -fx-font-weight: bold;
     -fx-text-fill: darkblue;
@@ -582,7 +582,7 @@
     -fx-background-color: #e4fbff;
     -fx-border-width: 1px;
     -fx-border-color: yellow;
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 14pt;
     -fx-text-fill: midnightblue;
 }
@@ -596,7 +596,7 @@
     -fx-background-radius: 5,5,4;
     -fx-padding: 3 30 3 30;
     -fx-text-fill: #242d35;
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 18px;
     -fx-text-alignment: center;
     -fx-font-weight: bold;
@@ -611,7 +611,7 @@
     -fx-background-radius: 5,5,4;
     -fx-padding: 3 30 3 30;
     -fx-text-fill: #242d35;
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 12px;
     -fx-text-alignment: center;
 }
@@ -622,39 +622,39 @@
     -fx-border-radius: 18 18 18 18;
 }
 .card-title{
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 14pt;
     -fx-font-weight: bolder;
     -fx-padding: 0px 5px 0px 5px;
 }
 .card-subtitle{
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 13pt;
     -fx-font-weight: bold;
     -fx-padding: 0px 0px 0px 5px;
 }
 .card-reason{
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 12pt;
 }
 .card-description-title{
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 11pt;
 }
 .card-description{
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 10pt;
     -fx-padding: 0px 5px 0px 10px;
 }
 .card-instruction{
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 10pt;
     -fx-font-weight: bold;
     -fx-padding: 10px 2px 2px 2px;
 }
 
 .integer-text-field{
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 14pt;
     -fx-text-alignment: center;
     -fx-text-fill: darkblue;
@@ -672,7 +672,7 @@
 
 .board-label {
     -fx-background-color:  rgb(255,255,255,.6);
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 16pt;
     -fx-font-weight: bold;
     -fx-text-fill: darkblue;
@@ -708,18 +708,18 @@
     -fx-background-repeat: no-repeat;
 }
 .die-header{
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 13pt;
     -fx-font-weight: bold;
     -fx-padding: 10px 10px 10px 10px;
     -fx-text-alignment: center;
 }
 .die-text{
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 10pt;
 }
 .info-labels{
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 22pt;
     -fx-font-weight: bolder;
     -fx-text-alignment: center;
@@ -733,7 +733,7 @@
     -fx-border-width: 1.5;
     -fx-border-radius: 18;
     -fx-padding: 8 10 8 10;
-    -fx-font-family: Michelin;
+    -fx-font-family: Nunito;
     -fx-font-size: 4em;
     -fx-font-weight: bolder;
     -fx-text-alignment: center;

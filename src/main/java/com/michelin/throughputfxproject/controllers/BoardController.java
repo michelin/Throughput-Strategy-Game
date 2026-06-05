@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Manufacture Française des Pneumatiques Michelin
+ * Copyright 2025 Manufacture Française des Pneumatiques Nunito
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -527,7 +527,7 @@ public class BoardController {
         label.setWrapText(true);
         label.setPrefWidth(105);
         label.setPadding(new Insets(5));
-        label.setFont(Font.font("Michelin", FontWeight.BOLD, FontPosture.ITALIC, 11.0));
+        label.setFont(Font.font("Nunito", FontWeight.BOLD, FontPosture.ITALIC, 11.0));
 
         // Combine the rectangle and label into an AnchorPane
         AnchorPane anchorPane = new AnchorPane(rectangle, label);
@@ -1628,13 +1628,13 @@ public class BoardController {
         double selectedFontSize = minFontSize;
         for (double fontSize = maxFontSize; fontSize >= minFontSize; fontSize -= 0.25) {
             Text measure = new Text(text);
-            measure.setFont(Font.font("Michelin", FontWeight.BOLD, fontSize));
+            measure.setFont(Font.font("Nunito", FontWeight.BOLD, fontSize));
             if (measure.getLayoutBounds().getWidth() <= maxWidth) {
                 selectedFontSize = fontSize;
                 break;
             }
         }
-        queueTitleLabel.setFont(Font.font("Michelin", FontWeight.BOLD, selectedFontSize));
+        queueTitleLabel.setFont(Font.font("Nunito", FontWeight.BOLD, selectedFontSize));
     }
 
     private void setEndpointHeaderText(Label endpointHeaderLabel, String text) {
@@ -1654,14 +1654,14 @@ public class BoardController {
         double selectedFontSize = minFontSize;
         for (double fontSize = maxFontSize; fontSize >= minFontSize; fontSize -= 0.25) {
             Text measured = new Text(text);
-            measured.setFont(Font.font("Michelin", FontWeight.BOLD, fontSize));
+            measured.setFont(Font.font("Nunito", FontWeight.BOLD, fontSize));
             if (measured.getLayoutBounds().getWidth() <= maxWidth) {
                 selectedFontSize = fontSize;
                 break;
             }
         }
 
-        endpointHeaderLabel.setFont(Font.font("Michelin", FontWeight.BOLD, selectedFontSize));
+        endpointHeaderLabel.setFont(Font.font("Nunito", FontWeight.BOLD, selectedFontSize));
     }
 
     private String buildQueueDots(int queueCount) {
