@@ -73,7 +73,7 @@ public class Board implements Savable {
     private final int runPeriods;
     private final int runTurns;
     @Builder.Default
-    private Integer runTime = 30;
+    private Integer runTime = 10;
     @Builder.Default
     private Integer currentRunTurn = 1;
     @Builder.Default

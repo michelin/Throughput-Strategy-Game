@@ -289,6 +289,145 @@
     -fx-max-width: 134;
 }
 
+.board-medium .workstation-card {
+    -fx-min-width: 204;
+    -fx-pref-width: 204;
+}
+
+.board-medium .workstation-card-title {
+    -fx-font-size: 10.8pt;
+    -fx-padding: 7 8 7 8;
+}
+
+.board-medium .workstation-card-row {
+    -fx-font-size: 8.8pt;
+    -fx-padding: 1 8 1 8;
+}
+
+.board-medium .queue-side-box {
+    -fx-min-width: 96;
+    -fx-pref-width: 96;
+}
+
+.board-medium .queue-side-title {
+    -fx-font-size: 8.7pt;
+    -fx-padding: 5 5 4 5;
+}
+
+.board-medium .queue-side-count {
+    -fx-font-size: 19pt;
+}
+
+.board-medium .queue-side-dots {
+    -fx-font-size: 10pt;
+}
+
+.board-medium .queue-bridge {
+    -fx-min-width: 118;
+    -fx-pref-width: 118;
+    -fx-max-width: 118;
+}
+
+.board-medium .endpoint-card {
+    -fx-min-width: 122;
+    -fx-pref-width: 122;
+    -fx-min-height: 176;
+    -fx-pref-height: 176;
+}
+
+.board-medium .endpoint-card-header {
+    -fx-font-size: 10.2pt;
+}
+
+.board-medium .endpoint-card-value {
+    -fx-font-size: 25pt;
+}
+
+.board-medium .board-legend-title {
+    -fx-font-size: 11pt;
+}
+
+.board-medium .board-legend-text {
+    -fx-font-size: 9.8pt;
+}
+
+.board-compact .workstation-card {
+    -fx-min-width: 140;
+    -fx-pref-width: 140;
+    -fx-spacing: 3;
+    -fx-padding: 0 0 7 0;
+}
+
+.board-compact .workstation-card-title {
+    -fx-font-size: 9.5pt;
+    -fx-padding: 6 6 6 6;
+}
+
+.board-compact .workstation-card-row {
+    -fx-font-size: 7.9pt;
+    -fx-padding: 1 6 1 6;
+}
+
+.board-compact .workstation-workers-pane {
+    -fx-padding: 2 6 3 6;
+}
+
+.board-compact .queue-side-box {
+    -fx-min-width: 76;
+    -fx-pref-width: 76;
+}
+
+.board-compact .queue-side-title {
+    -fx-font-size: 7.9pt;
+    -fx-padding: 4 4 4 4;
+}
+
+.board-compact .queue-side-count {
+    -fx-font-size: 16pt;
+}
+
+.board-compact .queue-side-dots {
+    -fx-font-size: 8.6pt;
+}
+
+.board-compact .queue-bridge {
+    -fx-min-width: 86;
+    -fx-pref-width: 86;
+    -fx-max-width: 86;
+}
+
+.board-compact .queue-flow-arrow .ikonli-font-icon {
+    -fx-icon-size: 13;
+}
+
+.board-compact .endpoint-card {
+    -fx-min-width: 88;
+    -fx-pref-width: 88;
+    -fx-min-height: 162;
+    -fx-pref-height: 162;
+}
+
+.board-compact .endpoint-card-header {
+    -fx-font-size: 9pt;
+    -fx-padding: 6 6 6 6;
+}
+
+.board-compact .endpoint-card-value {
+    -fx-font-size: 20pt;
+}
+
+.board-compact .endpoint-card-icon .ikonli-font-icon {
+    -fx-icon-size: 28;
+}
+
+.board-compact .board-legend-title {
+    -fx-font-size: 10pt;
+}
+
+.board-compact .board-legend-text {
+    -fx-font-size: 9pt;
+}
+
 .queue-side-box-green {
     -fx-border-color: #2e7d32;
 }
@@ -585,6 +724,69 @@
     -fx-font-family: Nunito;
     -fx-font-size: 14pt;
     -fx-text-fill: midnightblue;
+}
+
+.game-log-panel {
+    -fx-background-color: linear-gradient(to bottom, rgba(244,250,255,0.95), rgba(226,241,251,0.96));
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(30,64,175,0.35);
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,.18), 10, 0.18, 0, 2);
+}
+
+.game-log-header {
+    -fx-background-color: linear-gradient(to right, #1e3a8a, #1d4ed8);
+    -fx-background-radius: 11 11 0 0;
+    -fx-border-color: rgba(255,255,255,0.15);
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 7 10 7 10;
+}
+
+.game-log-title {
+    -fx-font-family: Nunito, sans-serif;
+    -fx-font-size: 11.5pt;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-graphic-text-gap: 7;
+}
+
+.game-log-status {
+    -fx-font-family: Nunito, sans-serif;
+    -fx-font-size: 9pt;
+    -fx-font-weight: bold;
+    -fx-text-fill: #dcfce7;
+    -fx-background-color: rgba(2,6,23,0.26);
+    -fx-background-radius: 999;
+    -fx-padding: 3 8 3 8;
+    -fx-graphic-text-gap: 5;
+}
+
+.game-log-status .ikonli-font-icon {
+    -fx-icon-size: 8;
+}
+
+.game-log-textarea {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-font-family: Nunito, sans-serif;
+    -fx-font-size: 12.5pt;
+    -fx-text-fill: #0f172a;
+}
+
+.game-log-textarea .content {
+    -fx-background-color: linear-gradient(to bottom, rgba(255,255,255,0.80), rgba(240,249,255,0.88));
+    -fx-background-insets: 0;
+    -fx-background-radius: 0 0 11 11;
+    -fx-padding: 8 10 8 10;
+}
+
+.game-log-textarea .scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.game-log-textarea .scroll-pane .viewport {
+    -fx-background-color: transparent;
 }
 
 .button-lion-default {

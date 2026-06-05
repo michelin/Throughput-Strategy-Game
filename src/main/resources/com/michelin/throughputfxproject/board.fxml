@@ -163,12 +163,27 @@
                 </VBox.margin>
             </AnchorPane>
             <VBox>
-                <AnchorPane prefHeight="300.0" maxWidth="Infinity" VBox.vgrow="ALWAYS">
-                    <TextArea fx:id="gameBoardLog" editable="false" maxWidth="Infinity" prefHeight="300.0" styleClass="read-only-textarea" text="Welcome to Throughput!&#10;&#10;Select the information button above to read more about the game objectives or the rules button to learn more about the rules.&#10;&#10;Click on the Run Game button to get started." wrapText="true" AnchorPane.topAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
-                        <padding>
-                            <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />
-                        </padding>
-                    </TextArea>
+                <AnchorPane minHeight="260.0" prefHeight="300.0" maxHeight="340.0" maxWidth="Infinity" VBox.vgrow="SOMETIMES">
+                    <VBox spacing="0.0" styleClass="game-log-panel" AnchorPane.topAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+                        <HBox alignment="CENTER_LEFT" styleClass="game-log-header">
+                            <Label styleClass="game-log-title" text="Operations Log">
+                                <graphic>
+                                    <FontIcon iconColor="#0ea5e9" iconLiteral="fas-satellite-dish" />
+                                </graphic>
+                            </Label>
+                            <Pane HBox.hgrow="ALWAYS" />
+                            <Label styleClass="game-log-status" text="LIVE FEED">
+                                <graphic>
+                                    <FontIcon iconColor="#22c55e" iconLiteral="fas-circle" />
+                                </graphic>
+                            </Label>
+                        </HBox>
+                        <TextArea fx:id="gameBoardLog" editable="false" maxWidth="Infinity" prefHeight="300.0" styleClass="read-only-textarea,game-log-textarea" text="Welcome to Throughput!&#10;&#10;Select the information button above to read more about the game objectives or the rules button to learn more about the rules.&#10;&#10;Click on the Run Game button to get started." wrapText="true" VBox.vgrow="ALWAYS">
+                            <padding>
+                                <Insets bottom="8.0" left="12.0" right="12.0" top="10.0" />
+                            </padding>
+                        </TextArea>
+                    </VBox>
                     <VBox.margin>
                         <Insets bottom="20.0" left="10.0" right="10.0" top="10.0" />
                     </VBox.margin>
@@ -190,10 +205,10 @@
     </center>
     <bottom>
         <VBox>
-            <ScrollPane fitToHeight="true" fitToWidth="false" hbarPolicy="AS_NEEDED" pannable="true" styleClass="outer-score-scroll" vbarPolicy="NEVER">
+            <ScrollPane fx:id="outerScoreScroll" fitToHeight="true" fitToWidth="true" hbarPolicy="AS_NEEDED" pannable="true" styleClass="outer-score-scroll" vbarPolicy="NEVER">
                 <content>
-                    <HBox fx:id="outerScoreBox" alignment="CENTER" spacing="40" styleClass="outer-score-box">
-                        <VBox id="backlogBox" alignment="TOP_CENTER" styleClass="endpoint-card,endpoint-card-backlog">
+                    <HBox fx:id="outerScoreBox" alignment="CENTER" maxWidth="Infinity" spacing="40" styleClass="outer-score-box">
+                        <VBox fx:id="backlogBox" id="backlogBox" alignment="TOP_CENTER" styleClass="endpoint-card,endpoint-card-backlog">
                             <Label fx:id="backlogHeader" maxWidth="Infinity" styleClass="endpoint-card-header" text="BACKLOG" />
                             <Region VBox.vgrow="ALWAYS" />
                             <Label fx:id="backlogCount" maxWidth="Infinity" styleClass="endpoint-card-value" text="000" />
@@ -216,7 +231,7 @@
                             </graphic>
                         </Label>
 
-                        <VBox id="finishedGoodsBox" alignment="TOP_CENTER" styleClass="endpoint-card,endpoint-card-finished">
+                        <VBox fx:id="finishedGoodsBox" id="finishedGoodsBox" alignment="TOP_CENTER" styleClass="endpoint-card,endpoint-card-finished">
                             <Label fx:id="finishedGoodsHeader" maxWidth="Infinity" styleClass="endpoint-card-header" text="FINISHED GOODS" />
                             <Region VBox.vgrow="ALWAYS" />
                             <Label fx:id="finishedGoodsCount" maxWidth="Infinity" styleClass="endpoint-card-value" text="000" />

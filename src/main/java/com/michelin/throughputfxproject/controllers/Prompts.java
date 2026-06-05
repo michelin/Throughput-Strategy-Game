@@ -64,7 +64,12 @@ public class Prompts {
     private static final String THROUGHPUT = "Throughput";
     private static final String START_THE_WEEK = "Click on Run Week to start the week";
     private static final String WORKSTATION_IS_EMPTY_NO_MOVES_ARE_POSSIBLE = "Workstation is empty, No moves are possible";
-    private static final int TIMEOUT_CONSTANT = 30;
+    private static final String LOG_PREFIX_RUN = "[RUN] ";
+    private static final String LOG_PREFIX_QUEUE = "[QUEUE] ";
+    private static final String LOG_PREFIX_WIP = "[WIP] ";
+    private static final String LOG_PREFIX_SCORE = "[SCORE] ";
+    private static final String LOG_PREFIX_SYSTEM = "[SYSTEM] ";
+    private static final int TIMEOUT_CONSTANT = 10;
     private static final int TIMEOUT_DURATION = TIMEOUT_CONSTANT/2;
     public static final int MODAL_TIMEOUT_DURATION = TIMEOUT_CONSTANT;
     public static final int ALERT_TIMEOUT_DURATION = TIMEOUT_CONSTANT/2;
@@ -295,8 +300,9 @@ public class Prompts {
      */
     @SuppressWarnings({"java:S1190", "java:S117"})
     private static void alertWithGameBoardUpdate(String title, @NonNull TextArea gameBoardLog, @NonNull String gameBoardLogText, int timeoutDuration) {
+        String taggedLogText = tagForGameLog(title, gameBoardLogText);
         if (Platform.isFxApplicationThread()) {
-            gameBoardLog.setText(gameBoardLogText);
+            gameBoardLog.setText(taggedLogText);
             Alert alert = makeAlert(title, gameBoardLogText);
             if (timedRun) {
                 Timeline countdownAnim = startCountdownTimer(timeoutDuration);
@@ -315,7 +321,7 @@ public class Prompts {
         } else {
             CompletableFuture<Void> closed = new CompletableFuture<>();
             Platform.runLater(() -> {
-                gameBoardLog.setText(gameBoardLogText);
+                gameBoardLog.setText(taggedLogText);
                 Alert alert = makeAlert(title, gameBoardLogText);
                 if (timedRun) {
                     Timeline countdownAnim = startCountdownTimer(timeoutDuration);
@@ -334,6 +340,32 @@ public class Prompts {
             });
             awaitFuture(closed);
         }
+    }
+
+    private static String tagForGameLog(String title, String message) {
+        if (message.startsWith("[")) {
+            return message;
+        }
+
+        String uppercaseTitle = title == null ? "" : title.toUpperCase(Locale.ROOT);
+        String uppercaseMessage = message.toUpperCase(Locale.ROOT);
+
+        String prefix;
+        if (uppercaseMessage.contains("POINT") || uppercaseMessage.contains("PTS") || uppercaseMessage.contains("SCORE") || uppercaseMessage.contains("VALUE")) {
+            prefix = LOG_PREFIX_SCORE;
+        } else if (uppercaseMessage.contains("WEEK") || uppercaseMessage.contains("DAY") || uppercaseMessage.contains("RUN")) {
+            prefix = LOG_PREFIX_RUN;
+        } else if (uppercaseMessage.contains("QUEUE") || uppercaseMessage.contains("BACKLOG") || uppercaseMessage.contains("WORKSTATION")) {
+            prefix = LOG_PREFIX_QUEUE;
+        } else if (uppercaseTitle.contains("BIT") || uppercaseTitle.contains("CHANCE") || uppercaseTitle.contains("PARTNER")
+                || uppercaseMessage.contains("TRAP") || uppercaseMessage.contains("FAILED")
+                || uppercaseMessage.contains("AUTOMAT") || uppercaseMessage.contains("PAIR") || uppercaseMessage.contains("SKILL")) {
+            prefix = LOG_PREFIX_WIP;
+        } else {
+            prefix = LOG_PREFIX_SYSTEM;
+        }
+
+        return prefix + message;
     }
 
     /**
@@ -496,7 +528,7 @@ public class Prompts {
         // Check if a pair partner is already assigned
         if (WorkstationService.findIfPairPartnerIsAlreadyAssigned()) {
             gameBoardLog.setText(
-                    "Partner assigned already" + System.lineSeparator() + System.lineSeparator() +
+                    LOG_PREFIX_WIP + "Partner assigned already" + System.lineSeparator() + System.lineSeparator() +
                             "You can move the pair partner at the start of day");
             return;
         }
@@ -590,7 +622,7 @@ public class Prompts {
             builder = "No Mitigation available for trap" +
                     "  " + trap.effected() + " Loses " + trap.duration();
         }
-        gameBoardLog.setText(builder);
+        gameBoardLog.setText(LOG_PREFIX_WIP + builder);
     }
 
     /**
@@ -988,7 +1020,7 @@ public class Prompts {
 
         // Check if all automated servers are already deployed
         if (WorkstationService.findDeployedAutomatedServers().size() == 3) {
-            gameBoardLog.setText("No Robots Left!" + System.lineSeparator() + "There are no workstations available to automate");
+            gameBoardLog.setText(LOG_PREFIX_WIP + "No Robots Left!" + System.lineSeparator() + "There are no workstations available to automate");
             return;
         }
 

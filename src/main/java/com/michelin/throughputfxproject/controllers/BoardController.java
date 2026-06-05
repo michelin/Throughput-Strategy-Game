@@ -48,6 +48,7 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
 import org.kordamp.ikonli.javafx.FontIcon;
+import javafx.beans.value.ChangeListener;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import lombok.*;
@@ -84,6 +85,26 @@ public class BoardController {
     private static final String PROPERTY_SCORE = "score";
     private static final String STYLE_SCORE_BOX_LABEL = "score-box-label";
     private static final String STYLE_WORKSTATION_CARD_ROW = "workstation-card-row";
+    private static final String STYLE_BOARD_LARGE = "board-large";
+    private static final String STYLE_BOARD_MEDIUM = "board-medium";
+    private static final String STYLE_BOARD_COMPACT = "board-compact";
+    private static final double LARGE_WORKSTATION_CARD_WIDTH = 228.0;
+    private static final double LARGE_QUEUE_BRIDGE_WIDTH = 134.0;
+    private static final double LARGE_ENDPOINT_CARD_WIDTH = 136.0;
+    private static final double LARGE_WORKSTATION_SPACING = 40.0;
+    private static final double LARGE_OUTER_SCORE_SPACING = 40.0;
+    private static final double MEDIUM_WORKSTATION_CARD_WIDTH = 204.0;
+    private static final double MEDIUM_QUEUE_BRIDGE_WIDTH = 118.0;
+    private static final double MEDIUM_ENDPOINT_CARD_WIDTH = 122.0;
+    private static final double MEDIUM_WORKSTATION_SPACING = 20.0;
+    private static final double MEDIUM_OUTER_SCORE_SPACING = 20.0;
+    private static final double COMPACT_WORKSTATION_CARD_WIDTH = 140.0;
+    private static final double COMPACT_QUEUE_BRIDGE_WIDTH = 86.0;
+    private static final double COMPACT_ENDPOINT_CARD_WIDTH = 88.0;
+    private static final double COMPACT_WORKSTATION_SPACING = 8.0;
+    private static final double COMPACT_OUTER_SCORE_SPACING = 8.0;
+    private static final double OUTER_SCORE_HORIZONTAL_BUFFER = 72.0;
+    private static final double SCENE_NON_BOARD_BUFFER = 340.0;
     @FXML
     private Button buttonLoadGame;
     @FXML
@@ -141,6 +162,12 @@ public class BoardController {
     @FXML
     private HBox outerScoreBox;
     @FXML
+    private ScrollPane outerScoreScroll;
+    @FXML
+    private VBox backlogBox;
+    @FXML
+    private VBox finishedGoodsBox;
+    @FXML
     private Button buttonEndGame;
     @FXML
     private CheckBox timedRun;
@@ -161,6 +188,18 @@ public class BoardController {
     private final List<Label> queueCountLabels = new ArrayList<>();
     private final List<Label> queueCapacityLabels = new ArrayList<>();
     private final List<Label> queueDotLabels = new ArrayList<>();
+    private final List<Label> queueTitleLabels = new ArrayList<>();
+    private final List<HBox> queueBridges = new ArrayList<>();
+    private final List<VBox> queueBoxes = new ArrayList<>();
+    private ResponsiveMode responsiveMode = ResponsiveMode.LARGE;
+    private double lastAppliedSizingWidth = -1.0;
+    private int lastAppliedSizingStationCount = -1;
+
+    private enum ResponsiveMode {
+        LARGE,
+        MEDIUM,
+        COMPACT
+    }
 
 
     public BoardController() {
@@ -829,6 +868,17 @@ public class BoardController {
         // Render the initial board state immediately so workstation UI is visible on startup.
         redrawBoard();
 
+        configureResponsiveLayout();
+
+        // Force a startup reflow after the first layout pulses so workstation cards size from final viewport bounds.
+        Platform.runLater(() -> Platform.runLater(() -> {
+            if (gameDialogPane.getScene() != null) {
+                lastAppliedSizingWidth = -1.0;
+                lastAppliedSizingStationCount = -1;
+                applyResponsiveModeForWidth(gameDialogPane.getScene().getWidth());
+            }
+        }));
+
         // Ensure prompts start in manual (non-timed) mode and know about the countdown label
         Prompts.setTimedRun(false);
         Prompts.setCountdownTimer(countdownTimer);
@@ -1381,6 +1431,9 @@ public class BoardController {
         queueCountLabels.clear();
         queueCapacityLabels.clear();
         queueDotLabels.clear();
+        queueTitleLabels.clear();
+        queueBridges.clear();
+        queueBoxes.clear();
 
         for (int i = 0; i < workstationCount; i++) {
             final int queueIndex = i;
@@ -1395,24 +1448,45 @@ public class BoardController {
 
                 Label inputLabel = new Label();
                 inputLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW, "workstation-card-input");
+                inputLabel.setWrapText(true);
+                inputLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+                inputLabel.setMaxWidth(Double.MAX_VALUE);
 
                 Label workersLabel = new Label();
                 workersLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW);
+                workersLabel.setWrapText(false);
+                workersLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+                workersLabel.setMaxWidth(Double.MAX_VALUE);
 
                 Label upgradesLabel = new Label();
                 upgradesLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW);
+                upgradesLabel.setWrapText(true);
+                upgradesLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+                upgradesLabel.setMaxWidth(Double.MAX_VALUE);
 
                 Label attemptsLabel = new Label();
                 attemptsLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW);
+                attemptsLabel.setWrapText(false);
+                attemptsLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+                attemptsLabel.setMaxWidth(Double.MAX_VALUE);
 
                 Label capacityLabel = new Label();
                 capacityLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW);
+                capacityLabel.setWrapText(false);
+                capacityLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+                capacityLabel.setMaxWidth(Double.MAX_VALUE);
 
                 Label statusLabel = new Label();
                 statusLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW, "workstation-card-status");
+                statusLabel.setWrapText(true);
+                statusLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+                statusLabel.setMaxWidth(Double.MAX_VALUE);
 
                 Label outputLabel = new Label();
                 outputLabel.getStyleClass().addAll(STYLE_SCORE_BOX_LABEL, STYLE_WORKSTATION_CARD_ROW, "workstation-card-output");
+                outputLabel.setWrapText(true);
+                outputLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+                outputLabel.setMaxWidth(Double.MAX_VALUE);
 
                 Separator dividerTop = new Separator();
                 dividerTop.getStyleClass().add("workstation-card-divider");
@@ -1436,6 +1510,7 @@ public class BoardController {
                 workstationCard.setAlignment(javafx.geometry.Pos.TOP_LEFT);
                 workstationCard.setId("workstation" + i);
                 workstationCard.getStyleClass().add("workstation-card");
+                workstationCard.setMinWidth(0.0);
 
             if (i < workstationCount - 1) {
                 Label queueTitleLabel = new Label();
@@ -1443,8 +1518,8 @@ public class BoardController {
                 queueTitleLabel.setMaxWidth(Double.MAX_VALUE);
                 queueTitleLabel.setAlignment(javafx.geometry.Pos.CENTER);
                 queueTitleLabel.setTextAlignment(TextAlignment.CENTER);
-                queueTitleLabel.setWrapText(false);
-                queueTitleLabel.setTextOverrun(OverrunStyle.CLIP);
+                queueTitleLabel.setWrapText(true);
+                queueTitleLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
 
                 Label queueCountLabel = new Label();
                 queueCountLabel.getStyleClass().add("queue-side-count");
@@ -1512,6 +1587,7 @@ public class BoardController {
                 queueVBox.setFillWidth(true);
                 queueVBox.setId("queue" + i);
                 queueVBox.getStyleClass().add("queue-side-box");
+                queueVBox.setMinWidth(0.0);
 
                 Color queueColor = WorkstationService.getWorkstation(i).getColor();
                 setQueueHeaderText(queueTitleLabel, queueColor.name() + " QUEUE");
@@ -1523,6 +1599,10 @@ public class BoardController {
                 queueFlowArrow.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                 queueFlowArrow.setAlignment(javafx.geometry.Pos.CENTER);
                 applyQueueFlowArrowColor(queueFlowArrow, queueColor);
+                StackPane queueFlowArrowSlot = new StackPane(queueFlowArrow);
+                queueFlowArrowSlot.setAlignment(javafx.geometry.Pos.CENTER);
+                queueFlowArrowSlot.getStyleClass().add("queue-flow-arrow-slot");
+                queueFlowArrowSlot.setMinWidth(0.0);
 
                 Label queueOutboundArrow = new Label();
                 queueOutboundArrow.getStyleClass().add("queue-flow-arrow");
@@ -1530,16 +1610,24 @@ public class BoardController {
                 queueOutboundArrow.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                 queueOutboundArrow.setAlignment(javafx.geometry.Pos.CENTER);
                 applyQueueFlowArrowColor(queueOutboundArrow, queueColor);
+                StackPane queueOutboundArrowSlot = new StackPane(queueOutboundArrow);
+                queueOutboundArrowSlot.setAlignment(javafx.geometry.Pos.CENTER);
+                queueOutboundArrowSlot.getStyleClass().add("queue-flow-arrow-slot");
+                queueOutboundArrowSlot.setMinWidth(0.0);
 
-                HBox queueBridge = new HBox(10, queueFlowArrow, queueVBox, queueOutboundArrow);
+                HBox queueBridge = new HBox(10, queueFlowArrowSlot, queueVBox, queueOutboundArrowSlot);
                 queueBridge.setAlignment(javafx.geometry.Pos.CENTER);
                 queueBridge.getStyleClass().add("queue-bridge");
+                queueBridge.setMinWidth(0.0);
 
                 workstationContainer.getChildren().add(workstationCard);
                 workstationContainer.getChildren().add(queueBridge);
                 queueCountLabels.add(queueCountLabel);
                 queueCapacityLabels.add(queueCapacityLabel);
                 queueDotLabels.add(queueDotsLabel);
+                queueTitleLabels.add(queueTitleLabel);
+                queueBridges.add(queueBridge);
+                queueBoxes.add(queueVBox);
             } else {
                 workstationContainer.getChildren().add(workstationCard);
             }
@@ -1555,6 +1643,9 @@ public class BoardController {
             workstationStatusLabels.add(statusLabel);
             workstationOutputLabels.add(outputLabel);
         }
+
+        applyResponsiveTextPolicies();
+        applyReactiveCardSizing();
     }
 
     private void updateWorkstationLabel(Workstation[] workstations, int index) {
@@ -1621,9 +1712,27 @@ public class BoardController {
         queueTitleLabel.setText(text);
 
         // Keep the queue name on one line by shrinking font size to fit header width.
-        final double maxWidth = 96.0;
-        final double maxFontSize = 10.0;
-        final double minFontSize = 7.0;
+        final double maxWidth;
+        final double maxFontSize;
+        final double minFontSize;
+
+        switch (responsiveMode) {
+            case COMPACT -> {
+                maxWidth = 74.0;
+                maxFontSize = 8.5;
+                minFontSize = 6.5;
+            }
+            case MEDIUM -> {
+                maxWidth = 86.0;
+                maxFontSize = 9.25;
+                minFontSize = 6.75;
+            }
+            default -> {
+                maxWidth = 96.0;
+                maxFontSize = 10.0;
+                minFontSize = 7.0;
+            }
+        }
 
         double selectedFontSize = minFontSize;
         for (double fontSize = maxFontSize; fontSize >= minFontSize; fontSize -= 0.25) {
@@ -1647,9 +1756,27 @@ public class BoardController {
         endpointHeaderLabel.setTextAlignment(TextAlignment.CENTER);
 
         // Keep endpoint title on one centered line by shrinking the font to fit card width.
-        final double maxWidth = 120.0;
-        final double maxFontSize = 11.0;
-        final double minFontSize = 7.5;
+        final double maxWidth;
+        final double maxFontSize;
+        final double minFontSize;
+
+        switch (responsiveMode) {
+            case COMPACT -> {
+                maxWidth = 112.0;
+                maxFontSize = 9.5;
+                minFontSize = 7.0;
+            }
+            case MEDIUM -> {
+                maxWidth = 132.0;
+                maxFontSize = 10.25;
+                minFontSize = 7.25;
+            }
+            default -> {
+                maxWidth = 156.0;
+                maxFontSize = 11.0;
+                minFontSize = 7.5;
+            }
+        }
 
         double selectedFontSize = minFontSize;
         for (double fontSize = maxFontSize; fontSize >= minFontSize; fontSize -= 0.25) {
@@ -1714,16 +1841,275 @@ public class BoardController {
 
         double chromeWidth = stage.getWidth() - currentSceneWidth;
         double chromeHeight = stage.getHeight() - currentSceneHeight;
-        double maxStageWidth = Screen.getPrimary().getVisualBounds().getWidth();
-        double maxStageHeight = Screen.getPrimary().getVisualBounds().getHeight();
+        Screen activeScreen = Screen.getScreensForRectangle(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight())
+            .stream()
+            .findFirst()
+            .orElse(Screen.getPrimary());
+        double maxStageWidth = activeScreen.getVisualBounds().getWidth();
+        double maxStageHeight = activeScreen.getVisualBounds().getHeight();
         double targetStageWidth = Math.min(targetSceneWidth + chromeWidth, maxStageWidth);
         double targetStageHeight = Math.min(targetSceneHeight + chromeHeight, maxStageHeight);
 
-        if (targetStageWidth > stage.getWidth()) {
+        if (Math.abs(targetStageWidth - stage.getWidth()) > 1.0) {
             stage.setWidth(targetStageWidth);
         }
-        if (targetStageHeight > stage.getHeight()) {
+        if (Math.abs(targetStageHeight - stage.getHeight()) > 1.0) {
             stage.setHeight(targetStageHeight);
+        }
+    }
+
+    private void configureResponsiveLayout() {
+        ChangeListener<Number> sceneWidthListener = (obs, oldValue, newValue) -> {
+            if (newValue == null) {
+                return;
+            }
+            applyResponsiveModeForWidth(newValue.doubleValue());
+        };
+
+        gameDialogPane.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (oldScene != null) {
+                oldScene.widthProperty().removeListener(sceneWidthListener);
+            }
+            if (newScene != null) {
+                newScene.widthProperty().addListener(sceneWidthListener);
+                applyResponsiveModeForWidth(newScene.getWidth());
+            }
+        });
+
+        if (outerScoreScroll != null) {
+            outerScoreScroll.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
+                if (newBounds != null && newBounds.getWidth() > 0) {
+                    double sceneWidth = gameDialogPane.getScene() != null ? gameDialogPane.getScene().getWidth() : newBounds.getWidth();
+                    applyResponsiveModeForWidth(sceneWidth);
+                }
+            });
+        }
+
+        Platform.runLater(() -> {
+            if (gameDialogPane.getScene() != null) {
+                applyResponsiveModeForWidth(gameDialogPane.getScene().getWidth());
+                // Re-run after the next layout pulse so viewport-based sizing settles on startup.
+                Platform.runLater(() -> applyResponsiveModeForWidth(gameDialogPane.getScene().getWidth()));
+            }
+        });
+    }
+
+    private void applyResponsiveModeForWidth(double sceneWidth) {
+        double availableBoardWidth = resolveAvailableBoardWidth(sceneWidth);
+        int stationCount = Math.max(Board.getInstance().getStationCount(), 1);
+
+        double largeRequiredWidth = requiredBoardWidthFor(ResponsiveMode.LARGE, stationCount);
+        double mediumRequiredWidth = requiredBoardWidthFor(ResponsiveMode.MEDIUM, stationCount);
+
+        ResponsiveMode nextMode;
+        if (availableBoardWidth >= largeRequiredWidth) {
+            nextMode = ResponsiveMode.LARGE;
+        } else if (availableBoardWidth >= mediumRequiredWidth) {
+            nextMode = ResponsiveMode.MEDIUM;
+        } else {
+            nextMode = ResponsiveMode.COMPACT;
+        }
+
+        boolean modeChanged = nextMode != responsiveMode;
+
+        responsiveMode = nextMode;
+        if (modeChanged && gameDialogPane.getScene() != null && gameDialogPane.getScene().getRoot() != null) {
+            var styleClasses = gameDialogPane.getScene().getRoot().getStyleClass();
+            styleClasses.removeAll(STYLE_BOARD_LARGE, STYLE_BOARD_MEDIUM, STYLE_BOARD_COMPACT);
+            switch (responsiveMode) {
+                case COMPACT -> styleClasses.add(STYLE_BOARD_COMPACT);
+                case MEDIUM -> styleClasses.add(STYLE_BOARD_MEDIUM);
+                default -> styleClasses.add(STYLE_BOARD_LARGE);
+            }
+        }
+
+        applyResponsiveSpacing();
+
+        setEndpointHeaderText(backlogHeader, "BACKLOG");
+        setEndpointHeaderText(finishedGoodsHeader, "FINISHED GOODS");
+        Workstation[] workstations = WorkstationService.getWorkstations();
+        for (int i = 0; i < queueTitleLabels.size() && i < workstations.length; i++) {
+            setQueueHeaderText(queueTitleLabels.get(i), workstations[i].getColor().name() + " QUEUE");
+        }
+        applyResponsiveTextPolicies();
+        applyReactiveCardSizing();
+    }
+
+    private double resolveAvailableBoardWidth(double sceneWidth) {
+        if (outerScoreScroll != null && outerScoreScroll.getViewportBounds().getWidth() > 0) {
+            return Math.max(640.0, outerScoreScroll.getViewportBounds().getWidth() - OUTER_SCORE_HORIZONTAL_BUFFER);
+        }
+        return Math.max(640.0, sceneWidth - SCENE_NON_BOARD_BUFFER);
+    }
+
+    private double requiredBoardWidthFor(ResponsiveMode mode, int stationCount) {
+        int queueCount = Math.max(stationCount - 1, 0);
+        int workstationNodes = stationCount + queueCount;
+        double workstationWidth;
+        double queueWidth;
+        double endpointWidth;
+        double workstationSpacing;
+        double outerScoreSpacing;
+
+        switch (mode) {
+            case COMPACT -> {
+                workstationWidth = COMPACT_WORKSTATION_CARD_WIDTH;
+                queueWidth = COMPACT_QUEUE_BRIDGE_WIDTH;
+                endpointWidth = COMPACT_ENDPOINT_CARD_WIDTH;
+                workstationSpacing = COMPACT_WORKSTATION_SPACING;
+                outerScoreSpacing = COMPACT_OUTER_SCORE_SPACING;
+            }
+            case MEDIUM -> {
+                workstationWidth = MEDIUM_WORKSTATION_CARD_WIDTH;
+                queueWidth = MEDIUM_QUEUE_BRIDGE_WIDTH;
+                endpointWidth = MEDIUM_ENDPOINT_CARD_WIDTH;
+                workstationSpacing = MEDIUM_WORKSTATION_SPACING;
+                outerScoreSpacing = MEDIUM_OUTER_SCORE_SPACING;
+            }
+            default -> {
+                workstationWidth = LARGE_WORKSTATION_CARD_WIDTH;
+                queueWidth = LARGE_QUEUE_BRIDGE_WIDTH;
+                endpointWidth = LARGE_ENDPOINT_CARD_WIDTH;
+                workstationSpacing = LARGE_WORKSTATION_SPACING;
+                outerScoreSpacing = LARGE_OUTER_SCORE_SPACING;
+            }
+        }
+
+        return workstationWidth * stationCount
+            + queueWidth * queueCount
+            + workstationSpacing * Math.max(workstationNodes - 1, 0)
+            + endpointWidth * 2
+            + outerScoreSpacing * 4
+            + OUTER_SCORE_HORIZONTAL_BUFFER;
+    }
+
+    private void applyResponsiveSpacing() {
+        if (outerScoreBox == null || workstationContainer == null) {
+            return;
+        }
+
+        switch (responsiveMode) {
+            case COMPACT -> {
+                outerScoreBox.setSpacing(COMPACT_OUTER_SCORE_SPACING);
+                workstationContainer.setSpacing(COMPACT_WORKSTATION_SPACING);
+            }
+            case MEDIUM -> {
+                outerScoreBox.setSpacing(MEDIUM_OUTER_SCORE_SPACING);
+                workstationContainer.setSpacing(MEDIUM_WORKSTATION_SPACING);
+            }
+            default -> {
+                outerScoreBox.setSpacing(LARGE_OUTER_SCORE_SPACING);
+                workstationContainer.setSpacing(LARGE_WORKSTATION_SPACING);
+            }
+        }
+    }
+
+    private void applyReactiveCardSizing() {
+        if (outerScoreScroll == null || workstationCards.isEmpty()) {
+            return;
+        }
+
+        double viewportWidth = outerScoreScroll.getViewportBounds().getWidth();
+        if (viewportWidth <= 0) {
+            return;
+        }
+        double available = viewportWidth - 22.0;
+        if (available <= 0) {
+            return;
+        }
+
+        int stationCount = workstationCards.size();
+        if (lastAppliedSizingStationCount == stationCount
+                && lastAppliedSizingWidth > 0
+                && Math.abs(available - lastAppliedSizingWidth) < 6.0) {
+            return;
+        }
+        lastAppliedSizingWidth = available;
+        lastAppliedSizingStationCount = stationCount;
+
+        int queueCount = queueBridges.size();
+
+        double endpointWeight = 0.66;
+        double workstationWeight = 0.96;
+        double queueWeight = 0.35;
+        double totalWeight = endpointWeight * 2 + workstationWeight * stationCount + queueWeight * queueCount;
+        if (totalWeight <= 0) {
+            return;
+        }
+
+        double unit = available / totalWeight;
+
+        double workstationWidth = clamp(unit * workstationWeight, 132.0, 260.0);
+        double queueBridgeWidth = clamp(unit * queueWeight, 56.0, 116.0);
+        double queueBoxWidth = clamp(queueBridgeWidth - 15.0, 42.0, 94.0);
+        double endpointWidth = clamp(unit * endpointWeight, 122.0, 186.0);
+
+        for (VBox workstationCard : workstationCards) {
+            workstationCard.setMinWidth(workstationWidth);
+            workstationCard.setPrefWidth(workstationWidth);
+            workstationCard.setMaxWidth(workstationWidth);
+        }
+
+        for (HBox queueBridge : queueBridges) {
+            double bridgeSpacing = clamp(queueBridgeWidth * 0.05, 2.0, 6.0);
+            double arrowSlotWidth = clamp(queueBridgeWidth * 0.14, 10.0, 16.0);
+            queueBridge.setSpacing(bridgeSpacing);
+            queueBridge.setMinWidth(queueBridgeWidth);
+            queueBridge.setPrefWidth(queueBridgeWidth);
+            queueBridge.setMaxWidth(queueBridgeWidth);
+            for (javafx.scene.Node child : queueBridge.getChildren()) {
+                if (child instanceof StackPane arrowSlot && arrowSlot.getStyleClass().contains("queue-flow-arrow-slot")) {
+                    arrowSlot.setMinWidth(arrowSlotWidth);
+                    arrowSlot.setPrefWidth(arrowSlotWidth);
+                    arrowSlot.setMaxWidth(arrowSlotWidth);
+                }
+            }
+        }
+
+        for (VBox queueBox : queueBoxes) {
+            queueBox.setMinWidth(queueBoxWidth);
+            queueBox.setPrefWidth(queueBoxWidth);
+            queueBox.setMaxWidth(queueBoxWidth);
+        }
+
+        if (backlogBox != null) {
+            backlogBox.setPrefWidth(endpointWidth);
+            backlogBox.setMaxWidth(endpointWidth);
+            backlogBox.setMinWidth(0.0);
+        }
+        if (finishedGoodsBox != null) {
+            finishedGoodsBox.setPrefWidth(endpointWidth);
+            finishedGoodsBox.setMaxWidth(endpointWidth);
+            finishedGoodsBox.setMinWidth(0.0);
+        }
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private void applyResponsiveTextPolicies() {
+        boolean compact = responsiveMode == ResponsiveMode.COMPACT;
+
+        for (Label label : workstationLabels) {
+            label.setWrapText(!compact);
+            label.setTextOverrun(compact ? OverrunStyle.ELLIPSIS : OverrunStyle.CLIP);
+        }
+        for (Label label : queueTitleLabels) {
+            label.setWrapText(!compact);
+            label.setTextOverrun(compact ? OverrunStyle.ELLIPSIS : OverrunStyle.CLIP);
+        }
+        for (Label label : workstationInputLabels) {
+            label.setWrapText(!compact);
+        }
+        for (Label label : workstationUpgradeLabels) {
+            label.setWrapText(!compact);
+        }
+        for (Label label : workstationStatusLabels) {
+            label.setWrapText(!compact);
+        }
+        for (Label label : workstationOutputLabels) {
+            label.setWrapText(!compact);
         }
     }
 
